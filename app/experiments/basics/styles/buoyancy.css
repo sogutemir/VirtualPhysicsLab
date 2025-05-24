@@ -1,0 +1,373 @@
+/* CSS Değişkenleri - Global renk ve boyut tanımları */
+:root {
+  --primary-blue: #3b82f6;
+  --water-base: rgba(173, 216, 230, 0.8);
+  --shadow-light: rgba(0, 0, 0, 0.1);
+  --shadow-medium: rgba(0, 0, 0, 0.2);
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --border-radius: 8px;
+  --wave-height: 20px;
+}
+
+/* Ana konteyner optimizasyonu */
+.buoyancy-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0); /* Hardware acceleration zorla */
+  backface-visibility: hidden;
+}
+
+/* Sıvı konteyneri stilleri - Hardware accelerated */
+.liquid-container {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    rgba(235, 247, 255, 0.9) 0%,
+    rgba(173, 216, 230, 0.6) 100%
+  );
+  transition: background 0.8s var(--transition-smooth);
+  will-change: background;
+  transform: translateZ(0);
+  border-radius: var(--border-radius);
+}
+
+/* Gelişmiş sıvı dalgaları - 60fps optimized */
+.liquid-wave {
+  position: absolute;
+  width: 120%;
+  height: var(--wave-height);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.6),
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  border-radius: 50% 50% 0 0;
+  opacity: 0.7;
+  transform: translateZ(0);
+  will-change: transform;
+  animation: enhanced-wave 6s ease-in-out infinite;
+}
+
+.liquid-wave:nth-child(2) {
+  animation-delay: -2s;
+  opacity: 0.5;
+  height: calc(var(--wave-height) * 0.8);
+  animation-duration: 7s;
+}
+
+.liquid-wave:nth-child(3) {
+  animation-delay: -4s;
+  opacity: 0.3;
+  height: calc(var(--wave-height) * 0.6);
+  animation-duration: 8s;
+}
+
+.liquid-wave:nth-child(4) {
+  animation-delay: -1s;
+  opacity: 0.2;
+  height: calc(var(--wave-height) * 0.4);
+  animation-duration: 9s;
+}
+
+/* Gelişmiş dalga animasyonu - Gerçekçi fizik */
+@keyframes enhanced-wave {
+  0% {
+    transform: translateX(-10%) translateY(0) scaleY(1) skewX(0deg)
+      rotateZ(0deg);
+  }
+  25% {
+    transform: translateX(10%) translateY(-8px) scaleY(1.1) skewX(2deg)
+      rotateZ(1deg);
+  }
+  50% {
+    transform: translateX(-5%) translateY(-15px) scaleY(1.2) skewX(-1deg)
+      rotateZ(-0.5deg);
+  }
+  75% {
+    transform: translateX(15%) translateY(-5px) scaleY(0.9) skewX(1.5deg)
+      rotateZ(0.8deg);
+  }
+  100% {
+    transform: translateX(-10%) translateY(0) scaleY(1) skewX(0deg)
+      rotateZ(0deg);
+  }
+}
+
+/* Nesne stilleri - Performance optimized */
+.object {
+  position: absolute;
+  border-radius: var(--border-radius);
+  transition: all 1.2s var(--transition-smooth);
+  box-shadow: 0 4px 12px var(--shadow-light), 0 2px 4px var(--shadow-medium),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+
+  /* Gradient overlay for 3D effect */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+}
+
+.object::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.object:hover {
+  transform: translateZ(0) scale(1.05);
+  box-shadow: 0 8px 24px var(--shadow-medium), 0 4px 8px var(--shadow-light),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+  transition: all 0.3s var(--transition-bounce);
+}
+
+/* Gelişmiş yüzme animasyonu - Gerçekçi fizik */
+@keyframes advanced-float {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    box-shadow: 0 4px 12px var(--shadow-light);
+  }
+  15% {
+    transform: translateY(-8px) rotate(-1deg) scale(1.02);
+    box-shadow: 0 8px 20px var(--shadow-medium);
+  }
+  30% {
+    transform: translateY(-12px) rotate(1deg) scale(1.01);
+    box-shadow: 0 12px 24px var(--shadow-medium);
+  }
+  45% {
+    transform: translateY(-6px) rotate(-0.5deg) scale(1.02);
+    box-shadow: 0 6px 16px var(--shadow-light);
+  }
+  60% {
+    transform: translateY(-10px) rotate(1.5deg) scale(1);
+    box-shadow: 0 10px 20px var(--shadow-medium);
+  }
+  75% {
+    transform: translateY(-4px) rotate(-1deg) scale(1.01);
+    box-shadow: 0 4px 12px var(--shadow-light);
+  }
+  90% {
+    transform: translateY(-8px) rotate(0.5deg) scale(1);
+    box-shadow: 0 8px 18px var(--shadow-medium);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    box-shadow: 0 4px 12px var(--shadow-light);
+  }
+}
+
+/* Gelişmiş batma animasyonu */
+@keyframes advanced-sink {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    box-shadow: 0 2px 8px var(--shadow-light);
+  }
+  20% {
+    transform: translateY(8px) rotate(2deg) scale(0.98);
+    box-shadow: 0 1px 4px var(--shadow-light);
+  }
+  40% {
+    transform: translateY(12px) rotate(-1deg) scale(0.96);
+    box-shadow: 0 0px 2px var(--shadow-light);
+  }
+  60% {
+    transform: translateY(6px) rotate(1.5deg) scale(0.98);
+    box-shadow: 0 1px 3px var(--shadow-light);
+  }
+  80% {
+    transform: translateY(10px) rotate(-0.5deg) scale(0.97);
+    box-shadow: 0 0px 2px var(--shadow-light);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    box-shadow: 0 2px 8px var(--shadow-light);
+  }
+}
+
+/* Denge animasyonu - Nötr durum için */
+@keyframes equilibrium {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-2px) rotate(0.5deg) scale(1.005);
+  }
+  75% {
+    transform: translateY(2px) rotate(-0.5deg) scale(0.995);
+  }
+}
+
+/* Animasyon sınıfları */
+.animate-float {
+  animation: advanced-float 4.5s ease-in-out infinite;
+}
+
+.animate-sink {
+  animation: advanced-sink 3.8s ease-in-out infinite;
+}
+
+.animate-equilibrium {
+  animation: equilibrium 6s ease-in-out infinite;
+}
+
+/* Performans optimized slider stilleri */
+input[type='range'] {
+  -webkit-appearance: none;
+  height: 6px;
+  background: linear-gradient(
+    to right,
+    var(--primary-blue) 0%,
+    var(--primary-blue) var(--progress, 50%),
+    rgba(0, 0, 0, 0.1) var(--progress, 50%),
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  border-radius: 3px;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  transition: all 0.3s var(--transition-smooth);
+  will-change: background;
+  transform: translateZ(0);
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-blue), #2563eb);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: all 0.2s var(--transition-smooth);
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+}
+
+input[type='range']::-webkit-slider-thumb:hover {
+  transform: translateZ(0) scale(1.2);
+  box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1),
+    0 4px 12px rgba(59, 130, 246, 0.4), 0 2px 6px rgba(0, 0, 0, 0.2),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4);
+}
+
+input[type='range']::-webkit-slider-thumb:active {
+  transform: translateZ(0) scale(1.3);
+  box-shadow: 0 0 0 12px rgba(59, 130, 246, 0.15),
+    0 6px 16px rgba(59, 130, 246, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Gelişmiş giriş animasyonu */
+@keyframes gentle-bounce-in {
+  0% {
+    transform: translateY(-30px) scale(0.8) rotate(-5deg);
+    opacity: 0;
+  }
+  40% {
+    transform: translateY(-15px) scale(1.1) rotate(2deg);
+    opacity: 0.8;
+  }
+  60% {
+    transform: translateY(-8px) scale(0.95) rotate(-1deg);
+    opacity: 0.9;
+  }
+  80% {
+    transform: translateY(-2px) scale(1.02) rotate(0.5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.bounce-enter {
+  animation: gentle-bounce-in 1.8s var(--transition-bounce);
+}
+
+/* Responsive optimizations */
+@media (max-width: 768px) {
+  .liquid-wave {
+    height: calc(var(--wave-height) * 0.8);
+  }
+
+  .object {
+    transition: all 0.8s var(--transition-smooth);
+  }
+
+  input[type='range']::-webkit-slider-thumb {
+    height: 18px;
+    width: 18px;
+  }
+}
+
+/* High refresh rate displays optimization */
+@media (min-refresh-rate: 90hz) {
+  .animate-float {
+    animation-duration: 3.5s;
+  }
+
+  .animate-sink {
+    animation-duration: 3s;
+  }
+
+  .enhanced-wave {
+    animation-duration: 5s;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-sink,
+  .animate-equilibrium,
+  .liquid-wave {
+    animation-duration: 8s;
+    animation-timing-function: linear;
+  }
+
+  .object {
+    transition-duration: 0.5s;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --shadow-light: rgba(255, 255, 255, 0.1);
+    --shadow-medium: rgba(255, 255, 255, 0.2);
+  }
+
+  .liquid-container {
+    background: linear-gradient(
+      180deg,
+      rgba(30, 40, 50, 0.9) 0%,
+      rgba(50, 80, 120, 0.6) 100%
+    );
+  }
+}
