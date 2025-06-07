@@ -8,7 +8,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import Slider, { CustomSlider } from '../../../components/ui/slider';
 import Svg, {
   Path,
   Circle,
@@ -141,7 +141,7 @@ export default function InclinedPlaneExperiment() {
     acceleration: 0,
   });
 
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
 
   const updateSimulation = useCallback((timestamp: number) => {
@@ -343,12 +343,12 @@ export default function InclinedPlaneExperiment() {
                     {state.angle.toFixed(1)}°
                   </Text>
                 </View>
-                <Slider
+                <CustomSlider
                   style={styles.slider}
-                  minimumValue={CONSTANTS.MIN_ANGLE}
-                  maximumValue={CONSTANTS.MAX_ANGLE}
+                  min={CONSTANTS.MIN_ANGLE}
+                  max={CONSTANTS.MAX_ANGLE}
                   value={state.angle}
-                  onValueChange={(value) =>
+                  onValueChange={(value: number) =>
                     setState((prev) => ({ ...prev, angle: value }))
                   }
                   minimumTrackTintColor="#3498db"
@@ -364,10 +364,10 @@ export default function InclinedPlaneExperiment() {
                     {state.mass.toFixed(1)} kg
                   </Text>
                 </View>
-                <Slider
+                <CustomSlider
                   style={styles.slider}
-                  minimumValue={CONSTANTS.MIN_MASS}
-                  maximumValue={CONSTANTS.MAX_MASS}
+                  min={CONSTANTS.MIN_MASS}
+                  max={CONSTANTS.MAX_MASS}
                   step={0.1}
                   value={state.mass}
                   onValueChange={(value) =>
@@ -388,10 +388,10 @@ export default function InclinedPlaneExperiment() {
                     {state.friction.toFixed(2)}
                   </Text>
                 </View>
-                <Slider
+                <CustomSlider
                   style={styles.slider}
-                  minimumValue={CONSTANTS.MIN_FRICTION}
-                  maximumValue={CONSTANTS.MAX_FRICTION}
+                  min={CONSTANTS.MIN_FRICTION}
+                  max={CONSTANTS.MAX_FRICTION}
                   step={0.01}
                   value={state.friction}
                   onValueChange={(value) =>
@@ -412,10 +412,10 @@ export default function InclinedPlaneExperiment() {
                     {state.appliedForce.toFixed(1)} N
                   </Text>
                 </View>
-                <Slider
+                <CustomSlider
                   style={styles.slider}
-                  minimumValue={CONSTANTS.MIN_FORCE}
-                  maximumValue={CONSTANTS.MAX_FORCE}
+                  min={CONSTANTS.MIN_FORCE}
+                  max={CONSTANTS.MAX_FORCE}
                   value={state.appliedForce}
                   onValueChange={(value) =>
                     setState((prev) => ({ ...prev, appliedForce: value }))

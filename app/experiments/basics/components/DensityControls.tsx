@@ -1,7 +1,7 @@
 import React, { memo, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { cn } from '../lib/utils';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../components/ui/slider';
 
 interface ObjectProps {
   id: number;
@@ -287,9 +287,9 @@ const ObjectControl: React.FC<{
       </View>
 
       {/* Slider */}
-      <Slider
-        minimumValue={SLIDER_CONFIG.OBJECT_MIN}
-        maximumValue={SLIDER_CONFIG.OBJECT_MAX}
+      <CustomSlider
+        min={SLIDER_CONFIG.OBJECT_MIN}
+        max={SLIDER_CONFIG.OBJECT_MAX}
         step={SLIDER_CONFIG.OBJECT_STEP}
         value={obj.density}
         onValueChange={onDensityChange}
@@ -427,9 +427,9 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
                 {SLIDER_CONFIG.LIQUID_MIN} - {SLIDER_CONFIG.LIQUID_MAX}
               </Text>
             </View>
-            <Slider
-              minimumValue={SLIDER_CONFIG.LIQUID_MIN}
-              maximumValue={SLIDER_CONFIG.LIQUID_MAX}
+            <CustomSlider
+              min={SLIDER_CONFIG.LIQUID_MIN}
+              max={SLIDER_CONFIG.LIQUID_MAX}
               step={SLIDER_CONFIG.LIQUID_STEP}
               value={liquidDensity}
               onValueChange={onLiquidDensityChange}

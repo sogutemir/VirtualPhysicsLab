@@ -8,7 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import { useLanguage } from '../../../../../components/LanguageContext';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import {
   MetalType,
   METAL_NAMES_TR,
@@ -109,9 +109,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             {wavelength.toFixed(0)} nm
           </Animated.Text>
         </View>
-        <Slider
-          minimumValue={MIN_FREQUENCY}
-          maximumValue={MAX_FREQUENCY}
+        <CustomSlider
+          min={MIN_FREQUENCY}
+          max={MAX_FREQUENCY}
           step={(MAX_FREQUENCY - MIN_FREQUENCY) / 1000}
           value={frequency}
           onValueChange={(value) => {
@@ -147,9 +147,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             {intensity.toFixed(0)}%
           </Animated.Text>
         </View>
-        <Slider
-          minimumValue={0}
-          maximumValue={100}
+        <CustomSlider
+          min={0}
+          max={100}
           step={1}
           value={intensity}
           onValueChange={(value) => {
@@ -203,9 +203,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             {stoppingVoltage.toFixed(2)} V
           </Animated.Text>
         </View>
-        <Slider
-          minimumValue={-1}
-          maximumValue={5}
+        <CustomSlider
+          min={-1}
+          max={5}
           step={0.1}
           value={stoppingVoltage}
           onValueChange={(value) => {
@@ -231,9 +231,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             {temperature.toFixed(0)} K
           </Animated.Text>
         </View>
-        <Slider
-          minimumValue={100}
-          maximumValue={500}
+        <CustomSlider
+          min={100}
+          max={500}
           step={10}
           value={temperature}
           onValueChange={(value) => {

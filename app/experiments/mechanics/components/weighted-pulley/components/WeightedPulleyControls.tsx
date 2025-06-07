@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { WeightedPulleyControlsProps, INERTIA_OPTIONS } from '../types';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../../components/LanguageContext';
 
 const WeightedPulleyControls: React.FC<WeightedPulleyControlsProps> = ({
@@ -53,10 +53,10 @@ const WeightedPulleyControls: React.FC<WeightedPulleyControlsProps> = ({
           </Text>
           <Text style={styles.value}>{state.massM} g</Text>
         </View>
-        <Slider
+        <CustomSlider
           value={state.massM}
-          minimumValue={150}
-          maximumValue={800}
+          min={150}
+          max={800}
           step={1}
           onValueChange={onMassMChange}
           minimumTrackTintColor="#3b82f6"
@@ -73,10 +73,10 @@ const WeightedPulleyControls: React.FC<WeightedPulleyControlsProps> = ({
           </Text>
           <Text style={styles.value}>{state.massm} g</Text>
         </View>
-        <Slider
+        <CustomSlider
           value={state.massm}
-          minimumValue={100}
-          maximumValue={1000}
+          min={100}
+          max={1000}
           step={1}
           onValueChange={onMassmChange}
           minimumTrackTintColor="#ef4444"
@@ -93,10 +93,10 @@ const WeightedPulleyControls: React.FC<WeightedPulleyControlsProps> = ({
           </Text>
           <Text style={styles.value}>{state.angle}°</Text>
         </View>
-        <Slider
+        <CustomSlider
           value={state.angle}
-          minimumValue={0}
-          maximumValue={90}
+          min={0}
+          max={90}
           step={1}
           onValueChange={onAngleChange}
           minimumTrackTintColor="#10b981"

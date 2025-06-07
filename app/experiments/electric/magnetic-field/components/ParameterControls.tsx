@@ -19,7 +19,7 @@ import {
   RotateCw,
   Magnet,
 } from 'lucide-react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
 import { FieldType, ParameterControlsProps } from './types';
 
@@ -116,10 +116,10 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
               {t('Akım Şiddeti', 'Current Intensity')}
             </Text>
             <View style={styles.sliderContainer}>
-              <Slider
+              <CustomSlider
                 style={styles.slider}
-                minimumValue={0}
-                maximumValue={10}
+                min={0}
+                max={10}
                 step={0.1}
                 value={currentIntensity}
                 onValueChange={handleCurrentChange}
@@ -162,10 +162,10 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
               {t('Tel Mesafesi', 'Wire Distance')}
             </Text>
             <View style={styles.sliderContainer}>
-              <Slider
+              <CustomSlider
                 style={styles.slider}
-                minimumValue={10}
-                maximumValue={50}
+                min={10}
+                max={50}
                 step={1}
                 value={wireDistance}
                 onValueChange={handleDistanceChange}

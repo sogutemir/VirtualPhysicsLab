@@ -9,7 +9,7 @@ import {
   ScrollView,
   Switch,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
 import { TargetBox } from '../../utils/momentum-bullet/physics';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -113,11 +113,11 @@ const ProjectileSettings = ({
             </Text>
             <Text style={styles.sliderValue}>{mass} kg</Text>
           </View>
-          <Slider
+          <CustomSlider
             style={styles.slider}
             value={mass}
-            minimumValue={1}
-            maximumValue={10}
+            min={1}
+            max={10}
             step={0.1}
             onValueChange={(value) => setMass(value)}
             disabled={disabled}
@@ -135,11 +135,11 @@ const ProjectileSettings = ({
             </Text>
             <Text style={styles.sliderValue}>{velocity} m/s</Text>
           </View>
-          <Slider
+          <CustomSlider
             style={styles.slider}
             value={velocity}
-            minimumValue={1}
-            maximumValue={80}
+            min={1}
+            max={80}
             step={1}
             onValueChange={(value) => setVelocity(value)}
             disabled={disabled}
@@ -181,11 +181,11 @@ const ProjectileSettings = ({
               {targetBox.mass.toFixed(1)} kg
             </Text>
           </View>
-          <Slider
+          <CustomSlider
             style={styles.slider}
             value={targetBox.mass}
-            minimumValue={1}
-            maximumValue={50}
+            min={1}
+            max={50}
             step={1}
             onValueChange={(value) => onUpdateTargetBox({ mass: value })}
             disabled={disabled}
@@ -243,11 +243,11 @@ const ProjectileSettings = ({
               {targetBox.hardness?.toFixed(1) || '8.0'}
             </Text>
           </View>
-          <Slider
+          <CustomSlider
             style={styles.slider}
             value={targetBox.hardness || 8}
-            minimumValue={1}
-            maximumValue={20}
+            min={1}
+            max={20}
             step={0.5}
             onValueChange={handleHardnessChange}
             disabled={disabled}
@@ -273,11 +273,11 @@ const ProjectileSettings = ({
               {targetBox.thickness?.toFixed(1) || '5.0'} cm
             </Text>
           </View>
-          <Slider
+          <CustomSlider
             style={styles.slider}
             value={targetBox.thickness || 5}
-            minimumValue={1}
-            maximumValue={20}
+            min={1}
+            max={20}
             step={0.5}
             onValueChange={handleThicknessChange}
             disabled={disabled}

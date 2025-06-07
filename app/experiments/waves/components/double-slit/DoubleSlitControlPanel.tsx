@@ -7,7 +7,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
 import { wavelengthToRGB } from '../../utils/physics';
 
@@ -61,10 +61,10 @@ const DoubleSlitControlPanel: React.FC<ControlProps> = ({
           <View style={styles.controlGroup}>
             <Text style={styles.label}>{t('Dalga Boyu', 'Wavelength')}</Text>
             <Text style={styles.value}>{wavelength} nm</Text>
-            <Slider
+            <CustomSlider
               value={wavelength}
-              minimumValue={380}
-              maximumValue={750}
+              min={380}
+              max={750}
               step={10}
               onValueChange={setWavelength}
               minimumTrackTintColor={waveColor}
@@ -78,10 +78,10 @@ const DoubleSlitControlPanel: React.FC<ControlProps> = ({
               {t('Yarık Genişliği', 'Slit Width')}
             </Text>
             <Text style={styles.value}>{slitWidth.toFixed(1)} mm</Text>
-            <Slider
+            <CustomSlider
               value={slitWidth}
-              minimumValue={0.1}
-              maximumValue={2}
+              min={0.1}
+              max={2}
               step={0.1}
               onValueChange={setSlitWidth}
               minimumTrackTintColor="#3b82f6"
@@ -95,10 +95,10 @@ const DoubleSlitControlPanel: React.FC<ControlProps> = ({
               {t('Yarık Ayrımı', 'Slit Separation')}
             </Text>
             <Text style={styles.value}>{slitSeparation.toFixed(1)} mm</Text>
-            <Slider
+            <CustomSlider
               value={slitSeparation}
-              minimumValue={0.5}
-              maximumValue={10}
+              min={0.5}
+              max={10}
               step={0.5}
               onValueChange={setSlitSeparation}
               minimumTrackTintColor="#3b82f6"
@@ -114,10 +114,10 @@ const DoubleSlitControlPanel: React.FC<ControlProps> = ({
               {t('Kaynak Mesafesi', 'Source Distance')}
             </Text>
             <Text style={styles.value}>{sourceDistance.toFixed(0)} mm</Text>
-            <Slider
+            <CustomSlider
               value={sourceDistance}
-              minimumValue={50}
-              maximumValue={300}
+              min={50}
+              max={300}
               step={10}
               onValueChange={setSourceDistance}
               minimumTrackTintColor="#3b82f6"
@@ -137,10 +137,10 @@ const DoubleSlitControlPanel: React.FC<ControlProps> = ({
               )}
             </Text>
             <Text style={styles.value}>{screenDistance.toFixed(0)} mm</Text>
-            <Slider
+            <CustomSlider
               value={screenDistance}
-              minimumValue={50}
-              maximumValue={maxScreenDistance}
+              min={50}
+              max={maxScreenDistance}
               step={10}
               onValueChange={(value) => {
                 // Mobilde 200mm'den fazla değer seçilememesini sağla

@@ -8,7 +8,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../components/ui/slider';
 import Svg, {
   Line,
   Circle,
@@ -78,10 +78,10 @@ const WebSlider = ({
   }
 
   return (
-    <Slider
+    <CustomSlider
       style={style}
-      minimumValue={minimumValue}
-      maximumValue={maximumValue}
+      min={minimumValue}
+      max={maximumValue}
       value={value}
       onValueChange={onValueChange}
       minimumTrackTintColor={minimumTrackTintColor}
@@ -633,8 +633,8 @@ export default function AdvancedPendulumExperiment() {
             </Text>
             <WebSlider
               style={styles.slider}
-              minimumValue={0.5}
-              maximumValue={2.5}
+              min={0.5}
+              max={2.5}
               value={state.length}
               onValueChange={handleLengthChange}
               minimumTrackTintColor="#3498db"
@@ -648,8 +648,8 @@ export default function AdvancedPendulumExperiment() {
             </Text>
             <WebSlider
               style={styles.slider}
-              minimumValue={-45}
-              maximumValue={45}
+              min={-45}
+              max={45}
               value={(state.angle * 180) / Math.PI}
               onValueChange={handleAngleChange}
               minimumTrackTintColor="#3498db"
@@ -670,8 +670,8 @@ export default function AdvancedPendulumExperiment() {
             </Text>
             <WebSlider
               style={styles.slider}
-              minimumValue={0.5}
-              maximumValue={2.0}
+              min={0.5}
+              max={2.0}
               value={state.length1}
               onValueChange={handleLength1Change}
               minimumTrackTintColor="#22c55e"
@@ -684,8 +684,8 @@ export default function AdvancedPendulumExperiment() {
             </Text>
             <WebSlider
               style={styles.slider}
-              minimumValue={0.5}
-              maximumValue={2.0}
+              min={0.5}
+              max={2.0}
               value={state.length2}
               onValueChange={handleLength2Change}
               minimumTrackTintColor="#f97316"
@@ -698,8 +698,8 @@ export default function AdvancedPendulumExperiment() {
             </Text>
             <WebSlider
               style={styles.slider}
-              minimumValue={0.5}
-              maximumValue={3.0}
+              min={0.5}
+              max={3.0}
               value={state.mass1}
               onValueChange={handleMass1Change}
               minimumTrackTintColor="#22c55e"
@@ -712,8 +712,8 @@ export default function AdvancedPendulumExperiment() {
             </Text>
             <WebSlider
               style={styles.slider}
-              minimumValue={0.5}
-              maximumValue={3.0}
+              min={0.5}
+              max={3.0}
               value={state.mass2}
               onValueChange={handleMass2Change}
               minimumTrackTintColor="#f97316"
@@ -771,8 +771,8 @@ export default function AdvancedPendulumExperiment() {
             </Text>
             <WebSlider
               style={styles.slider}
-              minimumValue={0.5}
-              maximumValue={5.0}
+              min={0.5}
+              max={5.0}
               value={state.physicalMass}
               onValueChange={handlePhysicalMassChange}
               minimumTrackTintColor="#8b5cf6"
@@ -785,8 +785,8 @@ export default function AdvancedPendulumExperiment() {
             </Text>
             <WebSlider
               style={styles.slider}
-              minimumValue={0.5}
-              maximumValue={2.0}
+              min={0.5}
+              max={2.0}
               value={state.physicalLength}
               onValueChange={handlePhysicalLengthChange}
               minimumTrackTintColor="#8b5cf6"

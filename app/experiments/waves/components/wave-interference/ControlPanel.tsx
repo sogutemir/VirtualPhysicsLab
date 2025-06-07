@@ -7,7 +7,7 @@ import {
   Switch,
   ScrollView,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
 import { WaveSource } from '../../utils/waveCalculations';
 
@@ -57,12 +57,12 @@ const SliderControl = memo<{
         {label}: {value.toFixed(1)}
         {unit}
       </Text>
-      <Slider
+      <CustomSlider
         style={styles.slider}
         value={value}
         onValueChange={onValueChange}
-        minimumValue={minimumValue}
-        maximumValue={maximumValue}
+        min={minimumValue}
+        max={maximumValue}
         step={step}
         disabled={disabled}
         minimumTrackTintColor="#3b82f6"

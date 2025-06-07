@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { CollisionMode } from '../../utils/momentum-bullet/physics';
@@ -51,10 +51,10 @@ const ControlPanel = ({
           </Text>
           <Text style={styles.sliderValue}>{timeScale.toFixed(1)}x</Text>
         </View>
-        <Slider
+        <CustomSlider
           style={styles.slider}
-          minimumValue={0.1}
-          maximumValue={3.0}
+          min={0.1}
+          max={3.0}
           step={0.1}
           value={timeScale}
           onValueChange={onTimeScaleChange}
@@ -71,10 +71,10 @@ const ControlPanel = ({
           </Text>
           <Text style={styles.sliderValue}>{wallElasticity.toFixed(2)}</Text>
         </View>
-        <Slider
+        <CustomSlider
           style={styles.slider}
-          minimumValue={0}
-          maximumValue={1}
+          min={0}
+          max={1}
           step={0.01}
           value={wallElasticity}
           onValueChange={onWallElasticityChange}

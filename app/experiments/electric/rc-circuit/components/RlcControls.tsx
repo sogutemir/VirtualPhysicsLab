@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
 import { RlcState } from '../utils/types';
 
@@ -75,11 +75,11 @@ const RlcControls: React.FC<RlcControlsProps> = ({
               {state.voltage.toFixed(1)} V
             </Text>
           </View>
-          <Slider
+          <CustomSlider
             value={state.voltage}
             onValueChange={onVoltageChange}
-            minimumValue={2}
-            maximumValue={9}
+            min={2}
+            max={9}
             step={0.1}
             minimumTrackTintColor="#3498db"
             maximumTrackTintColor="rgba(52, 152, 219, 0.2)"
@@ -97,11 +97,11 @@ const RlcControls: React.FC<RlcControlsProps> = ({
               {state.frequency.toFixed(1)} Hz
             </Text>
           </View>
-          <Slider
+          <CustomSlider
             value={state.frequency}
             onValueChange={onFrequencyChange}
-            minimumValue={10}
-            maximumValue={1000}
+            min={10}
+            max={1000}
             step={1}
             minimumTrackTintColor="#3498db"
             maximumTrackTintColor="rgba(52, 152, 219, 0.2)"
@@ -119,11 +119,11 @@ const RlcControls: React.FC<RlcControlsProps> = ({
               {(state.resistance * 0.1).toFixed(1)} Ω
             </Text>
           </View>
-          <Slider
+          <CustomSlider
             value={state.resistance}
             onValueChange={onResistanceChange}
-            minimumValue={10}
-            maximumValue={500}
+            min={10}
+            max={500}
             step={1}
             minimumTrackTintColor="#e74c3c"
             maximumTrackTintColor="rgba(231, 76, 60, 0.2)"
@@ -141,11 +141,11 @@ const RlcControls: React.FC<RlcControlsProps> = ({
               {state.capacitance.toFixed(0)} μF
             </Text>
           </View>
-          <Slider
+          <CustomSlider
             value={state.capacitance}
             onValueChange={onCapacitanceChange}
-            minimumValue={10}
-            maximumValue={1000}
+            min={10}
+            max={1000}
             step={1}
             minimumTrackTintColor="#3498db"
             maximumTrackTintColor="rgba(52, 152, 219, 0.2)"
@@ -163,11 +163,11 @@ const RlcControls: React.FC<RlcControlsProps> = ({
               {state.inductance.toFixed(1)} mH
             </Text>
           </View>
-          <Slider
+          <CustomSlider
             value={state.inductance}
             onValueChange={onInductanceChange}
-            minimumValue={10}
-            maximumValue={1000}
+            min={10}
+            max={1000}
             step={1}
             minimumTrackTintColor="#2ecc71"
             maximumTrackTintColor="rgba(46, 204, 113, 0.2)"

@@ -18,7 +18,7 @@ import Svg, {
   LinearGradient,
   Stop,
 } from 'react-native-svg';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../components/ui/slider';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useLanguage } from '../../../components/LanguageContext';
 
@@ -78,7 +78,7 @@ export default function DopplerEffectExperiment() {
   const [state, setState] = useState<DopplerEffectState>(DEFAULT_STATE);
 
   // Animasyon referansı
-  const animationRef = useRef<NodeJS.Timeout>();
+  const animationRef = useRef<number>(0);
 
   // Kaynak pozisyonunu hesapla
   const calculateSourcePosition = useCallback(
@@ -153,20 +153,26 @@ export default function DopplerEffectExperiment() {
     });
 
     // requestAnimationFrame yerine setTimeout kullanıyoruz
-    animationRef.current = setTimeout(animate, ANIMATION_INTERVAL);
+    animationRef.current = setTimeout(
+      animate,
+      ANIMATION_INTERVAL
+    ) as unknown as number;
   }, [state.isRunning, canvasSize, calculateSourcePosition]);
 
   // Animasyonu başlat/durdur
   useEffect(() => {
     if (state.isRunning) {
-      animationRef.current = setTimeout(animate, ANIMATION_INTERVAL);
+      animationRef.current = setTimeout(
+        animate,
+        ANIMATION_INTERVAL
+      ) as unknown as number;
     } else if (animationRef.current) {
-      clearTimeout(animationRef.current);
+      clearTimeout(animationRef.current as unknown as NodeJS.Timeout);
     }
 
     return () => {
       if (animationRef.current) {
-        clearTimeout(animationRef.current);
+        clearTimeout(animationRef.current as unknown as NodeJS.Timeout);
       }
     };
   }, [state.isRunning, animate]);
@@ -437,11 +443,11 @@ export default function DopplerEffectExperiment() {
             <Text style={styles.label}>
               {t('Kaynak Hızı', 'Source Velocity')}: {state.velocity} m/s
             </Text>
-            <Slider
+            <CustomSlider
               style={styles.slider}
               value={state.velocity}
-              minimumValue={50}
-              maximumValue={500}
+              min={50}
+              max={500}
               step={5}
               onValueChange={handleVelocityChange}
               disabled={state.isRunning}

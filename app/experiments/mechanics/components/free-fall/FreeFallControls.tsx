@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import { FreeFallControlsProps } from './types';
 import { useLanguage } from '../../../../../components/LanguageContext';
 
@@ -30,10 +30,10 @@ export const FreeFallControls: React.FC<FreeFallControlsProps> = ({
             </Text>
             <Text style={styles.value}>{state.velocity.toFixed(1)} m/s</Text>
           </View>
-          <Slider
+          <CustomSlider
             style={styles.slider}
-            minimumValue={0}
-            maximumValue={500}
+            min={0}
+            max={500}
             step={5}
             value={state.velocity}
             onValueChange={onVelocityChange}
@@ -48,10 +48,10 @@ export const FreeFallControls: React.FC<FreeFallControlsProps> = ({
             <Text style={styles.label}>{t('Atış Açısı', 'Launch Angle')}</Text>
             <Text style={styles.value}>{state.angle.toFixed(1)}°</Text>
           </View>
-          <Slider
+          <CustomSlider
             style={styles.slider}
-            minimumValue={0}
-            maximumValue={90}
+            min={0}
+            max={90}
             step={1}
             value={state.angle}
             onValueChange={onAngleChange}
@@ -68,10 +68,10 @@ export const FreeFallControls: React.FC<FreeFallControlsProps> = ({
             </Text>
             <Text style={styles.value}>{state.frictionCoef.toFixed(4)}</Text>
           </View>
-          <Slider
+          <CustomSlider
             style={styles.slider}
-            minimumValue={0}
-            maximumValue={0.01}
+            min={0}
+            max={0.01}
             step={0.0001}
             value={state.frictionCoef}
             onValueChange={onFrictionChange}

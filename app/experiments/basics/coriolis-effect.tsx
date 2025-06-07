@@ -25,7 +25,7 @@ import Svg, {
   RadialGradient,
   Stop,
 } from 'react-native-svg';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../components/ui/slider';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useLanguage } from '../../../components/LanguageContext';
 
@@ -92,11 +92,11 @@ const ControlSlider = memo<{
         {label}: {value.toFixed(2)}
         {unit}
       </Text>
-      <Slider
+      <CustomSlider
         style={styles.slider}
         value={value}
-        minimumValue={min}
-        maximumValue={max}
+        min={min}
+        max={max}
         step={step}
         onValueChange={onValueChange}
         disabled={disabled}
@@ -161,7 +161,7 @@ export default function CoriolisEffectExperiment() {
   const [state, setState] = useState<CoriolisEffectState>(DEFAULT_STATE);
 
   // Animation reference
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number>(0);
   const stateRef = useRef(state);
 
   // Update state ref
@@ -307,7 +307,7 @@ export default function CoriolisEffectExperiment() {
     if (!stateRef.current.isRunning) {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
-        animationRef.current = undefined;
+        animationRef.current = 0;
       }
       return;
     }
@@ -353,7 +353,7 @@ export default function CoriolisEffectExperiment() {
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
-        animationRef.current = undefined;
+        animationRef.current = 0;
       }
     };
   }, [state.isRunning, animate]);
@@ -367,7 +367,7 @@ export default function CoriolisEffectExperiment() {
   const resetSimulation = useCallback(() => {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
-      animationRef.current = undefined;
+      animationRef.current = 0;
     }
     setState((prev) => ({
       ...DEFAULT_STATE,

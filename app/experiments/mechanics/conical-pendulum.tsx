@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, Dimensions, ScrollView, GestureResponderEvent, Platform } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../components/ui/slider';
 import Svg, { Line, Circle, Rect, Path } from 'react-native-svg';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useConicalPendulum } from './components/conical-pendulum/useConicalPendulum';
@@ -300,11 +300,11 @@ export default function ConicalPendulumExperiment() {
                 <Text style={styles.label}>İp Uzunluğu</Text>
                 <Text style={styles.value}>{state.length.toFixed(2)} m</Text>
               </View>
-              <Slider
+              <CustomSlider
                 value={state.length}
                 onValueChange={setLength}
-                minimumValue={0.5}
-                maximumValue={0.75}
+                min={0.5}
+                max={0.75}
                 step={0.01}
                 minimumTrackTintColor="#3498db"
                 maximumTrackTintColor="#bdc3c7"
@@ -318,11 +318,11 @@ export default function ConicalPendulumExperiment() {
                 <Text style={styles.label}>Açısal Hız</Text>
                 <Text style={styles.value}>{state.omega.toFixed(1)} rad/s</Text>
               </View>
-              <Slider
+              <CustomSlider
                 value={state.omega}
                 onValueChange={setOmega}
-                minimumValue={3.0}
-                maximumValue={7.0}
+                min={3.0}
+                max={7.0}
                 step={0.1}
                 minimumTrackTintColor="#3498db"
                 maximumTrackTintColor="#bdc3c7"

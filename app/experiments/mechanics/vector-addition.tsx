@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../components/ui/slider';
 import { Switch } from 'react-native';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useLanguage } from '../../../components/LanguageContext';

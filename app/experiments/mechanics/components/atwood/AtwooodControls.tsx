@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 
 interface AtwooodMachineState {
   m1: number;
@@ -96,10 +96,10 @@ export const AtwooodControls: React.FC<AtwooodControlsProps> = ({
               color="#ef4444"
             />
           ) : (
-            <Slider
+            <CustomSlider
               style={styles.slider}
-              minimumValue={0.5}
-              maximumValue={10}
+              min={0.5}
+              max={10}
               step={0.1}
               value={state.m1}
               onValueChange={onMass1Change}
@@ -127,10 +127,10 @@ export const AtwooodControls: React.FC<AtwooodControlsProps> = ({
               color="#10b981"
             />
           ) : (
-            <Slider
+            <CustomSlider
               style={styles.slider}
-              minimumValue={0.5}
-              maximumValue={10}
+              min={0.5}
+              max={10}
               step={0.1}
               value={state.m2}
               onValueChange={onMass2Change}
@@ -158,10 +158,10 @@ export const AtwooodControls: React.FC<AtwooodControlsProps> = ({
               color="#3b82f6"
             />
           ) : (
-            <Slider
+            <CustomSlider
               style={styles.slider}
-              minimumValue={1}
-              maximumValue={15}
+              min={1}
+              max={15}
               step={0.1}
               value={state.g}
               onValueChange={onGravityChange}

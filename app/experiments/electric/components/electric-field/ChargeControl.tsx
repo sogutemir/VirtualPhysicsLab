@@ -7,7 +7,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
 
 interface ChargeControlProps {
@@ -40,11 +40,11 @@ const ValueSlider: React.FC<ValueSliderProps> = ({
   maximumTrackTintColor,
 }) => {
   return (
-    <Slider
+    <CustomSlider
       value={value}
       onValueChange={onValueChange}
-      minimumValue={minimumValue}
-      maximumValue={maximumValue}
+      min={minimumValue}
+      max={maximumValue}
       step={step}
       minimumTrackTintColor={minimumTrackTintColor}
       maximumTrackTintColor={maximumTrackTintColor}

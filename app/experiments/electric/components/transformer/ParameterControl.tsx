@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextInput } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
 
 interface ParameterControlProps {
@@ -53,10 +53,10 @@ const ParameterControl: React.FC<ParameterControlProps> = ({
         </View>
       </View>
 
-      <Slider
+      <CustomSlider
         value={value}
-        minimumValue={min}
-        maximumValue={max}
+        min={min}
+        max={max}
         step={step}
         onValueChange={onChange}
         minimumTrackTintColor="#3b82f6"

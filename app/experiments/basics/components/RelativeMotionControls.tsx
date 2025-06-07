@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Switch } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../components/ui/slider';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useLanguage } from '../../../../components/LanguageContext';
 
@@ -43,12 +43,12 @@ export const RelativeMotionControls: React.FC<RelativeMotionControlsProps> = ({
             {t('Tren Hızı', 'Train Speed')}: {(trainSpeed * 3.6).toFixed(0)}{' '}
             km/h
           </Text>
-          <Slider
+          <CustomSlider
             style={styles.slider}
-            minimumValue={0}
-            maximumValue={30}
+            min={0}
+            max={30}
             value={trainSpeed * 3.6}
-            onValueChange={(value) => onTrainSpeedChange(value / 3.6)}
+            onValueChange={(value: number) => onTrainSpeedChange(value / 3.6)}
             step={1}
             minimumTrackTintColor="#3b82f6"
             maximumTrackTintColor="#64748b"
@@ -65,10 +65,10 @@ export const RelativeMotionControls: React.FC<RelativeMotionControlsProps> = ({
           <Text style={styles.parameterLabel}>
             {t('Top Hızı', 'Ball Speed')}: {ballSpeed.toFixed(1)} m/s
           </Text>
-          <Slider
+          <CustomSlider
             style={styles.slider}
-            minimumValue={5}
-            maximumValue={25}
+            min={5}
+            max={25}
             value={ballSpeed}
             onValueChange={onBallSpeedChange}
             step={0.5}
@@ -87,10 +87,10 @@ export const RelativeMotionControls: React.FC<RelativeMotionControlsProps> = ({
           <Text style={styles.parameterLabel}>
             {t('Atış Açısı', 'Launch Angle')}: {ballAngle.toFixed(0)}°
           </Text>
-          <Slider
+          <CustomSlider
             style={styles.slider}
-            minimumValue={15}
-            maximumValue={75}
+            min={15}
+            max={75}
             value={ballAngle}
             onValueChange={onBallAngleChange}
             step={1}

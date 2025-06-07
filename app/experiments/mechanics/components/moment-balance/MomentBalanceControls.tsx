@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
 import { MomentBalanceControlsProps } from './types';
 
@@ -25,10 +25,10 @@ export const MomentBalanceControls: React.FC<MomentBalanceControlsProps> = ({
             <Text style={styles.sliderValue}>
               {state.leftWeight.toFixed(1)} N
             </Text>
-            <Slider
+            <CustomSlider
               style={styles.slider}
-              minimumValue={1}
-              maximumValue={6}
+              min={1}
+              max={6}
               step={0.1}
               value={state.leftWeight}
               onValueChange={onLeftWeightChange}
@@ -47,10 +47,10 @@ export const MomentBalanceControls: React.FC<MomentBalanceControlsProps> = ({
             <Text style={styles.sliderValue}>
               {state.rightWeight.toFixed(1)} N
             </Text>
-            <Slider
+            <CustomSlider
               style={styles.slider}
-              minimumValue={1}
-              maximumValue={6}
+              min={1}
+              max={6}
               step={0.1}
               value={state.rightWeight}
               onValueChange={onRightWeightChange}
@@ -71,10 +71,10 @@ export const MomentBalanceControls: React.FC<MomentBalanceControlsProps> = ({
             <Text style={styles.sliderValue}>
               {(state.leftRatio * 100).toFixed(0)}%
             </Text>
-            <Slider
+            <CustomSlider
               style={styles.slider}
-              minimumValue={0.1}
-              maximumValue={1}
+              min={0.1}
+              max={1}
               step={0.01}
               value={state.leftRatio}
               onValueChange={onLeftRatioChange}
@@ -93,10 +93,10 @@ export const MomentBalanceControls: React.FC<MomentBalanceControlsProps> = ({
             <Text style={styles.sliderValue}>
               {(state.rightRatio * 100).toFixed(0)}%
             </Text>
-            <Slider
+            <CustomSlider
               style={styles.slider}
-              minimumValue={0.1}
-              maximumValue={1}
+              min={0.1}
+              max={1}
               step={0.01}
               value={state.rightRatio}
               onValueChange={onRightRatioChange}
