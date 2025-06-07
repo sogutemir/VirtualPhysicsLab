@@ -122,7 +122,13 @@ const CircuitSimulation: React.FC = () => {
         </View>
       </View>
 
-      <InfoCard />
+      <InfoCard
+        title={t('Ohm Kanunu', "Ohm's Law")}
+        content={t(
+          "Ohm Kanunu, elektrik devrelerinde gerilim (V), akım (I) ve direnç (R) arasındaki ilişkiyi tanımlar. Formül: V = I × R. Slider'ları hareket ettirerek bu değişkenlerin birbirini nasıl etkilediğini gözlemleyebilirsiniz.",
+          "Ohm's Law describes the relationship between voltage (V), current (I), and resistance (R) in electrical circuits. Formula: V = I × R. Move the sliders to observe how these variables affect each other."
+        )}
+      />
     </View>
   );
 };
