@@ -4,24 +4,24 @@ export interface Point {
 }
 
 export interface WeightedPulleyState {
-  inertia: number;      // Makaranın atalet momenti (kg.m²)
-  massM: number;        // Asılı kütle M (gram)
-  massm: number;        // Bağlı kütle m (gram)
-  angle: number;        // Başlangıç açısı (derece)
-  time: number;         // Geçen süre (s)
-  isRunning: boolean;   // Simülasyon çalışıyor mu?
-  phi: number;          // Anlık açı (radyan)
-  dphi: number;         // Açısal hız (rad/s)
-  potentialEnergy: number;  // Potansiyel enerji (Joule)
-  kineticEnergy: number;    // Kinetik enerji (Joule)
-  totalEnergy: number;      // Toplam enerji (Joule)
-  period: number;           // Periyot (s)
+  inertia: number; // Makaranın atalet momenti (kg.m²)
+  massM: number; // Asılı kütle M (gram)
+  massm: number; // Bağlı kütle m (gram)
+  angle: number; // Başlangıç açısı (derece)
+  time: number; // Geçen süre (s)
+  isRunning: boolean; // Simülasyon çalışıyor mu?
+  phi: number; // Anlık açı (radyan)
+  dphi: number; // Açısal hız (rad/s)
+  potentialEnergy: number; // Potansiyel enerji (Joule)
+  kineticEnergy: number; // Kinetik enerji (Joule)
+  totalEnergy: number; // Toplam enerji (Joule)
+  period: number; // Periyot (s)
 }
 
 export interface WeightedPulleyControlsProps {
   state: WeightedPulleyState;
-  onStart: () => void;
-  onReset: () => void;
+  onStart?: () => void;
+  onReset?: () => void;
   onInertiaChange: (value: number) => void;
   onMassMChange: (value: number) => void;
   onMassmChange: (value: number) => void;
@@ -29,14 +29,14 @@ export interface WeightedPulleyControlsProps {
 }
 
 export const INERTIA_OPTIONS = [
-  { value: 0.10, label: "0.10 kg.m²" },
-  { value: 0.25, label: "0.25 kg.m²" },
-  { value: 0.50, label: "0.50 kg.m²" },
-  { value: 1.00, label: "1.00 kg.m²" }
+  { value: 0.1, label: '0.10 kg.m²' },
+  { value: 0.25, label: '0.25 kg.m²' },
+  { value: 0.5, label: '0.50 kg.m²' },
+  { value: 1.0, label: '1.00 kg.m²' },
 ];
 
 export const DEFAULT_STATE: WeightedPulleyState = {
-  inertia: 0.10,
+  inertia: 0.1,
   massM: 200,
   massm: 600,
   angle: 0,
@@ -47,5 +47,5 @@ export const DEFAULT_STATE: WeightedPulleyState = {
   potentialEnergy: 0,
   kineticEnergy: 0,
   totalEnergy: 0,
-  period: 0
-}; 
+  period: 0,
+};

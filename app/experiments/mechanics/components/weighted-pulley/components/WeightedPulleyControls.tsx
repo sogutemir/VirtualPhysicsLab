@@ -1,160 +1,194 @@
-import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import React, { memo, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+} from 'react-native';
 import { WeightedPulleyControlsProps, INERTIA_OPTIONS } from '../types';
 import { CustomSlider } from '../../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../../components/LanguageContext';
 
-const WeightedPulleyControls: React.FC<WeightedPulleyControlsProps> = ({
-  state,
-  onInertiaChange,
-  onMassMChange,
-  onMassmChange,
-  onAngleChange,
-}) => {
-  const { t } = useLanguage();
+// Memoized Inertia Button Component
+const InertiaButton = memo<{
+  option: { value: number; label: string };
+  isActive: boolean;
+  onPress: (value: number) => void;
+}>(({ option, isActive, onPress }) => (
+  <TouchableOpacity
+    style={[styles.inertiaButton, isActive && styles.inertiaButtonActive]}
+    onPress={() => onPress(option.value)}
+    activeOpacity={0.7}
+  >
+    <Text
+      style={[
+        styles.inertiaButtonText,
+        isActive && styles.inertiaButtonTextActive,
+      ]}
+    >
+      {option.label}
+    </Text>
+  </TouchableOpacity>
+));
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.controlGroup}>
-        <View style={styles.labelRow}>
-          <Text style={styles.label}>
-            {t('Atalet Momenti', 'Moment of Inertia')}
-          </Text>
-          <Text style={styles.value}>{state.inertia.toFixed(2)} kg.m²</Text>
-        </View>
-        <View style={styles.inertiaButtonsContainer}>
-          {INERTIA_OPTIONS.map((option) => (
-            <View
-              key={option.value}
-              style={[
-                styles.inertiaButton,
-                state.inertia === option.value && styles.inertiaButtonActive,
-              ]}
-              onTouchEnd={() => onInertiaChange(option.value)}
-            >
-              <Text
-                style={[
-                  styles.inertiaButtonText,
-                  state.inertia === option.value &&
-                    styles.inertiaButtonTextActive,
-                ]}
-              >
-                {option.label}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
+// Memoized Measurement Item Component
+const MeasurementItem = memo<{
+  label: string;
+  value: string;
+}>(({ label, value }) => (
+  <View style={styles.measurementItem}>
+    <Text style={styles.measurementLabel}>{label}</Text>
+    <Text style={styles.measurementValue}>{value}</Text>
+  </View>
+));
 
-      <View style={styles.controlGroup}>
-        <View style={styles.labelRow}>
-          <Text style={[styles.label, styles.labelBlue]}>
-            {t('Asılı Kütle (M)', 'Hanging Mass (M)')}
-          </Text>
-          <Text style={styles.value}>{state.massM} g</Text>
-        </View>
-        <CustomSlider
-          value={state.massM}
-          min={150}
-          max={800}
-          step={1}
-          onValueChange={onMassMChange}
-          minimumTrackTintColor="#3b82f6"
-          maximumTrackTintColor="#bdc3c7"
-          thumbTintColor="#3b82f6"
-          style={styles.slider}
-        />
-      </View>
+const WeightedPulleyControls: React.FC<WeightedPulleyControlsProps> = memo(
+  ({ state, onInertiaChange, onMassMChange, onMassmChange, onAngleChange }) => {
+    const { t } = useLanguage();
 
-      <View style={styles.controlGroup}>
-        <View style={styles.labelRow}>
-          <Text style={[styles.label, styles.labelRed]}>
-            {t('Bağlı Kütle (m)', 'Attached Mass (m)')}
-          </Text>
-          <Text style={styles.value}>{state.massm} g</Text>
-        </View>
-        <CustomSlider
-          value={state.massm}
-          min={100}
-          max={1000}
-          step={1}
-          onValueChange={onMassmChange}
-          minimumTrackTintColor="#ef4444"
-          maximumTrackTintColor="#bdc3c7"
-          thumbTintColor="#ef4444"
-          style={styles.slider}
-        />
-      </View>
+    // Memoized callback functions
+    const handleInertiaChange = useCallback(
+      (value: number) => {
+        onInertiaChange(value);
+      },
+      [onInertiaChange]
+    );
 
-      <View style={styles.controlGroup}>
-        <View style={styles.labelRow}>
-          <Text style={styles.label}>
-            {t('Başlangıç Açısı', 'Initial Angle')}
-          </Text>
-          <Text style={styles.value}>{state.angle}°</Text>
-        </View>
-        <CustomSlider
-          value={state.angle}
-          min={0}
-          max={90}
-          step={1}
-          onValueChange={onAngleChange}
-          minimumTrackTintColor="#10b981"
-          maximumTrackTintColor="#bdc3c7"
-          thumbTintColor="#10b981"
-          style={styles.slider}
-        />
-      </View>
+    const handleMassMChange = useCallback(
+      (value: number) => {
+        onMassMChange(value);
+      },
+      [onMassMChange]
+    );
 
-      <View style={styles.measurementsContainer}>
-        <View style={styles.measurementItem}>
-          <Text style={styles.measurementLabel}>{t('Zaman:', 'Time:')}</Text>
-          <Text style={styles.measurementValue}>{state.time.toFixed(2)} s</Text>
-        </View>
-        <View style={styles.measurementItem}>
-          <Text style={styles.measurementLabel}>{t('Açı:', 'Angle:')}</Text>
-          <Text style={styles.measurementValue}>
-            {((state.phi / Math.PI) * 180 + 90).toFixed(1)}°
-          </Text>
-        </View>
-        <View style={styles.measurementItem}>
-          <Text style={styles.measurementLabel}>
-            {t('Potansiyel Enerji:', 'Potential Energy:')}
-          </Text>
-          <Text style={styles.measurementValue}>
-            {state.potentialEnergy.toFixed(6)} J
-          </Text>
-        </View>
-        <View style={styles.measurementItem}>
-          <Text style={styles.measurementLabel}>
-            {t('Kinetik Enerji:', 'Kinetic Energy:')}
-          </Text>
-          <Text style={styles.measurementValue}>
-            {state.kineticEnergy.toFixed(6)} J
-          </Text>
-        </View>
-        <View style={styles.measurementItem}>
-          <Text style={styles.measurementLabel}>
-            {t('Toplam Enerji:', 'Total Energy:')}
-          </Text>
-          <Text style={styles.measurementValue}>
-            {state.totalEnergy.toExponential(3)} J
-          </Text>
-        </View>
-        {state.period > 0 && (
-          <View style={styles.measurementItem}>
-            <Text style={styles.measurementLabel}>
-              {t('Periyot:', 'Period:')}
+    const handleMassmChange = useCallback(
+      (value: number) => {
+        onMassmChange(value);
+      },
+      [onMassmChange]
+    );
+
+    const handleAngleChange = useCallback(
+      (value: number) => {
+        onAngleChange(value);
+      },
+      [onAngleChange]
+    );
+
+    return (
+      <View style={styles.container}>
+        <View style={styles.controlGroup}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>
+              {t('Atalet Momenti', 'Moment of Inertia')}
             </Text>
-            <Text style={styles.measurementValue}>
-              {state.period.toFixed(2)} s
-            </Text>
+            <Text style={styles.value}>{state.inertia.toFixed(2)} kg.m²</Text>
           </View>
-        )}
+          <View style={styles.inertiaButtonsContainer}>
+            {INERTIA_OPTIONS.map((option) => (
+              <InertiaButton
+                key={option.value}
+                option={option}
+                isActive={state.inertia === option.value}
+                onPress={handleInertiaChange}
+              />
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <View style={styles.labelRow}>
+            <Text style={[styles.label, styles.labelBlue]}>
+              {t('Asılı Kütle (M)', 'Hanging Mass (M)')}
+            </Text>
+            <Text style={styles.value}>{state.massM} g</Text>
+          </View>
+          <CustomSlider
+            value={state.massM}
+            min={150}
+            max={800}
+            step={1}
+            onValueChange={handleMassMChange}
+            minimumTrackTintColor="#3b82f6"
+            maximumTrackTintColor="#bdc3c7"
+            thumbTintColor="#3b82f6"
+            style={styles.slider}
+          />
+        </View>
+
+        <View style={styles.controlGroup}>
+          <View style={styles.labelRow}>
+            <Text style={[styles.label, styles.labelRed]}>
+              {t('Bağlı Kütle (m)', 'Attached Mass (m)')}
+            </Text>
+            <Text style={styles.value}>{state.massm} g</Text>
+          </View>
+          <CustomSlider
+            value={state.massm}
+            min={100}
+            max={1000}
+            step={1}
+            onValueChange={handleMassmChange}
+            minimumTrackTintColor="#ef4444"
+            maximumTrackTintColor="#bdc3c7"
+            thumbTintColor="#ef4444"
+            style={styles.slider}
+          />
+        </View>
+
+        <View style={styles.controlGroup}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>
+              {t('Başlangıç Açısı', 'Initial Angle')}
+            </Text>
+            <Text style={styles.value}>{state.angle}°</Text>
+          </View>
+          <CustomSlider
+            value={state.angle}
+            min={0}
+            max={90}
+            step={1}
+            onValueChange={handleAngleChange}
+            minimumTrackTintColor="#10b981"
+            maximumTrackTintColor="#bdc3c7"
+            thumbTintColor="#10b981"
+            style={styles.slider}
+          />
+        </View>
+
+        <View style={styles.measurementsContainer}>
+          <MeasurementItem
+            label={t('Zaman:', 'Time:')}
+            value={`${state.time.toFixed(2)} s`}
+          />
+          <MeasurementItem
+            label={t('Açı:', 'Angle:')}
+            value={`${((state.phi / Math.PI) * 180 + 90).toFixed(1)}°`}
+          />
+          <MeasurementItem
+            label={t('Potansiyel Enerji:', 'Potential Energy:')}
+            value={`${state.potentialEnergy.toFixed(6)} J`}
+          />
+          <MeasurementItem
+            label={t('Kinetik Enerji:', 'Kinetic Energy:')}
+            value={`${state.kineticEnergy.toFixed(6)} J`}
+          />
+          <MeasurementItem
+            label={t('Toplam Enerji:', 'Total Energy:')}
+            value={`${state.totalEnergy.toExponential(3)} J`}
+          />
+          {state.period > 0 && (
+            <MeasurementItem
+              label={t('Periyot:', 'Period:')}
+              value={`${state.period.toFixed(2)} s`}
+            />
+          )}
+        </View>
       </View>
-    </View>
-  );
-};
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, memo, useMemo } from 'react';
 import {
   View,
   Text,
@@ -23,312 +23,379 @@ interface ProjectileSettingsProps {
   disabled: boolean;
 }
 
-const ProjectileSettings = ({
-  canvasWidth,
-  canvasHeight,
-  onAddProjectile,
-  onUpdateTargetBox,
-  targetBox,
-  disabled,
-}: ProjectileSettingsProps) => {
-  const { t } = useLanguage();
-  const [mass, setMass] = useState(5);
-  const [velocity, setVelocity] = useState(30);
-  const [boxSettings, setBoxSettings] = useState({
-    mass: targetBox.mass || 10,
-    hardness: targetBox.hardness || 8,
-    thickness: targetBox.thickness || 5,
-    isFixed: false,
-  });
-
-  useEffect(() => {
-    onUpdateTargetBox({ isFixed: boxSettings.isFixed });
-  }, []);
-
-  // Hedef kutu sertliği için değişiklik işleyicisi
-  const handleHardnessChange = (value: number) => {
-    onUpdateTargetBox({ hardness: value });
-  };
-
-  // Hedef kutu kalınlığı için değişiklik işleyicisi
-  const handleThicknessChange = (value: number) => {
-    onUpdateTargetBox({ thickness: value });
-  };
-
-  // Sabit/hareketli hedef kutu için değişiklik işleyicisi
-  const handleFixedToggle = (checked: boolean) => {
-    onUpdateTargetBox({ isFixed: checked });
-  };
-
-  const handleAddProjectile = () => {
-    // Hedef kutu merkezine doğru yön vektörünü hesapla
-    const targetCenterX = targetBox.position.x + targetBox.width / 2;
-    const targetCenterY = targetBox.position.y + targetBox.height / 2;
-
-    // Ekranın solundan başlangıç konumu
-    const startX = canvasWidth / 10;
-    const startY = canvasHeight / 2;
-
-    // Yön vektörünü hesapla
-    const dx = targetCenterX - startX;
-    const dy = targetCenterY - startY;
-
-    // Yön vektörünü normalize et
-    const length = Math.sqrt(dx * dx + dy * dy);
-    const normalizedDx = dx / length;
-    const normalizedDy = dy / length;
-
-    // Hedef yönünde hızı belirle
-    const initialVelocity = {
-      x: velocity * normalizedDx,
-      y: velocity * normalizedDy,
-    };
-
-    const projectile = {
-      position: { x: startX, y: startY },
-      velocity: initialVelocity,
-      acceleration: { x: 0, y: 0 },
-      mass: mass,
-      radius: mass * 1.5,
-      color: '#F472B6',
-      elasticity: 0.8,
-    };
-
-    onAddProjectile(projectile);
-  };
-
-  return (
-    <ScrollView style={styles.container}>
-      {/* Mermi ayarları bölümü */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          {t('Mermi Ayarları', 'Projectile Settings')}
+// Memoized Slider Section Component
+const SliderSection = memo<{
+  label: string;
+  value: number;
+  unit: string;
+  min: number;
+  max: number;
+  step: number;
+  onValueChange: (value: number) => void;
+  disabled: boolean;
+  helperText?: string;
+}>(
+  ({
+    label,
+    value,
+    unit,
+    min,
+    max,
+    step,
+    onValueChange,
+    disabled,
+    helperText,
+  }) => (
+    <View style={styles.sliderContainer}>
+      <View style={styles.sliderHeader}>
+        <Text style={styles.sliderLabel}>{label}</Text>
+        <Text style={styles.sliderValue}>
+          {value.toFixed(step < 1 ? 1 : 0)} {unit}
         </Text>
+      </View>
+      <CustomSlider
+        style={styles.slider}
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        onValueChange={onValueChange}
+        disabled={disabled}
+        minimumTrackTintColor="#3b82f6"
+        maximumTrackTintColor="#d1d5db"
+        thumbTintColor="#3b82f6"
+      />
+      {helperText && <Text style={styles.helperText}>{helperText}</Text>}
+    </View>
+  )
+);
 
-        {/* Kütle slider'ı */}
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderHeader}>
-            <Text style={styles.sliderLabel}>
-              {t('Mermi Kütlesi (kg)', 'Projectile Mass (kg)')}
-            </Text>
-            <Text style={styles.sliderValue}>{mass} kg</Text>
-          </View>
-          <CustomSlider
-            style={styles.slider}
+// Memoized Input Section Component
+const InputSection = memo<{
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  disabled: boolean;
+  keyboardType?: 'numeric' | 'default';
+}>(({ label, value, onChangeText, disabled, keyboardType = 'default' }) => (
+  <View style={styles.inputContainer}>
+    <Text style={styles.inputLabel}>{label}</Text>
+    <TextInput
+      style={styles.input}
+      keyboardType={keyboardType}
+      value={value}
+      onChangeText={onChangeText}
+      editable={!disabled}
+    />
+  </View>
+));
+
+// Memoized Color Option Component
+const ColorOption = memo<{
+  color: string;
+  isSelected: boolean;
+  onPress: (color: string) => void;
+  disabled: boolean;
+}>(({ color, isSelected, onPress, disabled }) => (
+  <TouchableOpacity
+    style={[
+      styles.colorOption,
+      { backgroundColor: color },
+      isSelected && styles.selectedColor,
+    ]}
+    onPress={() => onPress(color)}
+    disabled={disabled}
+    activeOpacity={0.7}
+  />
+));
+
+// Memoized Toggle Section Component
+const ToggleSection = memo<{
+  label: string;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  disabled: boolean;
+}>(({ label, value, onValueChange, disabled }) => (
+  <View style={styles.toggleContainer}>
+    <Text style={styles.toggleLabel}>{label}</Text>
+    <Switch
+      value={value}
+      onValueChange={onValueChange}
+      disabled={disabled}
+      trackColor={{ false: '#d1d5db', true: '#bfdbfe' }}
+      thumbColor={value ? '#3b82f6' : '#f4f3f4'}
+    />
+  </View>
+));
+
+const ProjectileSettings = memo<ProjectileSettingsProps>(
+  ({
+    canvasWidth,
+    canvasHeight,
+    onAddProjectile,
+    onUpdateTargetBox,
+    targetBox,
+    disabled,
+  }) => {
+    const { t } = useLanguage();
+    const [mass, setMass] = useState(5);
+    const [velocity, setVelocity] = useState(30);
+
+    // Memoized color options
+    const colorOptions = useMemo(
+      () => ['#6B7280', '#EF4444', '#3B82F6', '#10B981', '#F59E0B'],
+      []
+    );
+
+    useEffect(() => {
+      onUpdateTargetBox({ isFixed: false });
+    }, [onUpdateTargetBox]);
+
+    // Memoized callbacks for projectile settings
+    const handleMassChange = useCallback((value: number) => {
+      setMass(value);
+    }, []);
+
+    const handleVelocityChange = useCallback((value: number) => {
+      setVelocity(value);
+    }, []);
+
+    // Memoized callbacks for target box settings
+    const handleHardnessChange = useCallback(
+      (value: number) => {
+        onUpdateTargetBox({ hardness: value });
+      },
+      [onUpdateTargetBox]
+    );
+
+    const handleThicknessChange = useCallback(
+      (value: number) => {
+        onUpdateTargetBox({ thickness: value });
+      },
+      [onUpdateTargetBox]
+    );
+
+    const handleMassBoxChange = useCallback(
+      (value: number) => {
+        onUpdateTargetBox({ mass: value });
+      },
+      [onUpdateTargetBox]
+    );
+
+    const handleFixedToggle = useCallback(
+      (checked: boolean) => {
+        onUpdateTargetBox({ isFixed: checked });
+      },
+      [onUpdateTargetBox]
+    );
+
+    const handleColorChange = useCallback(
+      (color: string) => {
+        onUpdateTargetBox({ color });
+      },
+      [onUpdateTargetBox]
+    );
+
+    const handleWidthChange = useCallback(
+      (text: string) => {
+        const width = Number(text);
+        if (!isNaN(width) && width >= 20 && width <= canvasWidth / 2) {
+          onUpdateTargetBox({ width });
+        }
+      },
+      [canvasWidth, onUpdateTargetBox]
+    );
+
+    const handleHeightChange = useCallback(
+      (text: string) => {
+        const height = Number(text);
+        if (!isNaN(height) && height >= 20 && height <= canvasHeight / 2) {
+          onUpdateTargetBox({ height });
+        }
+      },
+      [canvasHeight, onUpdateTargetBox]
+    );
+
+    const handleAddProjectile = useCallback(() => {
+      // Hedef kutu merkezine doğru yön vektörünü hesapla
+      const targetCenterX = targetBox.position.x + targetBox.width / 2;
+      const targetCenterY = targetBox.position.y + targetBox.height / 2;
+
+      // Ekranın solundan başlangıç konumu
+      const startX = canvasWidth / 10;
+      const startY = canvasHeight / 2;
+
+      // Yön vektörünü hesapla
+      const dx = targetCenterX - startX;
+      const dy = targetCenterY - startY;
+
+      // Yön vektörünü normalize et
+      const length = Math.sqrt(dx * dx + dy * dy);
+      const normalizedDx = dx / length;
+      const normalizedDy = dy / length;
+
+      // Hedef yönünde hızı belirle
+      const initialVelocity = {
+        x: velocity * normalizedDx,
+        y: velocity * normalizedDy,
+      };
+
+      const projectile = {
+        position: { x: startX, y: startY },
+        velocity: initialVelocity,
+        acceleration: { x: 0, y: 0 },
+        mass: mass,
+        radius: mass * 1.5,
+        color: '#F472B6',
+        elasticity: 0.8,
+      };
+
+      onAddProjectile(projectile);
+    }, [mass, velocity, targetBox, canvasWidth, canvasHeight, onAddProjectile]);
+
+    return (
+      <ScrollView style={styles.container}>
+        {/* Mermi ayarları bölümü */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {t('Mermi Ayarları', 'Projectile Settings')}
+          </Text>
+
+          <SliderSection
+            label={t('Mermi Kütlesi (kg)', 'Projectile Mass (kg)')}
             value={mass}
+            unit="kg"
             min={1}
             max={10}
             step={0.1}
-            onValueChange={(value) => setMass(value)}
+            onValueChange={handleMassChange}
             disabled={disabled}
-            minimumTrackTintColor="#3b82f6"
-            maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#3b82f6"
           />
-        </View>
 
-        {/* Hız slider'ı */}
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderHeader}>
-            <Text style={styles.sliderLabel}>
-              {t('Hız (m/s)', 'Velocity (m/s)')}
-            </Text>
-            <Text style={styles.sliderValue}>{velocity} m/s</Text>
-          </View>
-          <CustomSlider
-            style={styles.slider}
+          <SliderSection
+            label={t('Hız (m/s)', 'Velocity (m/s)')}
             value={velocity}
+            unit="m/s"
             min={1}
             max={80}
             step={1}
-            onValueChange={(value) => setVelocity(value)}
+            onValueChange={handleVelocityChange}
             disabled={disabled}
-            minimumTrackTintColor="#3b82f6"
-            maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#3b82f6"
           />
+
+          {/* Mermi Ekle butonu */}
+          <TouchableOpacity
+            style={[
+              styles.button,
+              styles.primaryButton,
+              disabled && styles.disabledButton,
+            ]}
+            onPress={handleAddProjectile}
+            disabled={disabled}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buttonText}>
+              {t('Mermi Ekle', 'Add Projectile')}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Mermi Ekle butonu */}
-        <TouchableOpacity
-          style={[
-            styles.button,
-            styles.primaryButton,
-            disabled && styles.disabledButton,
-          ]}
-          onPress={handleAddProjectile}
-          disabled={disabled}
-        >
-          <Text style={styles.buttonText}>
-            {t('Mermi Ekle', 'Add Projectile')}
+        {/* Hedef kutu ayarları bölümü */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {t('Hedef Kutu Ayarları', 'Target Box Settings')}
           </Text>
-        </TouchableOpacity>
-      </View>
 
-      {/* Hedef kutu ayarları bölümü */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          {t('Hedef Kutu Ayarları', 'Target Box Settings')}
-        </Text>
-
-        {/* Kutu kütlesi ayarı */}
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderHeader}>
-            <Text style={styles.sliderLabel}>
-              {t('Kutu Kütlesi (kg)', 'Box Mass (kg)')}
-            </Text>
-            <Text style={styles.sliderValue}>
-              {targetBox.mass.toFixed(1)} kg
-            </Text>
-          </View>
-          <CustomSlider
-            style={styles.slider}
+          <SliderSection
+            label={t('Kutu Kütlesi (kg)', 'Box Mass (kg)')}
             value={targetBox.mass}
+            unit="kg"
             min={1}
             max={50}
             step={1}
-            onValueChange={(value) => onUpdateTargetBox({ mass: value })}
+            onValueChange={handleMassBoxChange}
             disabled={disabled}
-            minimumTrackTintColor="#3b82f6"
-            maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#3b82f6"
           />
-        </View>
 
-        {/* Kutu boyutu ayarları */}
-        <View style={styles.row}>
-          <View style={[styles.inputContainer, styles.halfWidth]}>
-            <Text style={styles.inputLabel}>{t('Genişlik', 'Width')}</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={String(targetBox.width)}
-              onChangeText={(text) => {
-                const width = Number(text);
-                if (!isNaN(width) && width >= 20 && width <= canvasWidth / 2) {
-                  onUpdateTargetBox({ width });
-                }
-              }}
-              editable={!disabled}
-            />
+          {/* Kutu boyutu ayarları */}
+          <View style={styles.row}>
+            <View style={[styles.halfWidth]}>
+              <InputSection
+                label={t('Genişlik', 'Width')}
+                value={String(targetBox.width)}
+                onChangeText={handleWidthChange}
+                disabled={disabled}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={[styles.halfWidth]}>
+              <InputSection
+                label={t('Yükseklik', 'Height')}
+                value={String(targetBox.height)}
+                onChangeText={handleHeightChange}
+                disabled={disabled}
+                keyboardType="numeric"
+              />
+            </View>
           </View>
-          <View style={[styles.inputContainer, styles.halfWidth]}>
-            <Text style={styles.inputLabel}>{t('Yükseklik', 'Height')}</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={String(targetBox.height)}
-              onChangeText={(text) => {
-                const height = Number(text);
-                if (
-                  !isNaN(height) &&
-                  height >= 20 &&
-                  height <= canvasHeight / 2
-                ) {
-                  onUpdateTargetBox({ height });
-                }
-              }}
-              editable={!disabled}
-            />
-          </View>
-        </View>
 
-        {/* Malzeme sertliği ayarı */}
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderHeader}>
-            <Text style={styles.sliderLabel}>
-              {t('Malzeme Sertliği', 'Material Hardness')}
-            </Text>
-            <Text style={styles.sliderValue}>
-              {targetBox.hardness?.toFixed(1) || '8.0'}
-            </Text>
-          </View>
-          <CustomSlider
-            style={styles.slider}
+          <SliderSection
+            label={t('Malzeme Sertliği', 'Material Hardness')}
             value={targetBox.hardness || 8}
+            unit=""
             min={1}
             max={20}
             step={0.5}
             onValueChange={handleHardnessChange}
             disabled={disabled}
-            minimumTrackTintColor="#3b82f6"
-            maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#3b82f6"
-          />
-          <Text style={styles.helperText}>
-            {t(
+            helperText={t(
               'Düşük değer = Kolay delinir, Yüksek değer = Zor delinir',
               'Low value = Easy to penetrate, High value = Hard to penetrate'
             )}
-          </Text>
-        </View>
+          />
 
-        {/* Malzeme kalınlığı ayarı */}
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderHeader}>
-            <Text style={styles.sliderLabel}>
-              {t('Malzeme Kalınlığı (cm)', 'Material Thickness (cm)')}
-            </Text>
-            <Text style={styles.sliderValue}>
-              {targetBox.thickness?.toFixed(1) || '5.0'} cm
-            </Text>
-          </View>
-          <CustomSlider
-            style={styles.slider}
+          <SliderSection
+            label={t('Malzeme Kalınlığı (cm)', 'Material Thickness (cm)')}
             value={targetBox.thickness || 5}
+            unit="cm"
             min={1}
             max={20}
             step={0.5}
             onValueChange={handleThicknessChange}
             disabled={disabled}
-            minimumTrackTintColor="#3b82f6"
-            maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#3b82f6"
-          />
-          <Text style={styles.helperText}>
-            {t(
+            helperText={t(
               'Düşük değer = İnce malzeme, Yüksek değer = Kalın malzeme',
               'Low value = Thin material, High value = Thick material'
             )}
-          </Text>
-        </View>
+          />
 
-        {/* Sabit/Hareketli geçişi */}
-        <View style={styles.toggleContainer}>
-          <Text style={styles.toggleLabel}>{t('Sabit Kutu', 'Fixed Box')}</Text>
-          <Switch
+          <ToggleSection
+            label={t('Sabit Kutu', 'Fixed Box')}
             value={targetBox.isFixed}
             onValueChange={handleFixedToggle}
             disabled={disabled}
-            trackColor={{ false: '#d1d5db', true: '#bfdbfe' }}
-            thumbColor={targetBox.isFixed ? '#3b82f6' : '#f4f3f4'}
           />
-        </View>
 
-        {/* Kutu rengi seçimi */}
-        <View style={styles.colorSection}>
-          <Text style={styles.colorSectionLabel}>{t('Renk', 'Color')}</Text>
-          <View style={styles.colorOptions}>
-            {['#6B7280', '#EF4444', '#3B82F6', '#10B981', '#F59E0B'].map(
-              (color) => (
-                <TouchableOpacity
+          {/* Kutu rengi seçimi */}
+          <View style={styles.colorSection}>
+            <Text style={styles.colorSectionLabel}>{t('Renk', 'Color')}</Text>
+            <View style={styles.colorOptions}>
+              {colorOptions.map((color) => (
+                <ColorOption
                   key={color}
-                  style={[
-                    styles.colorOption,
-                    { backgroundColor: color },
-                    targetBox.color === color && styles.selectedColor,
-                  ]}
-                  onPress={() => onUpdateTargetBox({ color })}
+                  color={color}
+                  isSelected={targetBox.color === color}
+                  onPress={handleColorChange}
                   disabled={disabled}
                 />
-              )
-            )}
+              ))}
+            </View>
           </View>
         </View>
-      </View>
-    </ScrollView>
-  );
-};
+      </ScrollView>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {

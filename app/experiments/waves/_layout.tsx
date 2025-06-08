@@ -13,6 +13,24 @@ export default function WavesLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="doppler-effect"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="double-slit"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="transverse-wave"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

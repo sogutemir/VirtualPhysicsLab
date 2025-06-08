@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  memo,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   SafeAreaView,
   View,
@@ -17,25 +24,77 @@ import { useSimulation } from './utils/momentum-bullet/useSimulation';
 import { useLanguage } from '../../../components/LanguageContext';
 import { CollisionMode } from './utils/momentum-bullet/physics';
 
-const MomentumBulletExperiment = () => {
+// Memoized Info Section Component
+const InfoSection = memo<{
+  t: (tr: string, en: string) => string;
+}>(({ t }) => (
+  <View style={styles.infoContainer}>
+    <Text style={styles.infoTitle}>
+      {t('Deney Bilgileri', 'Experiment Information')}
+    </Text>
+    <Text style={styles.infoText}>
+      {t(
+        'Bu deneyde merminin hedefe çarpması ve penetrasyon özellikleri gözlemlenmektedir. Mermi kütlesi ve hızı arttıkça delme olasılığı artar. Kutu sertliği ve kalınlığı arttıkça delme olasılığı azalır. Farklı parametrelerle denemeler yaparak sonuçları gözlemleyin.',
+        'In this experiment, the collision and penetration properties of the bullet hitting the target are observed. As the bullet mass and velocity increase, the probability of penetration increases. As the box hardness and thickness increase, the probability of penetration decreases. Try different parameters and observe the results.'
+      )}
+    </Text>
+  </View>
+));
+
+// Memoized Section Container Component
+const SectionContainer = memo<{
+  title: string;
+  children: React.ReactNode;
+}>(({ title, children }) => (
+  <View style={styles.sectionContainer}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    {children}
+  </View>
+));
+
+const MomentumBulletExperiment = memo(() => {
   const { t } = useLanguage();
   const isWeb = Platform.OS === 'web';
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
 
-  // Canvas boyutlarını belirle (platform bazlı)
-  const canvasWidth = isWeb
-    ? Math.min(screenWidth - 40, 800)
-    : screenWidth - 40;
-  const canvasHeight = isWeb ? 500 : Math.min(screenHeight * 0.4, 400);
+  // Memoized canvas dimensions
+  const canvasDimensions = useMemo(
+    () => ({
+      canvasWidth: isWeb ? Math.min(screenWidth - 40, 800) : screenWidth - 40,
+      canvasHeight: isWeb ? 500 : Math.min(screenHeight * 0.4, 400),
+    }),
+    [isWeb, screenWidth, screenHeight]
+  );
 
   // Simülasyon hook'unu kullan
   const simulation = useSimulation({
-    width: canvasWidth,
-    height: canvasHeight,
+    width: canvasDimensions.canvasWidth,
+    height: canvasDimensions.canvasHeight,
     timeScale: 1.0,
     wallElasticity: 0.8,
   });
+
+  // Memoized collision mode
+  const collisionMode = useMemo(
+    () => simulation.targetBox.mode || CollisionMode.BULLET,
+    [simulation.targetBox.mode]
+  );
+
+  // Memoized callbacks
+  const handleToggleSimulation = useCallback(() => {
+    simulation.isRunning
+      ? simulation.pauseSimulation()
+      : simulation.startSimulation();
+  }, [
+    simulation.isRunning,
+    simulation.pauseSimulation,
+    simulation.startSimulation,
+  ]);
+
+  const handleReset = useCallback(() => {
+    simulation.resetSimulation();
+  }, [simulation.resetSimulation]);
 
   return (
     <ExperimentLayout
@@ -46,18 +105,14 @@ const MomentumBulletExperiment = () => {
       difficulty="Orta Seviye"
       difficultyEn="Intermediate"
       isRunning={simulation.isRunning}
-      onToggleSimulation={() =>
-        simulation.isRunning
-          ? simulation.pauseSimulation()
-          : simulation.startSimulation()
-      }
-      onReset={simulation.resetSimulation}
+      onToggleSimulation={handleToggleSimulation}
+      onReset={handleReset}
     >
       <ScrollView style={styles.container}>
         <View style={styles.canvasContainer}>
           <SimulationCanvas
-            width={canvasWidth}
-            height={canvasHeight}
+            width={canvasDimensions.canvasWidth}
+            height={canvasDimensions.canvasHeight}
             projectiles={simulation.projectiles}
             targetBox={simulation.targetBox}
             isRunning={simulation.isRunning}
@@ -66,16 +121,15 @@ const MomentumBulletExperiment = () => {
         </View>
 
         <View style={styles.controlsContainer}>
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>
-              {t('Simülasyon Kontrolü', 'Simulation Controls')}
-            </Text>
+          <SectionContainer
+            title={t('Simülasyon Kontrolü', 'Simulation Controls')}
+          >
             <ControlPanel
               isRunning={simulation.isRunning}
               timeScale={simulation.timeScale}
               wallElasticity={simulation.wallElasticity}
               projectilesCount={simulation.projectiles.length}
-              collisionMode={simulation.targetBox.mode || CollisionMode.BULLET}
+              collisionMode={collisionMode}
               onTimeScaleChange={simulation.setTimeScale}
               onWallElasticityChange={simulation.setWallElasticity}
               onModeChange={simulation.setCollisionMode}
@@ -84,38 +138,25 @@ const MomentumBulletExperiment = () => {
               onReset={simulation.resetSimulation}
               onClear={simulation.clearProjectiles}
             />
-          </View>
+          </SectionContainer>
 
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>
-              {t('Deney Ayarları', 'Experiment Settings')}
-            </Text>
+          <SectionContainer title={t('Deney Ayarları', 'Experiment Settings')}>
             <ProjectileSettings
-              canvasWidth={canvasWidth}
-              canvasHeight={canvasHeight}
+              canvasWidth={canvasDimensions.canvasWidth}
+              canvasHeight={canvasDimensions.canvasHeight}
               onAddProjectile={simulation.addProjectile}
               onUpdateTargetBox={simulation.updateTargetBox}
               targetBox={simulation.targetBox}
               disabled={simulation.isRunning}
             />
-          </View>
+          </SectionContainer>
 
-          <View style={styles.infoContainer}>
-            <Text style={styles.infoTitle}>
-              {t('Deney Bilgileri', 'Experiment Information')}
-            </Text>
-            <Text style={styles.infoText}>
-              {t(
-                'Bu deneyde merminin hedefe çarpması ve penetrasyon özellikleri gözlemlenmektedir. Mermi kütlesi ve hızı arttıkça delme olasılığı artar. Kutu sertliği ve kalınlığı arttıkça delme olasılığı azalır. Farklı parametrelerle denemeler yaparak sonuçları gözlemleyin.',
-                'In this experiment, the collision and penetration properties of the bullet hitting the target are observed. As the bullet mass and velocity increase, the probability of penetration increases. As the box hardness and thickness increase, the probability of penetration decreases. Try different parameters and observe the results.'
-              )}
-            </Text>
-          </View>
+          <InfoSection t={t} />
         </View>
       </ScrollView>
     </ExperimentLayout>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

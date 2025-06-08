@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -26,199 +26,270 @@ interface ControlPanelProps {
   onClear: () => void;
 }
 
-const ControlPanel = ({
-  isRunning,
-  timeScale,
-  wallElasticity,
-  projectilesCount,
-  collisionMode,
-  onTimeScaleChange,
-  onWallElasticityChange,
-  onModeChange,
-  onStart,
-  onPause,
-  onReset,
-  onClear,
-}: ControlPanelProps) => {
-  const { t } = useLanguage();
+// Memoized Slider Component
+const SliderControl = memo<{
+  label: string;
+  value: number;
+  unit: string;
+  min: number;
+  max: number;
+  step: number;
+  onValueChange: (value: number) => void;
+}>(({ label, value, unit, min, max, step, onValueChange }) => (
+  <View style={styles.sliderContainer}>
+    <View style={styles.sliderHeader}>
+      <Text style={styles.sliderLabel}>{label}</Text>
+      <Text style={styles.sliderValue}>
+        {value.toFixed(step >= 1 ? 0 : 2)}
+        {unit}
+      </Text>
+    </View>
+    <CustomSlider
+      style={styles.slider}
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      onValueChange={onValueChange}
+      minimumTrackTintColor="#3b82f6"
+      maximumTrackTintColor="#d1d5db"
+      thumbTintColor="#3b82f6"
+    />
+  </View>
+));
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.sliderContainer}>
-        <View style={styles.sliderHeader}>
-          <Text style={styles.sliderLabel}>
-            {t('Simülasyon Hızı', 'Simulation Speed')}
-          </Text>
-          <Text style={styles.sliderValue}>{timeScale.toFixed(1)}x</Text>
-        </View>
-        <CustomSlider
-          style={styles.slider}
+// Memoized Mode Button Component
+const ModeButton = memo<{
+  mode: CollisionMode;
+  currentMode: CollisionMode;
+  label: string;
+  onPress: (mode: CollisionMode) => void;
+  disabled: boolean;
+}>(({ mode, currentMode, label, onPress, disabled }) => (
+  <TouchableOpacity
+    style={[styles.modeButton, currentMode === mode && styles.activeMode]}
+    onPress={() => onPress(mode)}
+    disabled={disabled}
+    activeOpacity={0.7}
+  >
+    <Text
+      style={[
+        styles.modeButtonText,
+        currentMode === mode && styles.activeModeText,
+      ]}
+    >
+      {label}
+    </Text>
+  </TouchableOpacity>
+));
+
+// Memoized Action Button Component
+const ActionButton = memo<{
+  onPress: () => void;
+  disabled?: boolean;
+  style: any;
+  icon: string;
+  iconSize?: number;
+  iconColor: string;
+  iconFamily?: 'FontAwesome' | 'MaterialIcons';
+  text: string;
+  textStyle: any;
+}>(
+  ({
+    onPress,
+    disabled,
+    style,
+    icon,
+    iconSize = 16,
+    iconColor,
+    iconFamily = 'FontAwesome',
+    text,
+    textStyle,
+  }) => {
+    const IconComponent =
+      iconFamily === 'FontAwesome' ? FontAwesome : MaterialIcons;
+
+    return (
+      <TouchableOpacity
+        style={[styles.button, style, disabled && styles.disabledButton]}
+        onPress={onPress}
+        disabled={disabled}
+        activeOpacity={0.7}
+      >
+        <IconComponent
+          name={icon as any}
+          size={iconSize}
+          color={iconColor}
+          style={styles.buttonIcon}
+        />
+        <Text style={textStyle}>{text}</Text>
+      </TouchableOpacity>
+    );
+  }
+);
+
+const ControlPanel = memo<ControlPanelProps>(
+  ({
+    isRunning,
+    timeScale,
+    wallElasticity,
+    projectilesCount,
+    collisionMode,
+    onTimeScaleChange,
+    onWallElasticityChange,
+    onModeChange,
+    onStart,
+    onPause,
+    onReset,
+    onClear,
+  }) => {
+    const { t } = useLanguage();
+
+    // Memoized callbacks
+    const handleTimeScaleChange = useCallback(
+      (value: number) => {
+        onTimeScaleChange(value);
+      },
+      [onTimeScaleChange]
+    );
+
+    const handleWallElasticityChange = useCallback(
+      (value: number) => {
+        onWallElasticityChange(value);
+      },
+      [onWallElasticityChange]
+    );
+
+    const handleModeChange = useCallback(
+      (mode: CollisionMode) => {
+        onModeChange(mode);
+      },
+      [onModeChange]
+    );
+
+    const handleStart = useCallback(() => {
+      onStart();
+    }, [onStart]);
+
+    const handlePause = useCallback(() => {
+      onPause();
+    }, [onPause]);
+
+    const handleReset = useCallback(() => {
+      onReset();
+    }, [onReset]);
+
+    const handleClear = useCallback(() => {
+      onClear();
+    }, [onClear]);
+
+    return (
+      <View style={styles.container}>
+        <SliderControl
+          label={t('Simülasyon Hızı', 'Simulation Speed')}
+          value={timeScale}
+          unit="x"
           min={0.1}
           max={3.0}
           step={0.1}
-          value={timeScale}
-          onValueChange={onTimeScaleChange}
-          minimumTrackTintColor="#3b82f6"
-          maximumTrackTintColor="#d1d5db"
-          thumbTintColor="#3b82f6"
+          onValueChange={handleTimeScaleChange}
         />
-      </View>
 
-      <View style={styles.sliderContainer}>
-        <View style={styles.sliderHeader}>
-          <Text style={styles.sliderLabel}>
-            {t('Duvar Esnekliği', 'Wall Elasticity')}
-          </Text>
-          <Text style={styles.sliderValue}>{wallElasticity.toFixed(2)}</Text>
-        </View>
-        <CustomSlider
-          style={styles.slider}
+        <SliderControl
+          label={t('Duvar Esnekliği', 'Wall Elasticity')}
+          value={wallElasticity}
+          unit=""
           min={0}
           max={1}
           step={0.01}
-          value={wallElasticity}
-          onValueChange={onWallElasticityChange}
-          minimumTrackTintColor="#3b82f6"
-          maximumTrackTintColor="#d1d5db"
-          thumbTintColor="#3b82f6"
+          onValueChange={handleWallElasticityChange}
         />
-      </View>
 
-      <View style={styles.separator} />
+        <View style={styles.separator} />
 
-      <View style={styles.modeSelector}>
-        <Text style={styles.modeTitle}>
-          {t('Çarpışma Modu', 'Collision Mode')}:
-        </Text>
-        <View style={styles.modeButtons}>
-          <TouchableOpacity
-            style={[
-              styles.modeButton,
-              collisionMode === CollisionMode.BULLET && styles.activeMode,
-            ]}
-            onPress={() => onModeChange(CollisionMode.BULLET)}
-            disabled={isRunning}
-          >
-            <Text
-              style={[
-                styles.modeButtonText,
-                collisionMode === CollisionMode.BULLET && styles.activeModeText,
-              ]}
-            >
-              {t('Mermi Modu', 'Bullet Mode')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.modeButton,
-              collisionMode === CollisionMode.COLLISION && styles.activeMode,
-            ]}
-            onPress={() => onModeChange(CollisionMode.COLLISION)}
-            disabled={isRunning}
-          >
-            <Text
-              style={[
-                styles.modeButtonText,
-                collisionMode === CollisionMode.COLLISION &&
-                  styles.activeModeText,
-              ]}
-            >
-              {t('Çarpışma Modu', 'Collision Mode')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.modeDescription}>
-          {collisionMode === CollisionMode.BULLET
-            ? t(
-                'Mermi hedefin içine saplanır ve birlikte hareket ederler',
-                'Projectile embeds in target and they move together'
-              )
-            : t(
-                'Mermi hedeften sekip momentum aktarır',
-                'Projectile bounces off target and transfers momentum'
-              )}
-        </Text>
-      </View>
-
-      <View style={styles.separator} />
-
-      <View style={styles.buttonRow}>
-        {!isRunning ? (
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.primaryButton,
-              projectilesCount === 0 && styles.disabledButton,
-            ]}
-            onPress={onStart}
-            disabled={projectilesCount === 0}
-          >
-            <FontAwesome
-              name="play"
-              size={16}
-              color="white"
-              style={styles.buttonIcon}
-            />
-            <Text style={styles.buttonText}>{t('Başlat', 'Start')}</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[styles.button, styles.secondaryButton]}
-            onPress={onPause}
-          >
-            <FontAwesome
-              name="pause"
-              size={16}
-              color="#4b5563"
-              style={styles.buttonIcon}
-            />
-            <Text style={styles.secondaryButtonText}>
-              {t('Duraklat', 'Pause')}
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            styles.outlineButton,
-            projectilesCount === 0 && styles.disabledButton,
-          ]}
-          onPress={onReset}
-          disabled={projectilesCount === 0}
-        >
-          <MaterialIcons
-            name="refresh"
-            size={16}
-            color="#4b5563"
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.outlineButtonText}>{t('Sıfırla', 'Reset')}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            styles.outlineButton,
-            projectilesCount === 0 && styles.disabledButton,
-          ]}
-          onPress={onClear}
-          disabled={projectilesCount === 0}
-        >
-          <MaterialIcons
-            name="delete-outline"
-            size={16}
-            color="#4b5563"
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.outlineButtonText}>
-            {t('Hepsini Temizle', 'Clear All')}
+        <View style={styles.modeSelector}>
+          <Text style={styles.modeTitle}>
+            {t('Çarpışma Modu', 'Collision Mode')}:
           </Text>
-        </TouchableOpacity>
+          <View style={styles.modeButtons}>
+            <ModeButton
+              mode={CollisionMode.BULLET}
+              currentMode={collisionMode}
+              label={t('Mermi Modu', 'Bullet Mode')}
+              onPress={handleModeChange}
+              disabled={isRunning}
+            />
+            <ModeButton
+              mode={CollisionMode.COLLISION}
+              currentMode={collisionMode}
+              label={t('Çarpışma Modu', 'Collision Mode')}
+              onPress={handleModeChange}
+              disabled={isRunning}
+            />
+          </View>
+          <Text style={styles.modeDescription}>
+            {collisionMode === CollisionMode.BULLET
+              ? t(
+                  'Mermi hedefin içine saplanır ve birlikte hareket ederler',
+                  'Projectile embeds in target and they move together'
+                )
+              : t(
+                  'Mermi hedeften sekip momentum aktarır',
+                  'Projectile bounces off target and transfers momentum'
+                )}
+          </Text>
+        </View>
+
+        <View style={styles.separator} />
+
+        <View style={styles.buttonRow}>
+          {!isRunning ? (
+            <ActionButton
+              onPress={handleStart}
+              disabled={projectilesCount === 0}
+              style={styles.primaryButton}
+              icon="play"
+              iconColor="white"
+              text={t('Başlat', 'Start')}
+              textStyle={styles.buttonText}
+            />
+          ) : (
+            <ActionButton
+              onPress={handlePause}
+              style={styles.secondaryButton}
+              icon="pause"
+              iconColor="#4b5563"
+              text={t('Duraklat', 'Pause')}
+              textStyle={styles.secondaryButtonText}
+            />
+          )}
+
+          <ActionButton
+            onPress={handleReset}
+            disabled={projectilesCount === 0}
+            style={styles.outlineButton}
+            icon="refresh"
+            iconFamily="MaterialIcons"
+            iconColor="#4b5563"
+            text={t('Sıfırla', 'Reset')}
+            textStyle={styles.outlineButtonText}
+          />
+
+          <ActionButton
+            onPress={handleClear}
+            disabled={projectilesCount === 0}
+            style={styles.outlineButton}
+            icon="delete-outline"
+            iconFamily="MaterialIcons"
+            iconColor="#4b5563"
+            text={t('Hepsini Temizle', 'Clear All')}
+            textStyle={styles.outlineButtonText}
+          />
+        </View>
       </View>
-    </View>
-  );
-};
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {
