@@ -1,10 +1,16 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import { View, ScrollView, StyleSheet, Platform, Text } from 'react-native';
 import ExperimentLayout from '../../../components/ExperimentLayout';
-import { AtwooodMachineSystem } from './components/atwood/AtwooodMachineSystem';
-import { AtwooodControls } from './components/atwood/AtwooodControls';
+import { AtwoodMachineSystem } from './components/atwood/AtwooodMachineSystem';
+import { AtwoodControls } from './components/atwood/AtwoodControls';
 
-interface AtwooodMachineState {
+interface AtwoodMachineState {
   m1: number; // Mass 1 (kg)
   m2: number; // Mass 2 (kg)
   g: number; // Gravity (m/s²)
@@ -18,8 +24,15 @@ interface AtwooodMachineState {
   tension: number; // Rope tension
 }
 
-export default function AtwooodMachineExperiment() {
-  const [state, setState] = useState<AtwooodMachineState>({
+// Memoized physics calculation function
+const calculatePhysics = (m1: number, m2: number, g: number) => {
+  const acceleration = ((m1 - m2) * g) / (m1 + m2);
+  const tension = (2 * m1 * m2 * g) / (m1 + m2);
+  return { acceleration, tension };
+};
+
+export default function AtwoodMachineExperiment() {
+  const [state, setState] = useState<AtwoodMachineState>({
     m1: 3.0,
     m2: 2.0,
     g: 9.8,
@@ -33,27 +46,24 @@ export default function AtwooodMachineExperiment() {
     tension: 0,
   });
 
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  // Calculate physics values
-  const calculatePhysics = (m1: number, m2: number, g: number) => {
-    const acceleration = ((m1 - m2) * g) / (m1 + m2);
-    const tension = (2 * m1 * m2 * g) / (m1 + m2);
-    return { acceleration, tension };
-  };
+  // Memoize physics calculations to avoid recalculation on every render
+  const physicsValues = useMemo(() => {
+    return calculatePhysics(state.m1, state.m2, state.g);
+  }, [state.m1, state.m2, state.g]);
 
   // Update physics calculation when masses or gravity change
   useEffect(() => {
-    const { acceleration, tension } = calculatePhysics(
-      state.m1,
-      state.m2,
-      state.g
-    );
-    setState((prev) => ({ ...prev, acceleration, tension }));
-  }, [state.m1, state.m2, state.g]);
+    setState((prev) => ({
+      ...prev,
+      acceleration: physicsValues.acceleration,
+      tension: physicsValues.tension,
+    }));
+  }, [physicsValues]);
 
-  // Animation loop
+  // Optimized animation loop with better cleanup
   useEffect(() => {
     if (state.isRunning) {
       const animate = (currentTime: number) => {
@@ -90,6 +100,7 @@ export default function AtwooodMachineExperiment() {
     } else {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
       }
       startTimeRef.current = 0;
     }
@@ -97,11 +108,12 @@ export default function AtwooodMachineExperiment() {
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
       }
     };
   }, [state.isRunning]);
 
-  // Event handlers
+  // Memoized event handlers for better performance
   const handleToggleSimulation = useCallback(() => {
     setState((prev) => ({ ...prev, isRunning: !prev.isRunning }));
   }, []);
@@ -130,47 +142,52 @@ export default function AtwooodMachineExperiment() {
     setState((prev) => ({ ...prev, g: value }));
   }, []);
 
-  const description = `
-    Atwood Makinesi: Newton'un ikinci yasasını (F = ma) göstermek için kullanılan klasik bir fizik deneyi.
-    
-    🔧 Özellikler:
-    • Gerçek zamanlı fizik simülasyonu
-    • İnteraktif kütle ve yerçekimi ayarları
-    • Newton'un hareket yasaları demonstrasyonu
-    • İp gerginliği ve ivme hesaplamaları
-    
-    📊 Parametreler:
-    • Kütle 1 (m₁): Sol taraftaki kütle
-    • Kütle 2 (m₂): Sağ taraftaki kütle  
-    • Yerçekimi (g): Gravitasyonel ivme
-    
-    🎯 Fizik Formülleri:
-    • İvme: a = (m₁ - m₂)g / (m₁ + m₂)
-    • Gerginlik: T = 2m₁m₂g / (m₁ + m₂)
-    • Hız: v = at
-    • Konum: x = ½at²
-  `;
-
-  const descriptionEn = `
-    Atwood Machine: A classic physics experiment to demonstrate Newton's second law (F = ma).
-    
-    🔧 Features:
-    • Real-time physics simulation
-    • Interactive mass and gravity controls
-    • Newton's laws of motion demonstration
-    • Rope tension and acceleration calculations
-    
-    📊 Parameters:
-    • Mass 1 (m₁): Left side mass
-    • Mass 2 (m₂): Right side mass
-    • Gravity (g): Gravitational acceleration
-    
-    🎯 Physics Formulas:
-    • Acceleration: a = (m₁ - m₂)g / (m₁ + m₂)
-    • Tension: T = 2m₁m₂g / (m₁ + m₂)
-    • Velocity: v = at
-    • Position: x = ½at²
-  `;
+  // Memoize descriptions to avoid recreation
+  const descriptions = useMemo(
+    () => ({
+      description: `
+      Atwood Makinesi: Newton'un ikinci yasasını (F = ma) göstermek için kullanılan klasik bir fizik deneyi.
+      
+      🔧 Özellikler:
+      • Gerçek zamanlı fizik simülasyonu
+      • İnteraktif kütle ve yerçekimi ayarları
+      • Newton'un hareket yasaları demonstrasyonu
+      • İp gerginliği ve ivme hesaplamaları
+      
+      📊 Parametreler:
+      • Kütle 1 (m₁): Sol taraftaki kütle
+      • Kütle 2 (m₂): Sağ taraftaki kütle  
+      • Yerçekimi (g): Gravitasyonel ivme
+      
+      🎯 Fizik Formülleri:
+      • İvme: a = (m₁ - m₂)g / (m₁ + m₂)
+      • Gerginlik: T = 2m₁m₂g / (m₁ + m₂)
+      • Hız: v = at
+      • Konum: x = ½at²
+    `,
+      descriptionEn: `
+      Atwood Machine: A classic physics experiment to demonstrate Newton's second law (F = ma).
+      
+      🔧 Features:
+      • Real-time physics simulation
+      • Interactive mass and gravity controls
+      • Newton's laws of motion demonstration
+      • Rope tension and acceleration calculations
+      
+      📊 Parameters:
+      • Mass 1 (m₁): Left side mass
+      • Mass 2 (m₂): Right side mass
+      • Gravity (g): Gravitational acceleration
+      
+      🎯 Physics Formulas:
+      • Acceleration: a = (m₁ - m₂)g / (m₁ + m₂)
+      • Tension: T = 2m₁m₂g / (m₁ + m₂)
+      • Velocity: v = at
+      • Position: x = ½at²
+    `,
+    }),
+    []
+  );
 
   return (
     <ExperimentLayout
@@ -178,8 +195,8 @@ export default function AtwooodMachineExperiment() {
       titleEn="Atwood Machine"
       difficulty="Orta Seviye"
       difficultyEn="Intermediate"
-      description={description}
-      descriptionEn={descriptionEn}
+      description={descriptions.description}
+      descriptionEn={descriptions.descriptionEn}
       isRunning={state.isRunning}
       onToggleSimulation={handleToggleSimulation}
       onReset={handleReset}
@@ -191,7 +208,7 @@ export default function AtwooodMachineExperiment() {
       >
         <View style={styles.container}>
           {/* Kontrol Paneli */}
-          <AtwooodControls
+          <AtwoodControls
             state={state}
             onMass1Change={handleMass1Change}
             onMass2Change={handleMass2Change}
@@ -202,7 +219,7 @@ export default function AtwooodMachineExperiment() {
 
           {/* Simülasyon */}
           <View style={styles.simulationContainer}>
-            <AtwooodMachineSystem state={state} />
+            <AtwoodMachineSystem state={state} />
           </View>
 
           {/* Fizik Değerleri */}
