@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ interface InfoCard {
   formula?: string;
 }
 
-const InfoCards: React.FC = () => {
+const InfoCards: React.FC = memo(() => {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const { t } = useLanguage();
 
@@ -185,7 +185,7 @@ const InfoCards: React.FC = () => {
       </View>
     </ScrollView>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

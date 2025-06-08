@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,46 @@ const { width: screenWidth } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 const isLargeScreen = isWeb || screenWidth > 768;
 
-const WaveInterferenceExperiment: React.FC = () => {
+// Memoized Tab Button Component
+const TabButton = memo<{
+  tab: 'controls' | 'scenarios' | 'info';
+  label: string;
+  icon: string;
+  activeTab: string;
+  onPress: (tab: 'controls' | 'scenarios' | 'info') => void;
+}>(({ tab, label, icon, activeTab, onPress }) => (
+  <TouchableOpacity
+    style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
+    onPress={() => onPress(tab)}
+  >
+    <Text style={[styles.tabIcon, activeTab === tab && styles.activeTabIcon]}>
+      {icon}
+    </Text>
+    <Text style={[styles.tabLabel, activeTab === tab && styles.activeTabLabel]}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+));
+
+// Memoized Status Card Component
+const StatusCard = memo<{
+  title: string;
+  data: Array<{ label: string; value: string }>;
+  cardStyle?: any;
+}>(({ title, data, cardStyle }) => (
+  <View style={[styles.statusCard, cardStyle]}>
+    <Text style={styles.statusCardTitle}>{title}</Text>
+    <View style={styles.statusDetails}>
+      {data.map((item, index) => (
+        <Text key={index} style={styles.statusText}>
+          {item.label}: {item.value}
+        </Text>
+      ))}
+    </View>
+  </View>
+));
+
+const WaveInterferenceExperiment: React.FC = memo(() => {
   const { t } = useLanguage();
 
   // Tab state for mobile navigation
@@ -57,6 +96,7 @@ const WaveInterferenceExperiment: React.FC = () => {
     }
   }, []);
 
+  // Memoized callbacks
   const handleSourceChange = useCallback(
     (
       sourceIndex: 0 | 1,
@@ -136,34 +176,91 @@ const WaveInterferenceExperiment: React.FC = () => {
     []
   );
 
-  const calculateSourceDistance = useCallback(() => {
+  const handleTabChange = useCallback(
+    (tab: 'controls' | 'scenarios' | 'info') => {
+      setActiveTab(tab);
+    },
+    []
+  );
+
+  // Memoized calculations
+  const sourceDistance = useMemo(() => {
     const dx = sources[1].x - sources[0].x;
     const dy = sources[1].y - sources[0].y;
     return Math.sqrt(dx * dx + dy * dy).toFixed(1);
   }, [sources]);
 
-  // Mobile tab navigation
-  const TabButton: React.FC<{
-    tab: 'controls' | 'scenarios' | 'info';
-    label: string;
-    icon: string;
-  }> = ({ tab, label, icon }) => (
-    <TouchableOpacity
-      style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
-      onPress={() => setActiveTab(tab)}
-    >
-      <Text style={[styles.tabIcon, activeTab === tab && styles.activeTabIcon]}>
-        {icon}
-      </Text>
-      <Text
-        style={[styles.tabLabel, activeTab === tab && styles.activeTabLabel]}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
+  const statusData = useMemo(
+    () => ({
+      source1: [
+        {
+          label: t('Konum:', 'Position:'),
+          value: `(${sources[0].x.toFixed(0)}, ${sources[0].y.toFixed(0)})`,
+        },
+        {
+          label: t('Frekans:', 'Frequency:'),
+          value: `${sources[0].frequency.toFixed(1)} Hz`,
+        },
+        {
+          label: t('Genlik:', 'Amplitude:'),
+          value: sources[0].amplitude.toFixed(1),
+        },
+        {
+          label: t('Durum:', 'Status:'),
+          value: sources[0].active ? '✅ Aktif' : '❌ Pasif',
+        },
+      ],
+      source2: [
+        {
+          label: t('Konum:', 'Position:'),
+          value: `(${sources[1].x.toFixed(0)}, ${sources[1].y.toFixed(0)})`,
+        },
+        {
+          label: t('Frekans:', 'Frequency:'),
+          value: `${sources[1].frequency.toFixed(1)} Hz`,
+        },
+        {
+          label: t('Genlik:', 'Amplitude:'),
+          value: sources[1].amplitude.toFixed(1),
+        },
+        {
+          label: t('Durum:', 'Status:'),
+          value: sources[1].active ? '✅ Aktif' : '❌ Pasif',
+        },
+      ],
+      system: [
+        {
+          label: t('Mesafe:', 'Distance:'),
+          value: `${sourceDistance} ${t('birim', 'units')}`,
+        },
+        { label: t('Dalga Hızı:', 'Wave Speed:'), value: `${waveSpeed} m/s` },
+        { label: t('Sönümleme:', 'Damping:'), value: damping.toFixed(3) },
+        {
+          label: t('Durum:', 'Status:'),
+          value: isPlaying ? '▶️ Çalışıyor' : '⏸️ Duraklatıldı',
+        },
+      ],
+    }),
+    [sources, sourceDistance, waveSpeed, damping, isPlaying, t]
   );
 
-  const renderTabContent = () => {
+  // Memoized view mode text
+  const viewModeText = useMemo(() => {
+    return t(
+      viewMode === 'heatmap'
+        ? 'Renk Haritası'
+        : viewMode === 'contour'
+        ? 'Kontur'
+        : 'Vektör',
+      viewMode === 'heatmap'
+        ? 'Heatmap'
+        : viewMode === 'contour'
+        ? 'Contour'
+        : 'Vector'
+    );
+  }, [viewMode, t]);
+
+  const renderTabContent = useCallback(() => {
     switch (activeTab) {
       case 'controls':
         return (
@@ -195,7 +292,24 @@ const WaveInterferenceExperiment: React.FC = () => {
       default:
         return null;
     }
-  };
+  }, [
+    activeTab,
+    sources,
+    waveSpeed,
+    damping,
+    animationSpeed,
+    isPlaying,
+    viewMode,
+    currentScenario,
+    handleSourceChange,
+    handleWaveSpeedChange,
+    handleDampingChange,
+    handleAnimationSpeedChange,
+    handlePlayPause,
+    handleReset,
+    handleViewModeChange,
+    applyScenario,
+  ]);
 
   return (
     <ExperimentLayout
@@ -219,75 +333,21 @@ const WaveInterferenceExperiment: React.FC = () => {
         {isLargeScreen && (
           <View style={styles.statusContainer}>
             <View style={styles.statusGrid}>
-              <View style={[styles.statusCard, styles.source1Card]}>
-                <Text style={styles.statusCardTitle}>
-                  🔴 {t('Kaynak 1', 'Source 1')}
-                </Text>
-                <View style={styles.statusDetails}>
-                  <Text style={styles.statusText}>
-                    {t('Konum:', 'Position:')} ({sources[0].x.toFixed(0)},{' '}
-                    {sources[0].y.toFixed(0)})
-                  </Text>
-                  <Text style={styles.statusText}>
-                    {t('Frekans:', 'Frequency:')}{' '}
-                    {sources[0].frequency.toFixed(1)} Hz
-                  </Text>
-                  <Text style={styles.statusText}>
-                    {t('Genlik:', 'Amplitude:')}{' '}
-                    {sources[0].amplitude.toFixed(1)}
-                  </Text>
-                  <Text style={styles.statusText}>
-                    {t('Durum:', 'Status:')}{' '}
-                    {sources[0].active ? '✅ Aktif' : '❌ Pasif'}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={[styles.statusCard, styles.source2Card]}>
-                <Text style={styles.statusCardTitle}>
-                  🔵 {t('Kaynak 2', 'Source 2')}
-                </Text>
-                <View style={styles.statusDetails}>
-                  <Text style={styles.statusText}>
-                    {t('Konum:', 'Position:')} ({sources[1].x.toFixed(0)},{' '}
-                    {sources[1].y.toFixed(0)})
-                  </Text>
-                  <Text style={styles.statusText}>
-                    {t('Frekans:', 'Frequency:')}{' '}
-                    {sources[1].frequency.toFixed(1)} Hz
-                  </Text>
-                  <Text style={styles.statusText}>
-                    {t('Genlik:', 'Amplitude:')}{' '}
-                    {sources[1].amplitude.toFixed(1)}
-                  </Text>
-                  <Text style={styles.statusText}>
-                    {t('Durum:', 'Status:')}{' '}
-                    {sources[1].active ? '✅ Aktif' : '❌ Pasif'}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={[styles.statusCard, styles.systemCard]}>
-                <Text style={styles.statusCardTitle}>
-                  🌊 {t('Sistem', 'System')}
-                </Text>
-                <View style={styles.statusDetails}>
-                  <Text style={styles.statusText}>
-                    {t('Mesafe:', 'Distance:')} {calculateSourceDistance()}{' '}
-                    {t('birim', 'units')}
-                  </Text>
-                  <Text style={styles.statusText}>
-                    {t('Dalga Hızı:', 'Wave Speed:')} {waveSpeed} m/s
-                  </Text>
-                  <Text style={styles.statusText}>
-                    {t('Sönümleme:', 'Damping:')} {damping.toFixed(3)}
-                  </Text>
-                  <Text style={styles.statusText}>
-                    {t('Durum:', 'Status:')}{' '}
-                    {isPlaying ? '▶️ Çalışıyor' : '⏸️ Duraklatıldı'}
-                  </Text>
-                </View>
-              </View>
+              <StatusCard
+                title={`🔴 ${t('Kaynak 1', 'Source 1')}`}
+                data={statusData.source1}
+                cardStyle={styles.source1Card}
+              />
+              <StatusCard
+                title={`🔵 ${t('Kaynak 2', 'Source 2')}`}
+                data={statusData.source2}
+                cardStyle={styles.source2Card}
+              />
+              <StatusCard
+                title={`🌊 ${t('Sistem', 'System')}`}
+                data={statusData.system}
+                cardStyle={styles.systemCard}
+              />
             </View>
           </View>
         )}
@@ -304,18 +364,7 @@ const WaveInterferenceExperiment: React.FC = () => {
                 </Text>
                 <Text style={styles.mobileSimulationStatus}>
                   {isPlaying ? '▶️ Çalışıyor' : '⏸️ Duraklatıldı'} •{' '}
-                  {t(
-                    viewMode === 'heatmap'
-                      ? 'Renk Haritası'
-                      : viewMode === 'contour'
-                      ? 'Kontur'
-                      : 'Vektör',
-                    viewMode === 'heatmap'
-                      ? 'Heatmap'
-                      : viewMode === 'contour'
-                      ? 'Contour'
-                      : 'Vector'
-                  )}
+                  {viewModeText}
                 </Text>
               </View>
             )}
@@ -421,13 +470,23 @@ const WaveInterferenceExperiment: React.FC = () => {
                   tab="controls"
                   label={t('Kontrol', 'Controls')}
                   icon="⚙️"
+                  activeTab={activeTab}
+                  onPress={handleTabChange}
                 />
                 <TabButton
                   tab="scenarios"
                   label={t('Senaryo', 'Scenarios')}
                   icon="🎯"
+                  activeTab={activeTab}
+                  onPress={handleTabChange}
                 />
-                <TabButton tab="info" label={t('Bilgi', 'Info')} icon="📚" />
+                <TabButton
+                  tab="info"
+                  label={t('Bilgi', 'Info')}
+                  icon="📚"
+                  activeTab={activeTab}
+                  onPress={handleTabChange}
+                />
               </View>
 
               <View style={styles.tabContent}>{renderTabContent()}</View>
@@ -437,7 +496,7 @@ const WaveInterferenceExperiment: React.FC = () => {
       </ScrollView>
     </ExperimentLayout>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

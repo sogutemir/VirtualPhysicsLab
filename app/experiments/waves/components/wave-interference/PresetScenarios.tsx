@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -14,138 +14,138 @@ interface PresetScenariosProps {
   onScenarioSelect: (scenario: Scenario) => void;
 }
 
-const PresetScenarios: React.FC<PresetScenariosProps> = ({
-  currentScenario,
-  onScenarioSelect,
-}) => {
-  const { t } = useLanguage();
+const PresetScenarios: React.FC<PresetScenariosProps> = memo(
+  ({ currentScenario, onScenarioSelect }) => {
+    const { t } = useLanguage();
 
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case 'beginner':
-        return {
-          backgroundColor: 'rgba(34, 197, 94, 0.2)',
-          borderColor: 'rgba(34, 197, 94, 0.5)',
-          textColor: '#22c55e',
-        };
-      case 'intermediate':
-        return {
-          backgroundColor: 'rgba(234, 179, 8, 0.2)',
-          borderColor: 'rgba(234, 179, 8, 0.5)',
-          textColor: '#eab308',
-        };
-      case 'advanced':
-        return {
-          backgroundColor: 'rgba(239, 68, 68, 0.2)',
-          borderColor: 'rgba(239, 68, 68, 0.5)',
-          textColor: '#ef4444',
-        };
-      default:
-        return {
-          backgroundColor: 'rgba(107, 114, 128, 0.2)',
-          borderColor: 'rgba(107, 114, 128, 0.5)',
-          textColor: '#6b7280',
-        };
-    }
-  };
+    const getLevelColor = (level: string) => {
+      switch (level) {
+        case 'beginner':
+          return {
+            backgroundColor: 'rgba(34, 197, 94, 0.2)',
+            borderColor: 'rgba(34, 197, 94, 0.5)',
+            textColor: '#22c55e',
+          };
+        case 'intermediate':
+          return {
+            backgroundColor: 'rgba(234, 179, 8, 0.2)',
+            borderColor: 'rgba(234, 179, 8, 0.5)',
+            textColor: '#eab308',
+          };
+        case 'advanced':
+          return {
+            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+            borderColor: 'rgba(239, 68, 68, 0.5)',
+            textColor: '#ef4444',
+          };
+        default:
+          return {
+            backgroundColor: 'rgba(107, 114, 128, 0.2)',
+            borderColor: 'rgba(107, 114, 128, 0.5)',
+            textColor: '#6b7280',
+          };
+      }
+    };
 
-  return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          🎯 {t('Hazır Senaryolar', 'Preset Scenarios')}
-        </Text>
-      </View>
+    return (
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.title}>
+            🎯 {t('Hazır Senaryolar', 'Preset Scenarios')}
+          </Text>
+        </View>
 
-      <View style={styles.scenarioGrid}>
-        {presetScenarios.map((scenario) => {
-          const isActive = currentScenario === scenario.id;
-          const levelStyle = getLevelColor(scenario.level);
+        <View style={styles.scenarioGrid}>
+          {presetScenarios.map((scenario) => {
+            const isActive = currentScenario === scenario.id;
+            const levelStyle = getLevelColor(scenario.level);
 
-          return (
-            <TouchableOpacity
-              key={scenario.id}
-              style={[
-                styles.scenarioCard,
-                isActive && styles.activeScenarioCard,
-              ]}
-              onPress={() => onScenarioSelect(scenario)}
-            >
-              {/* Compact Header */}
-              <View style={styles.scenarioHeader}>
-                <Text style={styles.scenarioIcon}>{scenario.icon}</Text>
-                <View style={styles.scenarioTitleContainer}>
-                  <Text style={styles.scenarioName} numberOfLines={1}>
-                    {t(scenario.name, scenario.nameEn)}
-                  </Text>
-                  <View style={[styles.levelBadge, levelStyle]}>
-                    <Text
-                      style={[
-                        styles.levelText,
-                        { color: levelStyle.textColor },
-                      ]}
-                    >
-                      {t(
-                        scenario.level === 'beginner'
-                          ? 'Başlangıç'
-                          : scenario.level === 'intermediate'
-                          ? 'Orta'
-                          : 'İleri',
-                        scenario.level
-                      )}
-                    </Text>
-                  </View>
-                </View>
-                {isActive && (
-                  <View style={styles.activeBadge}>
-                    <Text style={styles.activeBadgeText}>✓</Text>
-                  </View>
-                )}
-              </View>
-
-              {/* Compact Parameters */}
-              <View style={styles.parametersContainer}>
-                <Text style={styles.parameterText}>
-                  S1: {scenario.sources[0].frequency}Hz • S2:{' '}
-                  {scenario.sources[1].frequency}Hz • v: {scenario.waveSpeed}m/s
-                </Text>
-              </View>
-
-              {/* Apply Button */}
+            return (
               <TouchableOpacity
+                key={scenario.id}
                 style={[
-                  styles.applyButton,
-                  isActive && styles.activeApplyButton,
+                  styles.scenarioCard,
+                  isActive && styles.activeScenarioCard,
                 ]}
                 onPress={() => onScenarioSelect(scenario)}
               >
-                <Text
-                  style={[
-                    styles.applyButtonText,
-                    isActive && styles.activeApplyButtonText,
-                  ]}
-                >
-                  {isActive ? t('✓ Aktif', '✓ Active') : t('Uygula', 'Apply')}
-                </Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+                {/* Compact Header */}
+                <View style={styles.scenarioHeader}>
+                  <Text style={styles.scenarioIcon}>{scenario.icon}</Text>
+                  <View style={styles.scenarioTitleContainer}>
+                    <Text style={styles.scenarioName} numberOfLines={1}>
+                      {t(scenario.name, scenario.nameEn)}
+                    </Text>
+                    <View style={[styles.levelBadge, levelStyle]}>
+                      <Text
+                        style={[
+                          styles.levelText,
+                          { color: levelStyle.textColor },
+                        ]}
+                      >
+                        {t(
+                          scenario.level === 'beginner'
+                            ? 'Başlangıç'
+                            : scenario.level === 'intermediate'
+                            ? 'Orta'
+                            : 'İleri',
+                          scenario.level
+                        )}
+                      </Text>
+                    </View>
+                  </View>
+                  {isActive && (
+                    <View style={styles.activeBadge}>
+                      <Text style={styles.activeBadgeText}>✓</Text>
+                    </View>
+                  )}
+                </View>
 
-      {/* Compact Custom Experiment Tip */}
-      <View style={styles.customCard}>
-        <Text style={styles.customTitle}>
-          🔬{' '}
-          {t(
-            'Kendi parametrelerinizi kontrol panelinden ayarlayın',
-            'Adjust your own parameters from the control panel'
-          )}
-        </Text>
-      </View>
-    </ScrollView>
-  );
-};
+                {/* Compact Parameters */}
+                <View style={styles.parametersContainer}>
+                  <Text style={styles.parameterText}>
+                    S1: {scenario.sources[0].frequency}Hz • S2:{' '}
+                    {scenario.sources[1].frequency}Hz • v: {scenario.waveSpeed}
+                    m/s
+                  </Text>
+                </View>
+
+                {/* Apply Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.applyButton,
+                    isActive && styles.activeApplyButton,
+                  ]}
+                  onPress={() => onScenarioSelect(scenario)}
+                >
+                  <Text
+                    style={[
+                      styles.applyButtonText,
+                      isActive && styles.activeApplyButtonText,
+                    ]}
+                  >
+                    {isActive ? t('✓ Aktif', '✓ Active') : t('Uygula', 'Apply')}
+                  </Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Compact Custom Experiment Tip */}
+        <View style={styles.customCard}>
+          <Text style={styles.customTitle}>
+            🔬{' '}
+            {t(
+              'Kendi parametrelerinizi kontrol panelinden ayarlayın',
+              'Adjust your own parameters from the control panel'
+            )}
+          </Text>
+        </View>
+      </ScrollView>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {
