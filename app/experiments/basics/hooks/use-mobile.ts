@@ -15,14 +15,17 @@ export function useIsMobile() {
     // İlk yükleme kontrolü
     updateDimensions();
 
-    // Ekran boyutu değişikliklerini dinle
+    // Ekran boyutu değişikliklerini dinle - yeni API
     const subscription = Dimensions.addEventListener(
       'change',
       updateDimensions
     );
 
     return () => {
-      subscription.remove();
+      // Yeni API için cleanup
+      if (subscription?.remove) {
+        subscription.remove();
+      }
     };
   }, []);
 

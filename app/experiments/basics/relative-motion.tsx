@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   View,
   Text,
@@ -31,13 +37,15 @@ const RelativeMotionExperiment: React.FC = () => {
   >([]);
   const [isGrounded, setIsGrounded] = useState(false);
 
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  const physics = new RelativeMotionPhysics();
+  // Memoize physics instance to prevent recreation
+  const physics = useMemo(() => new RelativeMotionPhysics(), []);
   const { t } = useLanguage();
 
-  const startSimulation = () => {
+  // Memoize callback functions for better performance
+  const startSimulation = useCallback(() => {
     setIsRunning(true);
     startTimeRef.current = Date.now();
     setTime(0);
@@ -45,16 +53,16 @@ const RelativeMotionExperiment: React.FC = () => {
     setBallPosition({ x: 0, y: 0 });
     setTrainPosition(0);
     setIsGrounded(false);
-  };
+  }, []);
 
-  const pauseSimulation = () => {
+  const pauseSimulation = useCallback(() => {
     setIsRunning(false);
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
-  };
+  }, []);
 
-  const resetSimulation = () => {
+  const resetSimulation = useCallback(() => {
     setIsRunning(false);
     setTime(0);
     setBallPosition({ x: 0, y: 0 });
@@ -64,11 +72,23 @@ const RelativeMotionExperiment: React.FC = () => {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
-  };
+  }, []);
 
-  const toggleTrajectory = () => {
-    setShowTrajectory(!showTrajectory);
-  };
+  const toggleTrajectory = useCallback(() => {
+    setShowTrajectory((prev) => !prev);
+  }, []);
+
+  // Optimize trajectory updates
+  const updateTrajectoryPoints = useCallback(
+    (newPoint: { x: number; y: number }) => {
+      setTrajectoryPoints((prev) => {
+        const newArray = [...prev, newPoint];
+        // More efficient way to limit array size
+        return newArray.length > 50 ? newArray.slice(-50) : newArray;
+      });
+    },
+    []
+  );
 
   useEffect(() => {
     if (isRunning) {
@@ -91,11 +111,9 @@ const RelativeMotionExperiment: React.FC = () => {
         setBallPosition({ x: ballData.x, y: ballData.y });
         setIsGrounded(ballData.isGrounded);
 
-        // Add to trajectory if ball is in flight
+        // Add to trajectory if ball is in flight - optimized update
         if (ballData.y > 0) {
-          setTrajectoryPoints((prev) =>
-            [...prev, { x: ballData.x, y: ballData.y }].slice(-50)
-          );
+          updateTrajectoryPoints({ x: ballData.x, y: ballData.y });
         }
 
         // Continue animation if ball is still in flight
@@ -114,7 +132,14 @@ const RelativeMotionExperiment: React.FC = () => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isRunning, ballSpeed, ballAngle, trainSpeed, physics]);
+  }, [
+    isRunning,
+    ballSpeed,
+    ballAngle,
+    trainSpeed,
+    physics,
+    updateTrajectoryPoints,
+  ]);
 
   return (
     <ExperimentLayout
