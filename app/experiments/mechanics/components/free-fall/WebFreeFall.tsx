@@ -4,15 +4,15 @@ import React, {
   useEffect,
   forwardRef,
   useImperativeHandle,
+  useMemo,
 } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { FreeFallProps } from './types';
+import { FreeFallProps, FREE_FALL_CONSTANTS } from './types';
 import { useFreeFall } from './useFreeFall';
 import { FreeFallControls } from './FreeFallControls';
 import { useLanguage } from '../../../../../components/LanguageContext';
 
 const CANVAS_PADDING = 30;
-const GRAVITY = 9.81;
 const MAX_X = 1500;
 const MAX_Y = 800;
 
@@ -31,12 +31,12 @@ export const WebFreeFall = forwardRef<any, FreeFallProps>(
     const scaleX = (canvasWidth - 2 * CANVAS_PADDING) / MAX_X;
     const scaleY = (canvasHeight - 2 * CANVAS_PADDING) / MAX_Y;
 
-    const toCanvasX = useCallback(
-      (x: number) => x * scaleX + CANVAS_PADDING,
+    const toCanvasX = useMemo(
+      () => (x: number) => x * scaleX + CANVAS_PADDING,
       [scaleX]
     );
-    const toCanvasY = useCallback(
-      (y: number) => canvasHeight - (y * scaleY + CANVAS_PADDING),
+    const toCanvasY = useMemo(
+      () => (y: number) => canvasHeight - (y * scaleY + CANVAS_PADDING),
       [canvasHeight, scaleY]
     );
 

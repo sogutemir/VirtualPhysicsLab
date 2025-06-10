@@ -16,13 +16,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#2563eb"
       },
       "package": "com.physicslab.app",
-      "versionCode": 1,
-      "compileSdkVersion": 34,
-      "targetSdkVersion": 34,
-      "buildToolsVersion": "34.0.0"
+      "versionCode": 1
     },
     "ios": {
       "supportsTablet": true,
@@ -41,9 +38,6 @@
       "eas": {
         "projectId": "eec2398c-6bee-4610-893c-76644ae8707d"
       }
-    },
-    "cli": {
-      "appVersionSource": "local"
     }
   }
 }

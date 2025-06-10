@@ -38,6 +38,7 @@ const WebSlider = memo<{
   maximumValue: number;
   style?: any;
   minimumTrackTintColor?: string;
+  disabled?: boolean;
 }>(
   ({
     value,
@@ -46,6 +47,7 @@ const WebSlider = memo<{
     maximumValue,
     style,
     minimumTrackTintColor,
+    disabled = false,
   }) => {
     const trackColor = minimumTrackTintColor || '#3498db';
 
@@ -96,8 +98,15 @@ const WebSlider = memo<{
             max={maximumValue}
             step="0.01"
             value={value}
-            onChange={(e) => onValueChange(parseFloat(e.target.value))}
-            style={sliderStyle}
+            onChange={(e) =>
+              !disabled && onValueChange(parseFloat(e.target.value))
+            }
+            disabled={disabled}
+            style={{
+              ...sliderStyle,
+              opacity: disabled ? 0.5 : 1,
+              cursor: disabled ? 'not-allowed' : 'pointer',
+            }}
           />
           <style>{thumbStyle}</style>
         </div>
@@ -106,11 +115,15 @@ const WebSlider = memo<{
 
     return (
       <CustomSlider
-        style={style}
+        style={{
+          ...style,
+          opacity: disabled ? 0.5 : 1,
+        }}
         min={minimumValue}
         max={maximumValue}
         value={value}
-        onValueChange={onValueChange}
+        onValueChange={disabled ? () => {} : onValueChange}
+        disabled={disabled}
         minimumTrackTintColor={minimumTrackTintColor}
         maximumTrackTintColor="#e2e8f0"
         thumbTintColor={minimumTrackTintColor}
@@ -708,22 +721,22 @@ const AdvancedPendulumExperiment = memo(() => {
     [safeSetState]
   );
 
-  // Güvenli slider değer değiştirme fonksiyonları (debounced)
+  // Güvenli slider değer değiştirme fonksiyonları (debounced) - optimized
   const handleLengthChange = useCallback(
     (value: number) => {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !state.isPlaying) {
         debouncedSetState(
           (prev: PendulumState) => ({ ...prev, length: value }),
           10
         );
       }
     },
-    [debouncedSetState]
+    [debouncedSetState, state.isPlaying]
   );
 
   const handleAngleChange = useCallback(
     (value: number) => {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !state.isPlaying) {
         debouncedSetState(
           (prev: PendulumState) => ({
             ...prev,
@@ -733,79 +746,79 @@ const AdvancedPendulumExperiment = memo(() => {
         );
       }
     },
-    [debouncedSetState]
+    [debouncedSetState, state.isPlaying]
   );
 
   const handleLength1Change = useCallback(
     (value: number) => {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !state.isPlaying) {
         debouncedSetState(
           (prev: PendulumState) => ({ ...prev, length1: value }),
           10
         );
       }
     },
-    [debouncedSetState]
+    [debouncedSetState, state.isPlaying]
   );
 
   const handleLength2Change = useCallback(
     (value: number) => {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !state.isPlaying) {
         debouncedSetState(
           (prev: PendulumState) => ({ ...prev, length2: value }),
           10
         );
       }
     },
-    [debouncedSetState]
+    [debouncedSetState, state.isPlaying]
   );
 
   const handleMass1Change = useCallback(
     (value: number) => {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !state.isPlaying) {
         debouncedSetState(
           (prev: PendulumState) => ({ ...prev, mass1: value }),
           10
         );
       }
     },
-    [debouncedSetState]
+    [debouncedSetState, state.isPlaying]
   );
 
   const handleMass2Change = useCallback(
     (value: number) => {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !state.isPlaying) {
         debouncedSetState(
           (prev: PendulumState) => ({ ...prev, mass2: value }),
           10
         );
       }
     },
-    [debouncedSetState]
+    [debouncedSetState, state.isPlaying]
   );
 
   const handlePhysicalMassChange = useCallback(
     (value: number) => {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !state.isPlaying) {
         debouncedSetState(
           (prev: PendulumState) => ({ ...prev, physicalMass: value }),
           10
         );
       }
     },
-    [debouncedSetState]
+    [debouncedSetState, state.isPlaying]
   );
 
   const handlePhysicalLengthChange = useCallback(
     (value: number) => {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !state.isPlaying) {
         debouncedSetState(
           (prev: PendulumState) => ({ ...prev, physicalLength: value }),
           10
         );
       }
     },
-    [debouncedSetState]
+    [debouncedSetState, state.isPlaying]
   );
 
   // Memoized shape handler
@@ -927,6 +940,7 @@ const AdvancedPendulumExperiment = memo(() => {
               value={state.length}
               onValueChange={handleLengthChange}
               minimumTrackTintColor="#3498db"
+              disabled={state.isPlaying}
             />
           </View>
 
@@ -942,6 +956,7 @@ const AdvancedPendulumExperiment = memo(() => {
               value={(state.angle * 180) / Math.PI}
               onValueChange={handleAngleChange}
               minimumTrackTintColor="#3498db"
+              disabled={state.isPlaying}
             />
           </View>
         </View>
@@ -964,6 +979,7 @@ const AdvancedPendulumExperiment = memo(() => {
               value={state.length1}
               onValueChange={handleLength1Change}
               minimumTrackTintColor="#22c55e"
+              disabled={state.isPlaying}
             />
           </View>
 
@@ -978,6 +994,7 @@ const AdvancedPendulumExperiment = memo(() => {
               value={state.length2}
               onValueChange={handleLength2Change}
               minimumTrackTintColor="#f97316"
+              disabled={state.isPlaying}
             />
           </View>
 
@@ -992,6 +1009,7 @@ const AdvancedPendulumExperiment = memo(() => {
               value={state.mass1}
               onValueChange={handleMass1Change}
               minimumTrackTintColor="#22c55e"
+              disabled={state.isPlaying}
             />
           </View>
 
@@ -1006,6 +1024,7 @@ const AdvancedPendulumExperiment = memo(() => {
               value={state.mass2}
               onValueChange={handleMass2Change}
               minimumTrackTintColor="#f97316"
+              disabled={state.isPlaying}
             />
           </View>
         </View>
@@ -1033,6 +1052,7 @@ const AdvancedPendulumExperiment = memo(() => {
               value={state.physicalMass}
               onValueChange={handlePhysicalMassChange}
               minimumTrackTintColor="#8b5cf6"
+              disabled={state.isPlaying}
             />
           </View>
 
@@ -1047,6 +1067,7 @@ const AdvancedPendulumExperiment = memo(() => {
               value={state.physicalLength}
               onValueChange={handlePhysicalLengthChange}
               minimumTrackTintColor="#8b5cf6"
+              disabled={state.isPlaying}
             />
           </View>
         </View>

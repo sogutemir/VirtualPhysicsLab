@@ -1,120 +1,145 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CustomSlider } from '../../../../../components/ui/slider';
 import { FreeFallControlsProps } from './types';
 import { useLanguage } from '../../../../../components/LanguageContext';
 
-export const FreeFallControls: React.FC<FreeFallControlsProps> = ({
-  state,
-  onStart,
-  onReset,
-  onVelocityChange,
-  onAngleChange,
-  onFrictionChange,
-}) => {
-  const { t } = useLanguage();
+export const FreeFallControls: React.FC<FreeFallControlsProps> = memo(
+  ({
+    state,
+    onStart,
+    onReset,
+    onVelocityChange,
+    onAngleChange,
+    onFrictionChange,
+  }) => {
+    const { t } = useLanguage();
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          {t('Deney Parametreleri', 'Experiment Parameters')}
-        </Text>
-      </View>
+    const handleVelocityChange = useCallback(
+      (value: number) => {
+        onVelocityChange(Math.min(value, 120)); // Max 120 m/s limit
+      },
+      [onVelocityChange]
+    );
 
-      <View style={styles.sliderGroup}>
-        <View style={styles.sliderContainer}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>
-              {t('Başlangıç Hızı', 'Initial Velocity')}
-            </Text>
-            <Text style={styles.value}>{state.velocity.toFixed(1)} m/s</Text>
-          </View>
-          <CustomSlider
-            style={styles.slider}
-            min={0}
-            max={500}
-            step={5}
-            value={state.velocity}
-            onValueChange={onVelocityChange}
-            minimumTrackTintColor="#3498db"
-            maximumTrackTintColor="#bdc3c7"
-            thumbTintColor="#2980b9"
-          />
-        </View>
+    const handleAngleChange = useCallback(
+      (value: number) => {
+        onAngleChange(value);
+      },
+      [onAngleChange]
+    );
 
-        <View style={styles.sliderContainer}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>{t('Atış Açısı', 'Launch Angle')}</Text>
-            <Text style={styles.value}>{state.angle.toFixed(1)}°</Text>
-          </View>
-          <CustomSlider
-            style={styles.slider}
-            min={0}
-            max={90}
-            step={1}
-            value={state.angle}
-            onValueChange={onAngleChange}
-            minimumTrackTintColor="#3498db"
-            maximumTrackTintColor="#bdc3c7"
-            thumbTintColor="#2980b9"
-          />
-        </View>
+    const handleFrictionChange = useCallback(
+      (value: number) => {
+        onFrictionChange(value);
+      },
+      [onFrictionChange]
+    );
 
-        <View style={styles.sliderContainer}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>
-              {t('Sürtünme Katsayısı (β/m)', 'Friction Coefficient (β/m)')}
-            </Text>
-            <Text style={styles.value}>{state.frictionCoef.toFixed(4)}</Text>
-          </View>
-          <CustomSlider
-            style={styles.slider}
-            min={0}
-            max={0.01}
-            step={0.0001}
-            value={state.frictionCoef}
-            onValueChange={onFrictionChange}
-            minimumTrackTintColor="#3498db"
-            maximumTrackTintColor="#bdc3c7"
-            thumbTintColor="#2980b9"
-          />
-        </View>
-      </View>
-
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoText}>
-          {t(
-            'Sürtünme kuvveti, cismin hızının karesi ile orantılıdır ve hareket yönünün tersinedir.',
-            'Friction force is proportional to the square of velocity and opposite to the direction of motion.'
-          )}
-        </Text>
-      </View>
-
-      <View style={styles.buttonGroup}>
-        <TouchableOpacity
-          style={[
-            styles.button,
-            styles.primaryButton,
-            state.isRunning && styles.stopButton,
-          ]}
-          onPress={onStart}
-        >
-          <Text style={styles.buttonText}>
-            {state.isRunning ? t('Durdur', 'Stop') : t('Başlat', 'Start')}
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>
+            {t('Deney Parametreleri', 'Experiment Parameters')}
           </Text>
-        </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity
-          style={[styles.button, styles.secondaryButton]}
-          onPress={onReset}
-        >
-          <Text style={styles.buttonText}>{t('Sıfırla', 'Reset')}</Text>
-        </TouchableOpacity>
+        <View style={styles.sliderGroup}>
+          <View style={styles.sliderContainer}>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>
+                {t('Başlangıç Hızı', 'Initial Velocity')}
+              </Text>
+              <Text style={styles.value}>{state.velocity.toFixed(1)} m/s</Text>
+            </View>
+            <CustomSlider
+              style={styles.slider}
+              min={0}
+              max={120}
+              step={2}
+              value={state.velocity}
+              onValueChange={handleVelocityChange}
+              minimumTrackTintColor="#3498db"
+              maximumTrackTintColor="#bdc3c7"
+              thumbTintColor="#2980b9"
+            />
+          </View>
+
+          <View style={styles.sliderContainer}>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>
+                {t('Atış Açısı', 'Launch Angle')}
+              </Text>
+              <Text style={styles.value}>{state.angle.toFixed(1)}°</Text>
+            </View>
+            <CustomSlider
+              style={styles.slider}
+              min={0}
+              max={90}
+              step={1}
+              value={state.angle}
+              onValueChange={handleAngleChange}
+              minimumTrackTintColor="#3498db"
+              maximumTrackTintColor="#bdc3c7"
+              thumbTintColor="#2980b9"
+            />
+          </View>
+
+          <View style={styles.sliderContainer}>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>
+                {t('Sürtünme Katsayısı (β/m)', 'Friction Coefficient (β/m)')}
+              </Text>
+              <Text style={styles.value}>{state.frictionCoef.toFixed(4)}</Text>
+            </View>
+            <CustomSlider
+              style={styles.slider}
+              min={0}
+              max={0.01}
+              step={0.0001}
+              value={state.frictionCoef}
+              onValueChange={handleFrictionChange}
+              minimumTrackTintColor="#3498db"
+              maximumTrackTintColor="#bdc3c7"
+              thumbTintColor="#2980b9"
+            />
+          </View>
+        </View>
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoText}>
+            {t(
+              'Sürtünme kuvveti, cismin hızının karesi ile orantılıdır ve hareket yönünün tersinedir.',
+              'Friction force is proportional to the square of velocity and opposite to the direction of motion.'
+            )}
+          </Text>
+        </View>
+
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              styles.primaryButton,
+              state.isRunning && styles.stopButton,
+            ]}
+            onPress={onStart}
+          >
+            <Text style={styles.buttonText}>
+              {state.isRunning ? t('Durdur', 'Stop') : t('Başlat', 'Start')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.secondaryButton]}
+            onPress={onReset}
+          >
+            <Text style={styles.buttonText}>{t('Sıfırla', 'Reset')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
-};
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {
