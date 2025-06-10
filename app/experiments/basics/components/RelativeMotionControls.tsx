@@ -48,7 +48,7 @@ export const RelativeMotionControls: React.FC<RelativeMotionControlsProps> =
               <CustomSlider
                 style={styles.slider}
                 min={0}
-                max={30}
+                max={15}
                 value={trainSpeed * 3.6}
                 onValueChange={(value: number) =>
                   onTrainSpeedChange(value / 3.6)
@@ -60,7 +60,7 @@ export const RelativeMotionControls: React.FC<RelativeMotionControlsProps> =
               />
               <View style={styles.sliderLabels}>
                 <Text style={styles.sliderLabel}>0</Text>
-                <Text style={styles.sliderLabel}>30 km/h</Text>
+                <Text style={styles.sliderLabel}>15 km/h</Text>
               </View>
             </View>
 
@@ -71,18 +71,18 @@ export const RelativeMotionControls: React.FC<RelativeMotionControlsProps> =
               </Text>
               <CustomSlider
                 style={styles.slider}
-                min={5}
-                max={25}
+                min={2.5}
+                max={12.5}
                 value={ballSpeed}
                 onValueChange={onBallSpeedChange}
-                step={0.5}
+                step={0.25}
                 minimumTrackTintColor="#10b981"
                 maximumTrackTintColor="#64748b"
                 disabled={isRunning}
               />
               <View style={styles.sliderLabels}>
-                <Text style={styles.sliderLabel}>5</Text>
-                <Text style={styles.sliderLabel}>25 m/s</Text>
+                <Text style={styles.sliderLabel}>2.5</Text>
+                <Text style={styles.sliderLabel}>12.5 m/s</Text>
               </View>
             </View>
 

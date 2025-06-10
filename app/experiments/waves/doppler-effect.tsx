@@ -60,17 +60,18 @@ const DEFAULT_STATE: DopplerEffectState = {
 export default function DopplerEffectExperiment() {
   const { t } = useLanguage();
 
-  // Boyutları hesapla
-  const canvasSize =
-    Platform.OS === 'web'
-      ? Math.min(width - 40, 350) // 500'den 350'ye düşürdüm
-      : Math.min(width - 32, height * 0.25); // 0.35'ten 0.25'e düşürdüm
+  // Boyutları hesapla - Mobil optimize
+  const canvasWidth =
+    Platform.OS === 'web' ? Math.min(width - 40, 400) : width - 32; // Mobilde tam genişlik kullan
 
-  const Y_POSITION = (canvasSize * 0.7) / 2; // Yeni height'a göre merkez
+  const canvasHeight =
+    Platform.OS === 'web' ? 280 : Math.max(250, height * 0.35); // Mobilde daha büyük yükseklik
+
+  const Y_POSITION = canvasHeight / 2; // Gerçek merkez
 
   // Gözlemci pozisyonu
   const observerPosition: Point = {
-    x: canvasSize * 0.75,
+    x: canvasWidth * 0.75,
     y: Y_POSITION,
   };
 
@@ -141,7 +142,7 @@ export default function DopplerEffectExperiment() {
       const newPosition = calculateSourcePosition(newTime, prev.velocity);
 
       // Hareket sınırlarını kontrol et
-      if (newPosition.x > canvasSize - 30) {
+      if (newPosition.x > canvasWidth - 30) {
         return { ...prev, isRunning: false };
       }
 
@@ -157,7 +158,7 @@ export default function DopplerEffectExperiment() {
       animate,
       ANIMATION_INTERVAL
     ) as unknown as number;
-  }, [state.isRunning, canvasSize, calculateSourcePosition]);
+  }, [state.isRunning, canvasWidth, calculateSourcePosition]);
 
   // Animasyonu başlat/durdur
   useEffect(() => {
@@ -241,7 +242,7 @@ export default function DopplerEffectExperiment() {
           <Svg
             width="100%"
             height="100%"
-            viewBox={`0 0 ${canvasSize} ${canvasSize * 0.7}`}
+            viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
             style={styles.svg}
           >
             {/* Gradient tanımları */}
@@ -302,8 +303,8 @@ export default function DopplerEffectExperiment() {
             <Rect
               x={0}
               y={0}
-              width={canvasSize}
-              height={canvasSize * 0.7}
+              width={canvasWidth}
+              height={canvasHeight}
               fill="url(#backgroundGradient)"
             />
 
@@ -311,8 +312,8 @@ export default function DopplerEffectExperiment() {
             <Rect
               x={20}
               y={20}
-              width={canvasSize - 40}
-              height={canvasSize * 0.7 - 40}
+              width={canvasWidth - 40}
+              height={canvasHeight - 40}
               fill="rgba(255, 255, 255, 0.9)"
               rx={12}
               ry={12}
@@ -337,7 +338,7 @@ export default function DopplerEffectExperiment() {
                       ? 'url(#waveGradient2)'
                       : 'url(#waveGradient1)'
                   }
-                  strokeWidth={2}
+                  strokeWidth={Platform.OS === 'web' ? 2 : 3}
                   fill="none"
                   opacity={opacity}
                 />
@@ -348,28 +349,28 @@ export default function DopplerEffectExperiment() {
             <Line
               x1={INITIAL_X}
               y1={Y_POSITION}
-              x2={canvasSize - 40}
+              x2={canvasWidth - 40}
               y2={Y_POSITION}
               stroke="rgba(149, 165, 166, 0.4)"
-              strokeWidth={2}
-              strokeDasharray="5,5"
+              strokeWidth={Platform.OS === 'web' ? 2 : 3}
+              strokeDasharray={Platform.OS === 'web' ? '5,5' : '6,6'}
             />
 
             {/* Mevcut kaynak - Modern tasarım */}
             <Circle
               cx={currentPosition.x}
               cy={currentPosition.y}
-              r={12}
+              r={Platform.OS === 'web' ? 12 : 15}
               fill="url(#sourceGradient)"
               stroke="rgba(255, 255, 255, 0.8)"
-              strokeWidth={3}
+              strokeWidth={Platform.OS === 'web' ? 3 : 4}
             />
 
             {/* Kaynak içi detay */}
             <Circle
               cx={currentPosition.x}
               cy={currentPosition.y}
-              r={6}
+              r={Platform.OS === 'web' ? 6 : 8}
               fill="rgba(255, 255, 255, 0.9)"
             />
 
@@ -377,38 +378,38 @@ export default function DopplerEffectExperiment() {
             <Circle
               cx={observerPosition.x}
               cy={observerPosition.y}
-              r={15}
+              r={Platform.OS === 'web' ? 15 : 18}
               fill="url(#observerGradient)"
               stroke="rgba(255, 255, 255, 0.8)"
-              strokeWidth={3}
+              strokeWidth={Platform.OS === 'web' ? 3 : 4}
             />
 
             {/* Gözlemci simgesi */}
             <Circle
               cx={observerPosition.x}
-              cy={observerPosition.y - 3}
-              r={4}
+              cy={observerPosition.y - (Platform.OS === 'web' ? 3 : 4)}
+              r={Platform.OS === 'web' ? 4 : 5}
               fill="rgba(255, 255, 255, 0.9)"
             />
             <Circle
-              cx={observerPosition.x - 3}
-              cy={observerPosition.y + 5}
-              r={2}
+              cx={observerPosition.x - (Platform.OS === 'web' ? 3 : 4)}
+              cy={observerPosition.y + (Platform.OS === 'web' ? 5 : 6)}
+              r={Platform.OS === 'web' ? 2 : 3}
               fill="rgba(255, 255, 255, 0.9)"
             />
             <Circle
-              cx={observerPosition.x + 3}
-              cy={observerPosition.y + 5}
-              r={2}
+              cx={observerPosition.x + (Platform.OS === 'web' ? 3 : 4)}
+              cy={observerPosition.y + (Platform.OS === 'web' ? 5 : 6)}
+              r={Platform.OS === 'web' ? 2 : 3}
               fill="rgba(255, 255, 255, 0.9)"
             />
 
-            {/* Modern frekans bilgisi */}
+            {/* Modern frekans bilgisi - Mobil optimize */}
             <Rect
-              x={30}
-              y={30}
-              width={140}
-              height={50}
+              x={Platform.OS === 'web' ? 30 : 20}
+              y={Platform.OS === 'web' ? 30 : 20}
+              width={Platform.OS === 'web' ? 140 : 160}
+              height={Platform.OS === 'web' ? 50 : 60}
               fill="rgba(255, 255, 255, 0.95)"
               rx={8}
               ry={8}
@@ -417,20 +418,20 @@ export default function DopplerEffectExperiment() {
             />
 
             <SvgText
-              x={40}
-              y={50}
+              x={Platform.OS === 'web' ? 40 : 30}
+              y={Platform.OS === 'web' ? 50 : 40}
               fill="#2c3e50"
-              fontSize={14}
+              fontSize={Platform.OS === 'web' ? 14 : 16}
               fontWeight="bold"
             >
               {t('Frekans Oranı', 'Frequency Ratio')}
             </SvgText>
 
             <SvgText
-              x={40}
-              y={70}
+              x={Platform.OS === 'web' ? 40 : 30}
+              y={Platform.OS === 'web' ? 70 : 65}
               fill="#e74c3c"
-              fontSize={18}
+              fontSize={Platform.OS === 'web' ? 18 : 20}
               fontWeight="bold"
             >
               f'/f = {frequencyRatio.toFixed(3)}
@@ -522,8 +523,9 @@ const styles = StyleSheet.create({
   },
   canvasContainer: {
     width: '100%',
-    aspectRatio: 1.4,
-    maxHeight: 800,
+    aspectRatio: Platform.OS === 'web' ? 1.4 : 1.2, // Mobilde daha kare format
+    maxHeight: Platform.OS === 'web' ? 800 : 350,
+    minHeight: Platform.OS === 'web' ? 200 : 250, // Mobilde minimum yükseklik
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
