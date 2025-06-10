@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, ViewProps, Platform } from 'react-native';
+import Slider from '@react-native-community/slider';
 
 interface CustomSliderProps extends ViewProps {
   value: number;
@@ -56,47 +57,18 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
           }}
         />
       ) : (
-        <View
-          style={{
-            width: '100%',
-            height: 8,
-            backgroundColor: maximumTrackTintColor,
-            borderRadius: 4,
-            position: 'relative',
-            alignSelf: 'center',
-            top: '50%',
-            transform: [{ translateY: -4 }],
-          }}
-        >
-          <View
-            style={{
-              width: `${percentage}%`,
-              height: '100%',
-              backgroundColor: minimumTrackTintColor,
-              borderRadius: 4,
-              position: 'absolute',
-              top: 0,
-              left: 0,
-            }}
-          />
-          <View
-            style={{
-              position: 'absolute',
-              top: -6,
-              left: `${percentage}%`,
-              width: 20,
-              height: 20,
-              borderRadius: 10,
-              backgroundColor: thumbTintColor,
-              marginLeft: -10,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 2,
-            }}
-          />
-        </View>
+        <Slider
+          style={{ width: '100%', height: 40 }}
+          minimumValue={min}
+          maximumValue={max}
+          step={step}
+          value={value}
+          onValueChange={onValueChange}
+          disabled={disabled}
+          minimumTrackTintColor={minimumTrackTintColor}
+          maximumTrackTintColor={maximumTrackTintColor}
+          thumbTintColor={thumbTintColor}
+        />
       )}
     </View>
   );

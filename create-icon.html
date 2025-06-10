@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Physics Lab Icon Generator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+        background: #f0f0f0;
+      }
+      canvas {
+        border: 2px solid #ccc;
+        margin: 20px;
+        border-radius: 20px;
+      }
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px;
+      }
+      button:hover {
+        background: #5a6fd8;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Physics Lab Icon Generator</h1>
+    <p>Aşağıdaki canvas'ta oluşturulan ikonu PNG olarak indirebilirsiniz:</p>
+
+    <canvas id="iconCanvas" width="1024" height="1024"></canvas>
+
+    <div>
+      <button onclick="downloadIcon(1024)">1024x1024 İndir</button>
+      <button onclick="downloadIcon(512)">512x512 İndir</button>
+      <button onclick="downloadIcon(192)">192x192 İndir</button>
+    </div>
+
+    <script>
+      function createIcon() {
+        const canvas = document.getElementById('iconCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Canvas'ı temizle
+        ctx.clearRect(0, 0, 1024, 1024);
+
+        // Gradient arka plan
+        const bgGradient = ctx.createLinearGradient(0, 0, 1024, 1024);
+        bgGradient.addColorStop(0, '#667eea');
+        bgGradient.addColorStop(0.5, '#764ba2');
+        bgGradient.addColorStop(1, '#f093fb');
+
+        // Yuvarlatılmış köşeli arka plan
+        ctx.fillStyle = bgGradient;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, 1024, 1024, 180);
+        ctx.fill();
+
+        // İç çerçeve efekti
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.roundRect(40, 40, 944, 944, 150);
+        ctx.stroke();
+
+        // Merkezdeki atom çekirdeği
+        const atomGradient = ctx.createRadialGradient(
+          512,
+          512,
+          0,
+          512,
+          512,
+          80
+        );
+        atomGradient.addColorStop(0, '#ff6b6b');
+        atomGradient.addColorStop(0.7, '#f093fb');
+        atomGradient.addColorStop(1, '#764ba2');
+
+        ctx.fillStyle = atomGradient;
+        ctx.beginPath();
+        ctx.arc(512, 512, 70, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // İç çekirdek parlaklığı
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.beginPath();
+        ctx.arc(520, 500, 20, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Elektronların yörüngeleri
+        const orbitGradient = ctx.createLinearGradient(0, 0, 1024, 1024);
+        orbitGradient.addColorStop(0, '#4facfe');
+        orbitGradient.addColorStop(1, '#00f2fe');
+
+        ctx.strokeStyle = orbitGradient;
+        ctx.lineWidth = 6;
+        ctx.globalAlpha = 0.8;
+
+        // İlk yörünge (yatay elips)
+        ctx.save();
+        ctx.translate(512, 512);
+        ctx.rotate(Math.PI / 4);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 220, 120, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.restore();
+
+        // İkinci yörünge (dikey elips)
+        ctx.save();
+        ctx.translate(512, 512);
+        ctx.rotate(-Math.PI / 4);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 220, 120, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.restore();
+
+        // Üçüncü yörünge (geniş elips)
+        ctx.beginPath();
+        ctx.ellipse(512, 512, 280, 100, 0, 0, 2 * Math.PI);
+        ctx.globalAlpha = 0.6;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // Elektronları çiz
+        const electronGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 15);
+        electronGradient.addColorStop(0, '#ffffff');
+        electronGradient.addColorStop(0.3, '#4facfe');
+        electronGradient.addColorStop(1, '#00f2fe');
+
+        ctx.fillStyle = electronGradient;
+
+        // Elektron pozisyonları
+        const electrons = [
+          { x: 732, y: 512, size: 14 },
+          { x: 292, y: 512, size: 14 },
+          { x: 612, y: 362, size: 12 },
+          { x: 412, y: 662, size: 12 },
+          { x: 792, y: 512, size: 10 },
+          { x: 232, y: 512, size: 10 },
+        ];
+
+        electrons.forEach((electron) => {
+          ctx.save();
+          ctx.translate(electron.x, electron.y);
+          ctx.beginPath();
+          ctx.arc(0, 0, electron.size, 0, 2 * Math.PI);
+          ctx.fill();
+
+          // Parlama efekti
+          ctx.fillStyle = 'rgba(255,255,255,0.8)';
+          ctx.beginPath();
+          ctx.arc(-3, -3, electron.size * 0.3, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.fillStyle = electronGradient;
+        });
+
+        // Laboratuvar tüpü (sol üst)
+        ctx.save();
+        ctx.translate(200, 200);
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+        ctx.lineWidth = 3;
+
+        // Tüp gövdesi
+        ctx.beginPath();
+        ctx.roundRect(0, 20, 40, 100, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        // Tüp ağzı
+        ctx.beginPath();
+        ctx.roundRect(10, 0, 20, 25, 5);
+        ctx.fill();
+        ctx.stroke();
+
+        // İçindeki sıvı
+        ctx.fillStyle = 'rgba(100,200,255,0.5)';
+        ctx.beginPath();
+        ctx.roundRect(8, 40, 24, 70, 8);
+        ctx.fill();
+
+        // Kabarcıklar
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.beginPath();
+        ctx.arc(20, 60, 3, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(25, 80, 2, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.restore();
+
+        // DNA sarmalı (sağ üst)
+        ctx.save();
+        ctx.translate(750, 180);
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 4;
+
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.moveTo(0, i * 40);
+          ctx.quadraticCurveTo(20, i * 40 + 10, 0, i * 40 + 20);
+          ctx.quadraticCurveTo(-20, i * 40 + 30, 0, i * 40 + 40);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(30, i * 40);
+          ctx.quadraticCurveTo(10, i * 40 + 10, 30, i * 40 + 20);
+          ctx.quadraticCurveTo(50, i * 40 + 30, 30, i * 40 + 40);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // Fizik formülleri
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.font = 'italic 32px Arial';
+        ctx.fillText('E=mc²', 120, 880);
+
+        ctx.font = 'italic 24px Arial';
+        ctx.fillText('F=ma', 780, 160);
+
+        ctx.font = 'italic 20px Arial';
+        ctx.fillText('v=s/t', 150, 150);
+
+        // Parıltı efektleri
+        const sparkles = [
+          { x: 300, y: 300, size: 4 },
+          { x: 750, y: 750, size: 3 },
+          { x: 180, y: 600, size: 3 },
+          { x: 850, y: 400, size: 2 },
+          { x: 400, y: 150, size: 2 },
+        ];
+
+        sparkles.forEach((sparkle) => {
+          ctx.fillStyle = 'rgba(255,255,255,0.9)';
+          ctx.beginPath();
+          ctx.arc(sparkle.x, sparkle.y, sparkle.size, 0, 2 * Math.PI);
+          ctx.fill();
+
+          // Çapraz parıltı
+          ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(sparkle.x - sparkle.size * 2, sparkle.y);
+          ctx.lineTo(sparkle.x + sparkle.size * 2, sparkle.y);
+          ctx.moveTo(sparkle.x, sparkle.y - sparkle.size * 2);
+          ctx.lineTo(sparkle.x, sparkle.y + sparkle.size * 2);
+          ctx.stroke();
+        });
+      }
+
+      function downloadIcon(size) {
+        // Yeni canvas oluştur istenen boyutta
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = size;
+        tempCanvas.height = size;
+        const tempCtx = tempCanvas.getContext('2d');
+
+        // Ana canvas'ı yeni boyuta ölçeklendir
+        tempCtx.drawImage(
+          document.getElementById('iconCanvas'),
+          0,
+          0,
+          size,
+          size
+        );
+
+        // İndir
+        const link = document.createElement('a');
+        link.download = `physics-lab-icon-${size}x${size}.png`;
+        link.href = tempCanvas.toDataURL('image/png', 1.0);
+        link.click();
+      }
+
+      // Sayfa yüklendiğinde ikonu oluştur
+      window.onload = function () {
+        createIcon();
+      };
+    </script>
+  </body>
+</html>

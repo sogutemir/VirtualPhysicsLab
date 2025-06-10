@@ -1,0 +1,96 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="backgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="atomGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="electronGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#backgroundGradient)"/>
+  
+  <!-- Outer glow effect -->
+  <rect width="924" height="924" x="50" y="50" rx="150" ry="150" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+  
+  <!-- Central nucleus -->
+  <circle cx="512" cy="512" r="60" fill="url(#atomGradient)" filter="url(#glow)"/>
+  <circle cx="512" cy="512" r="40" fill="#ff6b6b" opacity="0.8"/>
+  <circle cx="520" cy="500" r="15" fill="#ff9999" opacity="0.6"/>
+  
+  <!-- Electron orbits -->
+  <!-- First orbit -->
+  <ellipse cx="512" cy="512" rx="180" ry="120" fill="none" stroke="url(#electronGradient)" stroke-width="4" opacity="0.7" transform="rotate(30 512 512)"/>
+  
+  <!-- Second orbit -->
+  <ellipse cx="512" cy="512" rx="180" ry="120" fill="none" stroke="url(#electronGradient)" stroke-width="4" opacity="0.7" transform="rotate(-30 512 512)"/>
+  
+  <!-- Third orbit -->
+  <ellipse cx="512" cy="512" rx="220" ry="80" fill="none" stroke="url(#electronGradient)" stroke-width="4" opacity="0.6"/>
+  
+  <!-- Electrons -->
+  <circle cx="692" cy="512" r="12" fill="url(#electronGradient)" filter="url(#glow)">
+    <animateTransform attributeName="transform" type="rotate" values="0 512 512;360 512 512" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="332" cy="512" r="12" fill="url(#electronGradient)" filter="url(#glow)">
+    <animateTransform attributeName="transform" type="rotate" values="180 512 512;540 512 512" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="612" cy="392" r="10" fill="url(#electronGradient)" filter="url(#glow)">
+    <animateTransform attributeName="transform" type="rotate" values="30 512 512;390 512 512" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="412" cy="632" r="10" fill="url(#electronGradient)" filter="url(#glow)">
+    <animateTransform attributeName="transform" type="rotate" values="210 512 512;570 512 512" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Laboratory flask decoration -->
+  <g transform="translate(200,200)">
+    <path d="M60 80 L60 40 Q60 30 70 30 L90 30 Q100 30 100 40 L100 80 L120 120 Q130 140 120 160 L40 160 Q30 140 40 120 Z" 
+          fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <circle cx="80" cy="100" r="8" fill="rgba(100,200,255,0.4)"/>
+    <circle cx="70" cy="130" r="5" fill="rgba(100,200,255,0.3)"/>
+    <circle cx="90" cy="140" r="6" fill="rgba(100,200,255,0.3)"/>
+  </g>
+  
+  <!-- DNA helix decoration -->
+  <g transform="translate(700,200)">
+    <path d="M20 20 Q40 40 20 60 Q0 80 20 100 Q40 120 20 140" 
+          fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3"/>
+    <path d="M40 20 Q20 40 40 60 Q60 80 40 100 Q20 120 40 140" 
+          fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3"/>
+    <circle cx="30" cy="30" r="3" fill="rgba(255,200,100,0.6)"/>
+    <circle cx="30" cy="70" r="3" fill="rgba(255,200,100,0.6)"/>
+    <circle cx="30" cy="110" r="3" fill="rgba(255,200,100,0.6)"/>
+  </g>
+  
+  <!-- Physics formulas decoration -->
+  <text x="150" y="850" font-family="Arial, sans-serif" font-size="24" fill="rgba(255,255,255,0.3)" font-style="italic">E=mc²</text>
+  <text x="800" y="180" font-family="Arial, sans-serif" font-size="20" fill="rgba(255,255,255,0.25)" font-style="italic">F=ma</text>
+  
+  <!-- Sparkle effects -->
+  <circle cx="300" cy="300" r="3" fill="white" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="750" cy="750" r="2" fill="white" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.1;0.6" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="180" cy="600" r="2" fill="white" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.2;0.7" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+</svg> 
