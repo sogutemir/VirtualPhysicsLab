@@ -23,13 +23,22 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.physicslab.app"
+      "bundleIdentifier": "com.physicslab.app",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "web": {
       "bundler": "metro",
       "output": "single"
     },
     "plugins": ["expo-router"],
+    "developmentClient": {
+      "silentLaunch": false
+    },
     "experiments": {
       "typedRoutes": true
     },
