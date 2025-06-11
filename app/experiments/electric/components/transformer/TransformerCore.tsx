@@ -37,9 +37,20 @@ const TransformerCore: React.FC<TransformerCoreProps> = ({
 }) => {
   // Malzeme permeabilitesine göre renk belirleme
   const getCoreColor = () => {
-    if (materialPermeability > 7000) return '#9ca3af'; // Açık gri
-    if (materialPermeability > 4000) return '#6b7280'; // Orta gri
-    return '#4b5563'; // Koyu gri
+    // Silisyumlu Çelik: permeabilite > 7000
+    if (materialPermeability > 7000) return '#9ca3af'; // Açık gri (silicon steel)
+
+    // Ferrit: permeabilite ~3000
+    if (materialPermeability >= 2500 && materialPermeability <= 3500)
+      return '#8b5a3c'; // Kahverengi (ferrite)
+
+    // Orta seviye malzemeler: permeabilite > 1000
+    if (materialPermeability > 1000) return '#6b7280'; // Orta gri
+
+    // Demir tozu ve hava nüveli: permeabilite <= 1000
+    if (materialPermeability <= 100) return '#d1d5db'; // Çok açık gri (air core)
+
+    return '#4b5563'; // Varsayılan koyu gri
   };
 
   // Manyetik alan çizgilerinin animasyonu için
@@ -65,7 +76,13 @@ const TransformerCore: React.FC<TransformerCoreProps> = ({
   });
 
   // Manyetik alan gücüne göre opaklık belirleme
-  const magneticFieldOpacity = Math.min(0.8, magneticFieldStrength * 0.005);
+  // Ferrit malzemesinde manyetik alan çizgileri daha belirgin olsun
+  const magneticFieldIntensityMultiplier =
+    materialPermeability >= 2500 && materialPermeability <= 3500 ? 1.5 : 1.0;
+  const magneticFieldOpacity = Math.min(
+    0.8,
+    magneticFieldStrength * 0.005 * magneticFieldIntensityMultiplier
+  );
 
   // E tipi nüve render fonksiyonu
   const renderECore = () => (

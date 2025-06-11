@@ -35,7 +35,7 @@ const CORE_MATERIALS = [
     name: 'Ferrit',
     nameEN: 'Ferrite',
     permeability: 3000,
-    color: 'gray-600',
+    color: '#8b5a3c', // Ferrit karakteristik kahverengi
   },
   {
     id: 'powdered-iron',
@@ -336,6 +336,14 @@ const TransformerSimulation: React.FC<TransformerSimulationProps> = ({
                 value={isRunning ? results.outputPower : 0}
                 unit="W"
                 icon={<Feather name="zap-off" size={16} color="#94a3b8" />}
+              />
+              <MeterDisplay
+                label="Nüve Malzemesi"
+                labelEN="Core Material"
+                value={materialPermeability}
+                unit="μᵣ"
+                precision={0}
+                icon={<Feather name="settings" size={16} color="#94a3b8" />}
               />
             </View>
           </View>
