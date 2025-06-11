@@ -271,14 +271,23 @@ const WaveSources = memo<{
               opacity={pulseOpacity2}
             />
 
-            {/* Source center */}
+            {/* Source center - daha büyük ve tıklanabilir */}
             <Circle
               cx={x}
               cy={y}
-              r={10}
+              r={15}
               fill={`url(#${gradientId})`}
               stroke="#ffffff"
-              strokeWidth={2}
+              strokeWidth={3}
+            />
+
+            {/* Invisible larger touch area */}
+            <Circle
+              cx={x}
+              cy={y}
+              r={25}
+              fill="transparent"
+              stroke="transparent"
             />
 
             {/* Simplified source label */}
@@ -336,6 +345,7 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
     const [, forceUpdate] = useState({});
     const lastUpdateTime = useRef<number>(0);
     const isMountedRef = useRef(true);
+    const containerRef = useRef<View>(null);
 
     // Memoized active sources
     const activeSources = useMemo(
@@ -394,28 +404,33 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
       };
     }, [animate]);
 
-    // Memoized PanResponder
+    // Touch position helper function - basit ve güvenilir
+    const getTouchPosition = useCallback((evt: any) => {
+      // Direkt nativeEvent'ten al - SVG container relative
+      const touchX = evt.nativeEvent.locationX || evt.nativeEvent.pageX || 0;
+      const touchY = evt.nativeEvent.locationY || evt.nativeEvent.pageY || 0;
+
+      return { touchX, touchY };
+    }, []);
+
+    // Memoized PanResponder - daha güvenilir touch handling
     const panResponder = useMemo(
       () =>
         PanResponder.create({
+          onStartShouldSetPanResponder: () => true,
           onMoveShouldSetPanResponder: (evt, gestureState) => {
-            // Sadece tek dokunuş için izin ver
             return (
-              Math.abs(gestureState.dx) > 2 || Math.abs(gestureState.dy) > 2
+              Math.abs(gestureState.dx) > 3 || Math.abs(gestureState.dy) > 3
             );
           },
-          onStartShouldSetPanResponder: () => true,
           onPanResponderGrant: (evt) => {
-            const { locationX, locationY } = evt.nativeEvent;
-
-            // Koordinatları güvenli şekilde al
-            const touchX = locationX || 0;
-            const touchY = locationY || 0;
+            // Daha güvenilir koordinat hesaplama
+            const { touchX, touchY } = getTouchPosition(evt);
 
             const normalizedX = (touchX / SIMULATION_CONFIG.width) * 100;
             const normalizedY = (touchY / SIMULATION_CONFIG.height) * 100;
 
-            // Find closest active source
+            // Find closest active source - daha geniş tolerance
             let closestSource = -1;
             let minDistance = Infinity;
 
@@ -425,8 +440,8 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
                 Math.pow(source.x - normalizedX, 2) +
                   Math.pow(source.y - normalizedY, 2)
               );
-              // Dokunma alanını biraz genişlettik
-              if (distance < minDistance && distance < 15) {
+              // Dokunma alanını genişlettik - daha kolay yakalama
+              if (distance < minDistance && distance < 25) {
                 minDistance = distance;
                 closestSource = index;
               }
@@ -434,40 +449,44 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
 
             if (closestSource !== -1) {
               setDraggedSource(closestSource);
+              console.log(`Dragging source ${closestSource}`); // Debug için
             }
           },
           onPanResponderMove: (evt, gestureState) => {
             if (draggedSource === null) return;
 
-            const { locationX, locationY } = evt.nativeEvent;
-
-            // Koordinatları güvenli şekilde al
-            const touchX = locationX || 0;
-            const touchY = locationY || 0;
+            const { touchX, touchY } = getTouchPosition(evt);
 
             const normalizedX = Math.max(
-              5,
-              Math.min(95, (touchX / SIMULATION_CONFIG.width) * 100)
+              8,
+              Math.min(92, (touchX / SIMULATION_CONFIG.width) * 100)
             );
             const normalizedY = Math.max(
-              5,
-              Math.min(95, (touchY / SIMULATION_CONFIG.height) * 100)
+              8,
+              Math.min(92, (touchY / SIMULATION_CONFIG.height) * 100)
             );
 
             onSourceMove(draggedSource as 0 | 1, normalizedX, normalizedY);
           },
           onPanResponderRelease: () => {
+            if (draggedSource !== null) {
+              console.log(`Released source ${draggedSource}`); // Debug için
+            }
             setDraggedSource(null);
           },
           onPanResponderTerminate: () => {
             setDraggedSource(null);
           },
         }),
-      [sources, draggedSource, onSourceMove]
+      [sources, draggedSource, onSourceMove, getTouchPosition]
     );
 
     return (
-      <View style={styles.container} {...panResponder.panHandlers}>
+      <View
+        ref={containerRef}
+        style={styles.container}
+        {...panResponder.panHandlers}
+      >
         <Svg
           width={SIMULATION_CONFIG.width}
           height={SIMULATION_CONFIG.height}
