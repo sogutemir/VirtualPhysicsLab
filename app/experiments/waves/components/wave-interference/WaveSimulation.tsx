@@ -97,8 +97,21 @@ const CircularWavePattern = memo<{
 
           // Çok düşük amplitud dalgalarını atla
           if (amplitude > 0.05) {
-            const opacity = Math.max(0.12, amplitude * 0.4);
-            const strokeWidth = Math.max(1.1, amplitude * 1.8);
+            // Mobile için daha parlak opaklık
+            const baseOpacity = isMobile ? 0.25 : 0.12;
+            const opacityMultiplier = isMobile ? 0.65 : 0.4;
+            const opacity = Math.max(
+              baseOpacity,
+              amplitude * opacityMultiplier
+            );
+
+            // Mobile için daha kalın çizgiler
+            const baseStrokeWidth = isMobile ? 1.5 : 1.1;
+            const strokeMultiplier = isMobile ? 2.2 : 1.8;
+            const strokeWidth = Math.max(
+              baseStrokeWidth,
+              amplitude * strokeMultiplier
+            );
 
             elements.push(
               <Circle
@@ -184,37 +197,48 @@ const InterferencePattern = memo<{
         });
 
         // Girişim etkilerini optimize edilmiş şekilde göster
-        if (Math.abs(totalAmplitude) > 0.18) {
+        const mobileThreshold = isMobile ? 0.15 : 0.18;
+        if (Math.abs(totalAmplitude) > mobileThreshold) {
+          const intensityDivider = isMobile ? 1.8 : 2.2;
           const intensity = Math.max(
             0,
-            Math.min(1, Math.abs(totalAmplitude) / 2.2)
+            Math.min(1, Math.abs(totalAmplitude) / intensityDivider)
           );
 
           let fillColor;
           if (totalAmplitude > 0) {
-            // Sıcak renkler - yapıcı girişim
-            const r = Math.floor(255 * Math.min(1, intensity * 1.0));
-            const g = Math.floor(120 + 135 * intensity);
-            const b = Math.floor(60 + 70 * intensity);
-            const alpha = 0.25 + intensity * 0.45;
+            // Sıcak renkler - yapıcı girişim - mobilde daha parlak
+            const intensityBoost = isMobile ? 1.2 : 1.0;
+            const r = Math.floor(255 * Math.min(1, intensity * intensityBoost));
+            const g = Math.floor((isMobile ? 140 : 120) + 135 * intensity);
+            const b = Math.floor((isMobile ? 80 : 60) + 70 * intensity);
+            const baseAlpha = isMobile ? 0.35 : 0.25;
+            const alphaMultiplier = isMobile ? 0.55 : 0.45;
+            const alpha = baseAlpha + intensity * alphaMultiplier;
             fillColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
           } else {
-            // Soğuk renkler - yıkıcı girişim
-            const r = Math.floor(60 + 70 * intensity);
-            const g = Math.floor(120 + 135 * intensity);
-            const b = Math.floor(255 * Math.min(1, intensity * 1.0));
-            const alpha = 0.25 + intensity * 0.45;
+            // Soğuk renkler - yıkıcı girişim - mobilde daha parlak
+            const intensityBoost = isMobile ? 1.2 : 1.0;
+            const r = Math.floor((isMobile ? 80 : 60) + 70 * intensity);
+            const g = Math.floor((isMobile ? 140 : 120) + 135 * intensity);
+            const b = Math.floor(255 * Math.min(1, intensity * intensityBoost));
+            const baseAlpha = isMobile ? 0.35 : 0.25;
+            const alphaMultiplier = isMobile ? 0.55 : 0.45;
+            const alpha = baseAlpha + intensity * alphaMultiplier;
             fillColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
           }
+
+          const circleRadius = isMobile ? gridSize / 2.5 : gridSize / 2.8;
+          const circleOpacity = isMobile ? 0.75 : 0.65;
 
           elements.push(
             <Circle
               key={`interference-${x}-${y}`}
               cx={x + gridSize / 2}
               cy={y + gridSize / 2}
-              r={gridSize / 2.8}
+              r={circleRadius}
               fill={fillColor}
-              opacity={0.65}
+              opacity={circleOpacity}
             />
           );
         }
@@ -242,12 +266,21 @@ const WaveSources = memo<{
         const sourceColor = index === 0 ? '#ff4444' : '#4488ff';
         const gradientId = `sourceGradient${index}`;
 
-        // Animated pulse rings for source indicators - orta seviye belirginlik
+        // Animated pulse rings for source indicators - mobilde daha parlak
         const sourceTime = time * source.frequency * 1.8;
         const pulseRadius1 = 12 + Math.sin(sourceTime) * 4;
         const pulseRadius2 = 20 + Math.sin(sourceTime + Math.PI) * 5;
-        const pulseOpacity1 = 0.35 + Math.sin(sourceTime) * 0.2;
-        const pulseOpacity2 = 0.25 + Math.sin(sourceTime + Math.PI) * 0.15;
+
+        // Mobile için daha parlak pulse'lar
+        const basePulseOpacity1 = isMobile ? 0.5 : 0.35;
+        const basePulseOpacity2 = isMobile ? 0.4 : 0.25;
+        const pulseVariation1 = isMobile ? 0.25 : 0.2;
+        const pulseVariation2 = isMobile ? 0.2 : 0.15;
+
+        const pulseOpacity1 =
+          basePulseOpacity1 + Math.sin(sourceTime) * pulseVariation1;
+        const pulseOpacity2 =
+          basePulseOpacity2 + Math.sin(sourceTime + Math.PI) * pulseVariation2;
 
         return (
           <G key={`source-${index}`}>
@@ -310,10 +343,18 @@ const WaveSources = memo<{
 // Memoized SVG Gradients
 const SVGGradients = memo(() => (
   <Defs>
-    {/* Background gradient */}
+    {/* Background gradient - mobilde daha açık */}
     <RadialGradient id="backgroundGradient" cx="50%" cy="50%" r="70%">
-      <Stop offset="0%" stopColor="#0a0a0a" stopOpacity="1" />
-      <Stop offset="100%" stopColor="#1a1a2e" stopOpacity="1" />
+      <Stop
+        offset="0%"
+        stopColor={isMobile ? '#1a1a1a' : '#0a0a0a'}
+        stopOpacity="1"
+      />
+      <Stop
+        offset="100%"
+        stopColor={isMobile ? '#2a2a3e' : '#1a1a2e'}
+        stopOpacity="1"
+      />
     </RadialGradient>
 
     {/* Gradients for sources */}
@@ -540,14 +581,16 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: isMobile ? '#1a1a1a' : '#0a0a0a',
     borderRadius: 16,
     padding: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: isMobile
+      ? 'rgba(255, 255, 255, 0.15)'
+      : 'rgba(255, 255, 255, 0.1)',
   },
   svg: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: isMobile ? '#2a2a3e' : '#1a1a2e',
     borderRadius: 12,
   },
 });
