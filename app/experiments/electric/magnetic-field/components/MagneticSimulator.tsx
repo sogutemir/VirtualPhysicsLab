@@ -32,7 +32,7 @@ import {
   Plus,
   Minus,
 } from 'lucide-react-native';
-import { FieldType, MagneticSimulatorProps } from './types';
+import { FieldType, MagneticSimulatorProps, ChargeParticle } from './types';
 
 const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
   currentIntensity,
@@ -41,10 +41,16 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
   fieldType,
   showFieldLines,
   animateField,
+  showCharges,
+  chargeType,
+  chargeSpeed,
   onChangeFieldType,
   onToggleAnimation,
   onToggleFieldLines,
+  onToggleCharges,
   onCoilTurnsChange,
+  onChargeTypeChange,
+  onChargeSpeedChange,
 }) => {
   const { language, t } = useLanguage();
   const [screenWidth, setScreenWidth] = useState(
@@ -54,6 +60,16 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
   const svgWidth = screenWidth > 600 ? 500 : screenWidth - 40;
   const svgHeight = 400;
   const [animationPhase, setAnimationPhase] = useState(0);
+  const [charges, setCharges] = useState<ChargeParticle[]>([]);
+  const [chargePaths, setChargePaths] = useState<{
+    [key: string]: { x: number; y: number }[];
+  }>({});
+
+  // Simülasyon parametreleri - Basitleştirilmiş ama doğru fizik
+  const BASE_MAGNETIC_STRENGTH = 0.0001; // Temel manyetik alan şiddeti
+  const CHARGE_FORCE_FACTOR = 0.02; // Yük kuvvet çarpanı
+  const DAMPING = 0.998; // Hafif damping
+  const MAX_SPEED_FACTOR = 15; // Maksimum hız çarpanı
 
   useEffect(() => {
     const updateLayout = () => {
@@ -70,8 +86,52 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
     };
   }, []);
 
+  // Yük parçacıklarını başlat
   useEffect(() => {
-    let animationInterval: NodeJS.Timeout;
+    if (showCharges) {
+      const newCharges: ChargeParticle[] = [];
+      const chargeCount = 6; // Daha az yük için daha net hareket
+
+      for (let i = 0; i < chargeCount; i++) {
+        const angle = (i * 2 * Math.PI) / chargeCount;
+        const radius = Math.min(svgWidth, svgHeight) * 0.25; // Daha küçük radius
+        const centerX = svgWidth / 2;
+        const centerY = svgHeight / 2;
+
+        let charge = 0;
+        if (chargeType === 'positive') charge = 1;
+        else if (chargeType === 'negative') charge = -1;
+        else charge = i % 2 === 0 ? 1 : -1; // 'both' için alternatif
+
+        // Başlangıç hızları - radyal yönde küçük hızlar
+        const initialSpeed = chargeSpeed * 2; // Daha küçük başlangıç hızı
+
+        newCharges.push({
+          id: `charge-${i}`,
+          x: centerX + Math.cos(angle) * radius,
+          y: centerY + Math.sin(angle) * radius,
+          vx: Math.cos(angle + Math.PI / 2) * initialSpeed,
+          vy: Math.sin(angle + Math.PI / 2) * initialSpeed,
+          charge,
+          mass: 1, // Basitleştirilmiş kütle
+        });
+      }
+      setCharges(newCharges);
+
+      // Path'leri sıfırla
+      const initialPaths: { [key: string]: { x: number; y: number }[] } = {};
+      newCharges.forEach((charge) => {
+        initialPaths[charge.id] = [{ x: charge.x, y: charge.y }];
+      });
+      setChargePaths(initialPaths);
+    } else {
+      setCharges([]);
+      setChargePaths({});
+    }
+  }, [showCharges, chargeType, svgWidth, svgHeight, chargeSpeed]);
+
+  useEffect(() => {
+    let animationInterval: number;
 
     if (animateField) {
       const animation = Animated.loop(
@@ -83,19 +143,374 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
       );
       animation.start();
 
-      animationInterval = setInterval(() => {
+      animationInterval = window.setInterval(() => {
         setAnimationPhase((prev) => (prev + 0.02) % 1);
-      }, 50);
+
+        // Yük parçacıklarını güncelle - VEKTÖREL ALAN İLE DOĞRU FİZİK
+        if (showCharges) {
+          setCharges((prevCharges) =>
+            prevCharges.map((charge) => {
+              const newCharge = { ...charge };
+
+              // Vektörel manyetik alan hesapla
+              const fieldComponents = calculateMagneticFieldComponents(
+                charge.x,
+                charge.y,
+                currentIntensity,
+                fieldType,
+                coilTurns,
+                svgWidth,
+                svgHeight
+              );
+
+              // Debug log (geliştirme amaçlı)
+              if (Math.random() < 0.001) {
+                // %0.1 olasılıkla log
+                console.log(
+                  'Field Components:',
+                  fieldComponents,
+                  'Current:',
+                  currentIntensity,
+                  'Charge pos:',
+                  charge.x,
+                  charge.y
+                );
+              }
+
+              let forceX = 0;
+              let forceY = 0;
+
+              if (fieldType === 'straight') {
+                // Düz tel: Dairesel yörünge (v ⊥ B)
+                // Manyetik alan Z yönünde, Lorentz kuvveti düzlemde
+                const fieldMagnitude = Math.abs(fieldComponents.z);
+                forceX =
+                  charge.charge *
+                  charge.vy *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+                forceY =
+                  charge.charge *
+                  -charge.vx *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+              } else if (fieldType === 'coil') {
+                // Bobin: Z ekseni boyunca alan
+                const fieldMagnitude = Math.abs(fieldComponents.z);
+                forceX =
+                  charge.charge *
+                  charge.vy *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+                forceY =
+                  charge.charge *
+                  -charge.vx *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+              } else if (fieldType === 'bar') {
+                // Çubuk mıknatıs: DOĞRU FİZİK - Sadece manyetik alan etkisi
+                // Mıknatıslar elektrik yüklerini çekmez/itmez!
+                // Sadece hareket halindeki yüklere Lorentz kuvveti: F = q(v × B)
+                const fieldMagnitude = Math.sqrt(
+                  fieldComponents.x ** 2 +
+                    fieldComponents.y ** 2 +
+                    fieldComponents.z ** 2
+                );
+
+                // Manyetik alan vektörü (normalize edilmiş)
+                const Bx = fieldComponents.x / (fieldMagnitude + 1e-10);
+                const By = fieldComponents.y / (fieldMagnitude + 1e-10);
+                const Bz = fieldComponents.z / (fieldMagnitude + 1e-10);
+
+                // Lorentz kuvveti: F = q(v × B)
+                // v × B = (vy*Bz - vz*By, vz*Bx - vx*Bz, vx*By - vy*Bx)
+                // vz = 0 olduğu için (2D düzlem)
+                forceX =
+                  charge.charge *
+                  (charge.vy * Bz) *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+                forceY =
+                  charge.charge *
+                  (-charge.vx * Bz + charge.vx * By) *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+              }
+
+              // Hızı doğrudan güncelle (basitleştirilmiş)
+              newCharge.vx += forceX;
+              newCharge.vy += forceY;
+
+              // Hafif damping
+              newCharge.vx *= DAMPING;
+              newCharge.vy *= DAMPING;
+
+              // Hız sınırı
+              const speed = Math.sqrt(newCharge.vx ** 2 + newCharge.vy ** 2);
+              const maxSpeed = chargeSpeed * MAX_SPEED_FACTOR;
+              if (speed > maxSpeed) {
+                newCharge.vx = (newCharge.vx / speed) * maxSpeed;
+                newCharge.vy = (newCharge.vy / speed) * maxSpeed;
+              }
+
+              // Pozisyonu güncelle
+              newCharge.x += newCharge.vx;
+              newCharge.y += newCharge.vy;
+
+              // Elastik çarpışma sınırlarda
+              const margin = 15;
+              if (newCharge.x < margin) {
+                newCharge.x = margin;
+                newCharge.vx = -newCharge.vx * 0.8; // Enerji kaybı
+              }
+              if (newCharge.x > svgWidth - margin) {
+                newCharge.x = svgWidth - margin;
+                newCharge.vx = -newCharge.vx * 0.8;
+              }
+              if (newCharge.y < margin) {
+                newCharge.y = margin;
+                newCharge.vy = -newCharge.vy * 0.8;
+              }
+              if (newCharge.y > svgHeight - margin) {
+                newCharge.y = svgHeight - margin;
+                newCharge.vy = -newCharge.vy * 0.8;
+              }
+
+              return newCharge;
+            })
+          );
+
+          // Yük yollarını güncelle (iz bırakma)
+          setChargePaths((prevPaths) => {
+            const newPaths = { ...prevPaths };
+            charges.forEach((charge) => {
+              if (!newPaths[charge.id]) {
+                newPaths[charge.id] = [];
+              }
+
+              // Son 50 noktayı tut (performans için)
+              if (newPaths[charge.id].length > 50) {
+                newPaths[charge.id].shift();
+              }
+
+              newPaths[charge.id].push({ x: charge.x, y: charge.y });
+            });
+            return newPaths;
+          });
+        }
+      }, 16); // 60 FPS için 16ms
 
       return () => {
         animation.stop();
-        clearInterval(animationInterval);
+        window.clearInterval(animationInterval);
       };
     } else {
       animatedValue.setValue(0);
       setAnimationPhase(0);
     }
-  }, [animateField, animatedValue]);
+  }, [
+    animateField,
+    animatedValue,
+    showCharges,
+    currentIntensity,
+    fieldType,
+    coilTurns,
+    chargeSpeed,
+    svgWidth,
+    svgHeight,
+  ]);
+
+  // Doğru manyetik alan hesaplama - vektörel alan ile
+  const calculateMagneticFieldComponents = (
+    x: number,
+    y: number,
+    current: number,
+    type: FieldType,
+    turns: number,
+    width: number,
+    height: number
+  ) => {
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const distance = Math.max(Math.sqrt(dx ** 2 + dy ** 2), 10);
+
+    let fieldX = 0;
+    let fieldY = 0;
+    let fieldZ = 0; // Ekrana dik bileşen
+
+    switch (type) {
+      case 'straight':
+        // Düz tel: Dairesel manyetik alan (sağ el kuralı)
+        // B ~ I/r, yön: teğetsel (ekrana dik)
+        const fieldMagnitude =
+          (current * BASE_MAGNETIC_STRENGTH * 800) / distance;
+        fieldZ = fieldMagnitude; // Sadece Z bileşeni (ekrana dik)
+        break;
+
+      case 'coil':
+        // Bobin: Merkez ekseni boyunca uniform alan
+        const distanceFromCenter = distance / (width * 0.2);
+        const baseMagnitude = current * turns * BASE_MAGNETIC_STRENGTH * 1200;
+
+        if (distanceFromCenter < 1) {
+          // Bobin içinde - uniform alan
+          fieldZ = baseMagnitude;
+        } else {
+          // Bobin dışında - zayıflayan alan
+          fieldZ = baseMagnitude / distanceFromCenter ** 2;
+        }
+        break;
+
+      case 'bar':
+        // Çubuk mıknatıs: N ve S kutup ayrı ayrı hesaplama
+        const magnetLength = width * 0.3;
+        const northX = centerX + magnetLength / 2;
+        const northY = centerY;
+        const southX = centerX - magnetLength / 2;
+        const southY = centerY;
+
+        // N kutbundan uzaklık
+        const dxN = x - northX;
+        const dyN = y - northY;
+        const distanceN = Math.max(Math.sqrt(dxN ** 2 + dyN ** 2), 5);
+
+        // S kutbundan uzaklık
+        const dxS = x - southX;
+        const dyS = y - southY;
+        const distanceS = Math.max(Math.sqrt(dxS ** 2 + dyS ** 2), 5);
+
+        // Dipol alan hesaplama
+        const strength = current * BASE_MAGNETIC_STRENGTH * 1500;
+
+        // N kutbu etkisi (pozitif)
+        const fieldNX = (strength * dxN) / distanceN ** 3;
+        const fieldNY = (strength * dyN) / distanceN ** 3;
+
+        // S kutbu etkisi (negatif)
+        const fieldSX = -(strength * dxS) / distanceS ** 3;
+        const fieldSY = -(strength * dyS) / distanceS ** 3;
+
+        // Toplam alan
+        fieldX = fieldNX + fieldSX;
+        fieldY = fieldNY + fieldSY;
+        fieldZ = Math.sqrt(fieldX ** 2 + fieldY ** 2) * 0.1; // Z bileşeni
+        break;
+    }
+
+    return { x: fieldX, y: fieldY, z: fieldZ };
+  };
+
+  // Yük parçacıklarını render etme
+  const renderChargeParticles = () => {
+    if (!showCharges) return null;
+
+    return (
+      <G>
+        {/* Yük yolları (iz) */}
+        {Object.entries(chargePaths).map(([chargeId, path]) => {
+          if (path.length < 2) return null;
+
+          const charge = charges.find((c) => c.id === chargeId);
+          if (!charge) return null;
+
+          const pathString = path.reduce((acc, point, index) => {
+            if (index === 0) return `M ${point.x} ${point.y}`;
+            return `${acc} L ${point.x} ${point.y}`;
+          }, '');
+
+          return (
+            <Path
+              key={`path-${chargeId}`}
+              d={pathString}
+              stroke={
+                charge.charge > 0
+                  ? 'rgba(239, 68, 68, 0.4)'
+                  : 'rgba(59, 130, 246, 0.4)'
+              }
+              strokeWidth={2}
+              fill="none"
+              strokeDasharray="2,2"
+            />
+          );
+        })}
+
+        {/* Yük parçacıkları */}
+        {charges.map((charge) => (
+          <G key={charge.id}>
+            {/* Yük parçacığı gölgesi */}
+            <Circle
+              cx={charge.x + 1}
+              cy={charge.y + 1}
+              r={8}
+              fill="rgba(0,0,0,0.2)"
+            />
+
+            {/* Yük parçacığı */}
+            <Circle
+              cx={charge.x}
+              cy={charge.y}
+              r={8}
+              fill={charge.charge > 0 ? '#ef4444' : '#3b82f6'}
+              stroke={charge.charge > 0 ? '#dc2626' : '#2563eb'}
+              strokeWidth={2}
+            />
+
+            {/* Yük işareti */}
+            <SvgText
+              x={charge.x}
+              y={charge.y + 3}
+              textAnchor="middle"
+              fill="white"
+              fontSize="12"
+              fontWeight="bold"
+            >
+              {charge.charge > 0 ? '+' : '-'}
+            </SvgText>
+
+            {/* Hız vektörü (animasyon sırasında) */}
+            {animateField && (
+              <G>
+                <Line
+                  x1={charge.x}
+                  y1={charge.y}
+                  x2={charge.x + charge.vx * 0.05}
+                  y2={charge.y + charge.vy * 0.05}
+                  stroke={charge.charge > 0 ? '#fca5a5' : '#93c5fd'}
+                  strokeWidth={3}
+                />
+                {/* Hız vektörü ok başı */}
+                <Circle
+                  cx={charge.x + charge.vx * 0.05}
+                  cy={charge.y + charge.vy * 0.05}
+                  r={2}
+                  fill={charge.charge > 0 ? '#fca5a5' : '#93c5fd'}
+                />
+              </G>
+            )}
+
+            {/* Kuvvet göstergesi (alan etkisi) */}
+            {animateField && (
+              <Circle
+                cx={charge.x}
+                cy={charge.y}
+                r={12}
+                fill="none"
+                stroke={
+                  charge.charge > 0
+                    ? 'rgba(239, 68, 68, 0.3)'
+                    : 'rgba(59, 130, 246, 0.3)'
+                }
+                strokeWidth={1}
+                opacity={Math.abs(charge.vx + charge.vy) / 50}
+              />
+            )}
+          </G>
+        ))}
+      </G>
+    );
+  };
 
   const renderStraightWireMagneticField = () => {
     const centerX = svgWidth / 2;
@@ -330,7 +745,7 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
           fill="url(#magnetGradient)"
         />
 
-        {/* Kutup etiketleri */}
+        {/* Kutup etiketleri - SOL TARAF N, SAĞ TARAF S */}
         <SvgText
           x={magnetX + magnetWidth / 4}
           y={centerY + 5}
@@ -497,9 +912,25 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
 
       <View style={styles.svgContainer}>
         <Svg width={svgWidth} height={svgHeight}>
+          <Defs>
+            <marker
+              id="arrowhead"
+              markerWidth="10"
+              markerHeight="7"
+              refX="0"
+              refY="3.5"
+              orient="auto"
+            >
+              <Polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+            </marker>
+          </Defs>
+
           {fieldType === 'straight' && renderStraightWireMagneticField()}
           {fieldType === 'coil' && renderCoilMagneticField()}
           {fieldType === 'bar' && renderBarMagnetField()}
+
+          {/* Yük parçacıklarını en üstte render et */}
+          {renderChargeParticles()}
         </Svg>
       </View>
 
@@ -529,6 +960,18 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
             {showFieldLines
               ? t('Alan Çizgilerini Gizle', 'Hide Field Lines')
               : t('Alan Çizgilerini Göster', 'Show Field Lines')}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.controlButton}
+          onPress={onToggleCharges}
+        >
+          <Zap size={20} color={showCharges ? '#374151' : '#666'} />
+          <Text style={styles.controlButtonText}>
+            {showCharges
+              ? t('Yükleri Gizle', 'Hide Charges')
+              : t('Yükleri Göster', 'Show Charges')}
           </Text>
         </TouchableOpacity>
 

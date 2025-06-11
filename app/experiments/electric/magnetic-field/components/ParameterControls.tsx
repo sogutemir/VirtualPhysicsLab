@@ -21,7 +21,7 @@ import {
 } from 'lucide-react-native';
 import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
-import { FieldType, ParameterControlsProps } from './types';
+import { FieldType, ChargeType, ParameterControlsProps } from './types';
 
 const ParameterControls: React.FC<ParameterControlsProps> = ({
   title,
@@ -29,10 +29,16 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
   wireDistance,
   coilTurns,
   fieldType,
+  showCharges,
+  chargeType,
+  chargeSpeed,
   onCurrentIntensityChange,
   onWireDistanceChange,
   onCoilTurnsChange,
   onFieldTypeChange,
+  onToggleCharges,
+  onChargeTypeChange,
+  onChargeSpeedChange,
   onReset,
 }) => {
   const { language, t } = useLanguage();
@@ -176,6 +182,119 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
             </View>
           </View>
 
+          <View style={styles.divider} />
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t('Yük Simülasyonu', 'Charge Simulation')}
+            </Text>
+
+            <View style={styles.switchContainer}>
+              <Text style={styles.label}>
+                {t('Yükleri Göster', 'Show Charges')}
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.switchButton,
+                  showCharges && styles.switchButtonActive,
+                ]}
+                onPress={onToggleCharges}
+              >
+                <Text
+                  style={[
+                    styles.switchText,
+                    showCharges && styles.switchTextActive,
+                  ]}
+                >
+                  {showCharges ? t('Açık', 'ON') : t('Kapalı', 'OFF')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {showCharges && (
+              <>
+                <View style={styles.section}>
+                  <Text style={styles.label}>
+                    {t('Yük Türü', 'Charge Type')}
+                  </Text>
+                  <View style={styles.chargeTypeContainer}>
+                    <TouchableOpacity
+                      style={[
+                        styles.chargeTypeButton,
+                        chargeType === 'positive' &&
+                          styles.chargeTypeButtonActive,
+                      ]}
+                      onPress={() => onChargeTypeChange('positive')}
+                    >
+                      <Text
+                        style={[
+                          styles.chargeTypeText,
+                          chargeType === 'positive' &&
+                            styles.chargeTypeTextActive,
+                        ]}
+                      >
+                        {t('Pozitif (+)', 'Positive (+)')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.chargeTypeButton,
+                        chargeType === 'negative' &&
+                          styles.chargeTypeButtonActive,
+                      ]}
+                      onPress={() => onChargeTypeChange('negative')}
+                    >
+                      <Text
+                        style={[
+                          styles.chargeTypeText,
+                          chargeType === 'negative' &&
+                            styles.chargeTypeTextActive,
+                        ]}
+                      >
+                        {t('Negatif (-)', 'Negative (-)')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.chargeTypeButton,
+                        chargeType === 'both' && styles.chargeTypeButtonActive,
+                      ]}
+                      onPress={() => onChargeTypeChange('both')}
+                    >
+                      <Text
+                        style={[
+                          styles.chargeTypeText,
+                          chargeType === 'both' && styles.chargeTypeTextActive,
+                        ]}
+                      >
+                        {t('Her İkisi', 'Both')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.section}>
+                  <Text style={styles.label}>
+                    {t('Yük Hızı', 'Charge Speed')}
+                  </Text>
+                  <View style={styles.sliderContainer}>
+                    <CustomSlider
+                      style={styles.slider}
+                      min={1}
+                      max={8}
+                      step={1}
+                      value={chargeSpeed}
+                      onValueChange={onChargeSpeedChange}
+                      minimumTrackTintColor="#6b7280"
+                      maximumTrackTintColor="#e5e7eb"
+                    />
+                    <Text style={styles.value}>{chargeSpeed}</Text>
+                  </View>
+                </View>
+              </>
+            )}
+          </View>
+
           <TouchableOpacity style={styles.resetButton} onPress={onReset}>
             <Text style={styles.resetButtonText}>
               {t('Parametreleri Sıfırla', 'Reset Parameters')}
@@ -278,6 +397,65 @@ const styles = StyleSheet.create({
     color: '#4b5563',
     fontSize: 14,
     fontWeight: '500',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginVertical: 16,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  switchButton: {
+    backgroundColor: '#e5e7eb',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  switchButtonActive: {
+    backgroundColor: '#3b82f6',
+  },
+  switchText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  switchTextActive: {
+    color: 'white',
+  },
+  chargeTypeContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  chargeTypeButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  chargeTypeButtonActive: {
+    backgroundColor: '#3b82f6',
+  },
+  chargeTypeText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  chargeTypeTextActive: {
+    color: 'white',
   },
 });
 
