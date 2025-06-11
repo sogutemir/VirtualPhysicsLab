@@ -160,29 +160,34 @@ const WeightedPulleyControls: React.FC<WeightedPulleyControlsProps> = memo(
         <View style={styles.measurementsContainer}>
           <MeasurementItem
             label={t('Zaman:', 'Time:')}
-            value={`${state.time.toFixed(2)} s`}
+            value={`${state.time.toFixed(1)} s`}
           />
           <MeasurementItem
             label={t('Açı:', 'Angle:')}
-            value={`${((state.phi / Math.PI) * 180 + 90).toFixed(1)}°`}
+            value={`${((state.phi / Math.PI) * 180 + 90).toFixed(0)}°`}
           />
-          <MeasurementItem
-            label={t('Potansiyel Enerji:', 'Potential Energy:')}
-            value={`${state.potentialEnergy.toFixed(6)} J`}
-          />
-          <MeasurementItem
-            label={t('Kinetik Enerji:', 'Kinetic Energy:')}
-            value={`${state.kineticEnergy.toFixed(6)} J`}
-          />
-          <MeasurementItem
-            label={t('Toplam Enerji:', 'Total Energy:')}
-            value={`${state.totalEnergy.toExponential(3)} J`}
-          />
-          {state.period > 0 && (
-            <MeasurementItem
-              label={t('Periyot:', 'Period:')}
-              value={`${state.period.toFixed(2)} s`}
-            />
+          {/* 🔧 MOBILE OPTIMIZATION: Show fewer measurements on mobile */}
+          {Platform.OS === 'web' && (
+            <>
+              <MeasurementItem
+                label={t('Potansiyel Enerji:', 'Potential Energy:')}
+                value={`${state.potentialEnergy.toFixed(6)} J`}
+              />
+              <MeasurementItem
+                label={t('Kinetik Enerji:', 'Kinetic Energy:')}
+                value={`${state.kineticEnergy.toFixed(6)} J`}
+              />
+              <MeasurementItem
+                label={t('Toplam Enerji:', 'Total Energy:')}
+                value={`${state.totalEnergy.toExponential(3)} J`}
+              />
+              {state.period > 0 && (
+                <MeasurementItem
+                  label={t('Periyot:', 'Period:')}
+                  value={`${state.period.toFixed(2)} s`}
+                />
+              )}
+            </>
           )}
         </View>
       </View>
