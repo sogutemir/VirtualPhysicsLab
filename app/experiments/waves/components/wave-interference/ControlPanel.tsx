@@ -17,7 +17,6 @@ interface ControlPanelProps {
   damping: number;
   animationSpeed: number;
   isPlaying: boolean;
-  viewMode: 'heatmap' | 'contour' | 'vector';
   onSourceChange: (
     sourceIndex: 0 | 1,
     property: keyof WaveSource,
@@ -28,7 +27,6 @@ interface ControlPanelProps {
   onAnimationSpeedChange: (speed: number) => void;
   onPlayPause: () => void;
   onReset: () => void;
-  onViewModeChange: (mode: 'heatmap' | 'contour' | 'vector') => void;
 }
 
 // Memoized SliderControl component
@@ -92,14 +90,12 @@ const ControlPanel: React.FC<ControlPanelProps> = memo(
     damping,
     animationSpeed,
     isPlaying,
-    viewMode,
     onSourceChange,
     onWaveSpeedChange,
     onDampingChange,
     onAnimationSpeedChange,
     onPlayPause,
     onReset,
-    onViewModeChange,
   }) => {
     const { t } = useLanguage();
 
@@ -159,18 +155,6 @@ const ControlPanel: React.FC<ControlPanelProps> = memo(
       },
       [onSourceChange]
     );
-
-    const handleHeatmapView = useCallback(() => {
-      onViewModeChange('heatmap');
-    }, [onViewModeChange]);
-
-    const handleContourView = useCallback(() => {
-      onViewModeChange('contour');
-    }, [onViewModeChange]);
-
-    const handleVectorView = useCallback(() => {
-      onViewModeChange('vector');
-    }, [onViewModeChange]);
 
     return (
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -327,62 +311,14 @@ const ControlPanel: React.FC<ControlPanelProps> = memo(
             step={0.001}
           />
 
-          <View style={styles.viewModeContainer}>
-            <Text style={styles.viewModeLabel}>
-              {t('Görünüm Modu', 'View Mode')}
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoText}>
+              🌊{' '}
+              {t(
+                'Güzel dairesel dalga görselleştirmesi',
+                'Beautiful circular wave visualization'
+              )}
             </Text>
-            <View style={styles.viewModeButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.viewModeButton,
-                  viewMode === 'heatmap' && styles.activeViewMode,
-                ]}
-                onPress={handleHeatmapView}
-              >
-                <Text
-                  style={[
-                    styles.viewModeButtonText,
-                    viewMode === 'heatmap' && styles.activeViewModeText,
-                  ]}
-                >
-                  {t('Renk', 'Heat')}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.viewModeButton,
-                  viewMode === 'contour' && styles.activeViewMode,
-                ]}
-                onPress={handleContourView}
-              >
-                <Text
-                  style={[
-                    styles.viewModeButtonText,
-                    viewMode === 'contour' && styles.activeViewModeText,
-                  ]}
-                >
-                  {t('Kontur', 'Contour')}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.viewModeButton,
-                  viewMode === 'vector' && styles.activeViewMode,
-                ]}
-                onPress={handleVectorView}
-              >
-                <Text
-                  style={[
-                    styles.viewModeButtonText,
-                    viewMode === 'vector' && styles.activeViewModeText,
-                  ]}
-                >
-                  {t('Vektör', 'Vector')}
-                </Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </ControlCard>
       </ScrollView>
@@ -476,39 +412,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#e2e8f0',
   },
-  viewModeContainer: {
+  infoContainer: {
     marginTop: 8,
-  },
-  viewModeLabel: {
-    fontSize: 14,
-    color: '#e2e8f0',
-    marginBottom: 12,
-  },
-  viewModeButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  viewModeButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    padding: 12,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.5)',
-    backgroundColor: 'rgba(30, 41, 59, 0.5)',
-    alignItems: 'center',
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
-  activeViewMode: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
-  },
-  viewModeButtonText: {
-    fontSize: 12,
-    color: '#cbd5e1',
+  infoText: {
+    fontSize: 14,
+    color: '#10b981',
+    textAlign: 'center',
     fontWeight: '500',
-  },
-  activeViewModeText: {
-    color: '#ffffff',
   },
 });
 

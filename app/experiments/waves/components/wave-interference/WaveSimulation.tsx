@@ -35,7 +35,6 @@ interface WaveSimulationProps {
   isPlaying: boolean;
   animationSpeed: number;
   onSourceMove: (sourceIndex: 0 | 1, x: number, y: number) => void;
-  viewMode: 'heatmap' | 'contour' | 'vector';
 }
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -49,102 +48,182 @@ const SIMULATION_CONFIG = {
     Math.min(screenWidth - 32, isWeb ? 600 : screenWidth - 16) * 0.75,
     isWeb ? 450 : Math.min(screenWidth * 0.6, 280)
   ),
-  gridSize: isMobile ? 12 : 10,
-  targetFps: isMobile ? 15 : 20,
-  updateInterval: isMobile ? 100 : 50,
+  gridSize: isMobile ? 14 : 10, // Optimum denge: performans vs detay
+  targetFps: isMobile ? 25 : 45, // Optimize edilmiş FPS
+  updateInterval: isMobile ? 40 : 22, // Daha az sık güncelleme
+  maxWaves: isMobile ? 3 : 4, // Daha az dalga = daha iyi performans
+  maxRenderDistance: isMobile ? 100 : 120, // Render mesafesi sınırı
 };
 
-// Memoized Pattern Renderer Component
-const InterferencePattern = memo<{
-  pattern: Array<Array<number>>;
-  viewMode: 'heatmap' | 'contour' | 'vector';
-  gridSize: number;
-}>(({ pattern, viewMode, gridSize }) => {
-  if (viewMode !== 'heatmap' || pattern.length === 0) return null;
+// Memoized Circular Wave Patterns Component
+const CircularWavePattern = memo<{
+  sources: [WaveSource, WaveSource];
+  time: number;
+  simulationWidth: number;
+  simulationHeight: number;
+  waveSpeed: number;
+  damping: number;
+}>(
+  ({
+    sources,
+    time,
+    simulationWidth,
+    simulationHeight,
+    waveSpeed,
+    damping,
+  }) => {
+    const elements: React.ReactElement[] = [];
 
-  const elements: React.ReactElement[] = [];
+    sources.forEach((source, sourceIndex) => {
+      if (!source.active) return;
 
-  for (let i = 0; i < pattern.length; i++) {
-    for (let j = 0; j < pattern[i].length; j++) {
-      const amplitude = pattern[i][j];
+      const sourceX = (source.x / 100) * simulationWidth;
+      const sourceY = (source.y / 100) * simulationHeight;
+      // Daha yumuşak renkler
+      const sourceColor = sourceIndex === 0 ? '#ff6666' : '#6699ff';
 
-      // Çok küçük amplitudları atla (performans için)
-      if (Math.abs(amplitude) < 0.1) continue;
+      // Her kaynak için optimize edilmiş dairesel dalga oluştur
+      const maxWaves = SIMULATION_CONFIG.maxWaves;
+      const maxDistance = SIMULATION_CONFIG.maxRenderDistance;
 
-      const intensity = Math.max(0, Math.min(1, (amplitude + 2) / 4));
+      for (let waveIndex = 0; waveIndex < maxWaves; waveIndex++) {
+        const waveTime = time * source.frequency - waveIndex * 1.8;
+        const radius = (waveTime * waveSpeed * 38) % maxDistance;
 
-      let fillColor;
-      if (amplitude > 0) {
-        // Warm colors for constructive interference
-        const r = Math.floor(255 * Math.min(1, intensity * 1.5));
-        const g = Math.floor(180 * intensity);
-        const b = Math.floor(60 * intensity);
-        const alpha = 0.3 + intensity * 0.7;
-        fillColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-      } else {
-        // Cool colors for destructive interference
-        const r = Math.floor(60 * intensity);
-        const g = Math.floor(120 * intensity);
-        const b = Math.floor(255 * Math.min(1, intensity * 1.5));
-        const alpha = 0.3 + intensity * 0.7;
-        fillColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        // Performans için: sadece görünür aralıktaki dalgaları render et
+        if (radius > 10 && radius < maxDistance - 10) {
+          const amplitude =
+            source.amplitude * Math.exp(-damping * radius * 0.025);
+
+          // Çok düşük amplitud dalgalarını atla
+          if (amplitude > 0.05) {
+            const opacity = Math.max(0.12, amplitude * 0.4);
+            const strokeWidth = Math.max(1.1, amplitude * 1.8);
+
+            elements.push(
+              <Circle
+                key={`wave-${sourceIndex}-${waveIndex}`}
+                cx={sourceX}
+                cy={sourceY}
+                r={radius}
+                fill="none"
+                stroke={sourceColor}
+                strokeWidth={strokeWidth}
+                opacity={opacity}
+              />
+            );
+          }
+        }
       }
+    });
 
-      elements.push(
-        <Rect
-          key={`pattern-${i}-${j}`}
-          x={i * gridSize}
-          y={j * gridSize}
-          width={gridSize}
-          height={gridSize}
-          fill={fillColor}
-        />
-      );
-    }
+    return <>{elements}</>;
   }
+);
 
-  return <>{elements}</>;
-});
+// Memoized Interference Pattern with Beautiful Gradients
+const InterferencePattern = memo<{
+  sources: [WaveSource, WaveSource];
+  time: number;
+  simulationWidth: number;
+  simulationHeight: number;
+  waveSpeed: number;
+  damping: number;
+}>(
+  ({
+    sources,
+    time,
+    simulationWidth,
+    simulationHeight,
+    waveSpeed,
+    damping,
+  }) => {
+    const elements: React.ReactElement[] = [];
+    const gridSize = SIMULATION_CONFIG.gridSize;
 
-// Memoized Contour Lines Component
-const ContourLines = memo<{
-  pattern: Array<Array<number>>;
-  viewMode: 'heatmap' | 'contour' | 'vector';
-  gridSize: number;
-}>(({ pattern, viewMode, gridSize }) => {
-  if (viewMode !== 'contour' || pattern.length === 0) return null;
+    // Optimize edilmiş grid taraması - sadece etkin bölgeleri hesapla
+    const activeSources = sources.filter((s) => s.active);
+    if (activeSources.length === 0) return [];
 
-  const elements: React.ReactElement[] = [];
-  const contourLevels = [-1.5, -1, -0.5, 0, 0.5, 1, 1.5];
+    for (let x = 0; x < simulationWidth; x += gridSize) {
+      for (let y = 0; y < simulationHeight; y += gridSize) {
+        const normalizedX = (x / simulationWidth) * 100;
+        const normalizedY = (y / simulationHeight) * 100;
 
-  contourLevels.forEach((level, levelIndex) => {
-    const hue = (levelIndex * 60) % 360;
-    const strokeColor = `hsl(${hue}, 70%, 60%)`;
-    const strokeWidth = level === 0 ? 2 : 1;
+        // Performans için: çok uzak noktalarda hesaplama yapma
+        let minDistanceToSource = Infinity;
+        activeSources.forEach((source) => {
+          const dx = normalizedX - source.x;
+          const dy = normalizedY - source.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          minDistanceToSource = Math.min(minDistanceToSource, distance);
+        });
 
-    for (let i = 0; i < pattern.length; i++) {
-      for (let j = 0; j < pattern[i].length; j++) {
-        const amplitude = pattern[i][j];
+        // Çok uzak noktaları atla
+        if (minDistanceToSource > 80) continue;
 
-        if (Math.abs(amplitude - level) < 0.15) {
+        let totalAmplitude = 0;
+
+        // Her aktif kaynak için girişimi hesapla
+        activeSources.forEach((source) => {
+          const dx = normalizedX - source.x;
+          const dy = normalizedY - source.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance > 0) {
+            const waveValue =
+              source.amplitude *
+              Math.exp(-damping * distance * 0.35) *
+              Math.sin(
+                2 * Math.PI * source.frequency * time -
+                  (2 * Math.PI * distance) / (waveSpeed * 10) +
+                  source.phase
+              );
+            totalAmplitude += waveValue;
+          }
+        });
+
+        // Girişim etkilerini optimize edilmiş şekilde göster
+        if (Math.abs(totalAmplitude) > 0.18) {
+          const intensity = Math.max(
+            0,
+            Math.min(1, Math.abs(totalAmplitude) / 2.2)
+          );
+
+          let fillColor;
+          if (totalAmplitude > 0) {
+            // Sıcak renkler - yapıcı girişim
+            const r = Math.floor(255 * Math.min(1, intensity * 1.0));
+            const g = Math.floor(120 + 135 * intensity);
+            const b = Math.floor(60 + 70 * intensity);
+            const alpha = 0.25 + intensity * 0.45;
+            fillColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+          } else {
+            // Soğuk renkler - yıkıcı girişim
+            const r = Math.floor(60 + 70 * intensity);
+            const g = Math.floor(120 + 135 * intensity);
+            const b = Math.floor(255 * Math.min(1, intensity * 1.0));
+            const alpha = 0.25 + intensity * 0.45;
+            fillColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+          }
+
           elements.push(
             <Circle
-              key={`contour-${levelIndex}-${i}-${j}`}
-              cx={i * gridSize + gridSize / 2}
-              cy={j * gridSize + gridSize / 2}
-              r={1.5}
-              fill={strokeColor}
-              stroke={strokeColor}
-              strokeWidth={strokeWidth}
+              key={`interference-${x}-${y}`}
+              cx={x + gridSize / 2}
+              cy={y + gridSize / 2}
+              r={gridSize / 2.8}
+              fill={fillColor}
+              opacity={0.65}
             />
           );
         }
       }
     }
-  });
 
-  return <>{elements}</>;
-});
+    return <>{elements}</>;
+  }
+);
 
 // Memoized Wave Sources Component
 const WaveSources = memo<{
@@ -163,14 +242,16 @@ const WaveSources = memo<{
         const sourceColor = index === 0 ? '#ff4444' : '#4488ff';
         const gradientId = `sourceGradient${index}`;
 
-        // Simplified animated pulse rings - daha az ring, daha iyi performans
-        const sourceTime = time * source.frequency;
-        const pulseRadius1 = 15 + Math.sin(sourceTime) * 3;
-        const pulseRadius2 = 25 + Math.sin(sourceTime + 1.5) * 4;
+        // Animated pulse rings for source indicators - orta seviye belirginlik
+        const sourceTime = time * source.frequency * 1.8;
+        const pulseRadius1 = 12 + Math.sin(sourceTime) * 4;
+        const pulseRadius2 = 20 + Math.sin(sourceTime + Math.PI) * 5;
+        const pulseOpacity1 = 0.35 + Math.sin(sourceTime) * 0.2;
+        const pulseOpacity2 = 0.25 + Math.sin(sourceTime + Math.PI) * 0.15;
 
         return (
           <G key={`source-${index}`}>
-            {/* Simplified pulse rings */}
+            {/* Animated pulse rings */}
             <Circle
               cx={x}
               cy={y}
@@ -178,7 +259,7 @@ const WaveSources = memo<{
               fill="none"
               stroke={sourceColor}
               strokeWidth={2}
-              opacity={0.6}
+              opacity={pulseOpacity1}
             />
             <Circle
               cx={x}
@@ -186,8 +267,8 @@ const WaveSources = memo<{
               r={pulseRadius2}
               fill="none"
               stroke={sourceColor}
-              strokeWidth={1}
-              opacity={0.4}
+              strokeWidth={1.5}
+              opacity={pulseOpacity2}
             />
 
             {/* Source center */}
@@ -248,14 +329,11 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
     isPlaying,
     animationSpeed,
     onSourceMove,
-    viewMode,
   }) => {
     const animationRef = useRef<number | null>(null);
     const timeRef = useRef<number>(0);
     const [draggedSource, setDraggedSource] = useState<number | null>(null);
-    const [interferencePattern, setInterferencePattern] = useState<
-      Array<Array<number>>
-    >([]);
+    const [, forceUpdate] = useState({});
     const lastUpdateTime = useRef<number>(0);
     const isMountedRef = useRef(true);
 
@@ -265,45 +343,7 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
       [sources]
     );
 
-    // Generate interference pattern for visualization - optimized
-    const generatePattern = useCallback(() => {
-      if (!isMountedRef.current || activeSources.length === 0) {
-        setInterferencePattern([]);
-        return;
-      }
-
-      const pattern: Array<Array<number>> = [];
-      const {
-        width: simulationWidth,
-        height: simulationHeight,
-        gridSize,
-      } = SIMULATION_CONFIG;
-
-      // Daha büyük step ile daha az hesaplama
-      for (let x = 0; x < simulationWidth; x += gridSize) {
-        const row: number[] = [];
-        for (let y = 0; y < simulationHeight; y += gridSize) {
-          const normalizedX = (x / simulationWidth) * 100;
-          const normalizedY = (y / simulationHeight) * 100;
-
-          const amplitude = calculateInterference(
-            activeSources,
-            normalizedX,
-            normalizedY,
-            timeRef.current,
-            waveSpeed,
-            damping
-          );
-
-          row.push(amplitude);
-        }
-        pattern.push(row);
-      }
-
-      setInterferencePattern(pattern);
-    }, [activeSources, waveSpeed, damping]);
-
-    // Animation loop - optimized
+    // Animation loop - optimize edilmiş performans + throttling
     const animate = useCallback(
       (currentTime: number) => {
         if (!isMountedRef.current) return;
@@ -311,14 +351,12 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
         if (isPlaying) {
           const frameInterval = 1000 / SIMULATION_CONFIG.targetFps;
           if (currentTime - lastUpdateTime.current >= frameInterval) {
-            timeRef.current += 0.03 * animationSpeed; // Daha küçük zaman adımları
-
-            // Sadece aktif kaynaklar varsa güncelle
-            if (activeSources.length > 0) {
-              generatePattern();
-            }
-
+            // Optimize edilmiş time progression
+            timeRef.current += 0.04 * animationSpeed;
             lastUpdateTime.current = currentTime;
+
+            // Force component re-render - throttled
+            forceUpdate({});
           }
         }
 
@@ -326,7 +364,7 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
           animationRef.current = requestAnimationFrame(animate);
         }
       },
-      [isPlaying, animationSpeed, generatePattern, activeSources.length]
+      [isPlaying, animationSpeed, forceUpdate]
     );
 
     // Component lifecycle management
@@ -345,7 +383,6 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
     useEffect(() => {
       if (isMountedRef.current) {
         lastUpdateTime.current = 0;
-        generatePattern();
         animationRef.current = requestAnimationFrame(animate);
       }
 
@@ -355,7 +392,7 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
           animationRef.current = null;
         }
       };
-    }, [animate, generatePattern]);
+    }, [animate]);
 
     // Memoized PanResponder
     const panResponder = useMemo(
@@ -447,18 +484,24 @@ const WaveSimulation: React.FC<WaveSimulationProps> = memo(
             fill="url(#backgroundGradient)"
           />
 
-          {/* Interference pattern */}
-          <InterferencePattern
-            pattern={interferencePattern}
-            viewMode={viewMode}
-            gridSize={SIMULATION_CONFIG.gridSize}
+          {/* Circular Wave Patterns */}
+          <CircularWavePattern
+            sources={sources}
+            time={timeRef.current}
+            simulationWidth={SIMULATION_CONFIG.width}
+            simulationHeight={SIMULATION_CONFIG.height}
+            waveSpeed={waveSpeed}
+            damping={damping}
           />
 
-          {/* Contour lines */}
-          <ContourLines
-            pattern={interferencePattern}
-            viewMode={viewMode}
-            gridSize={SIMULATION_CONFIG.gridSize}
+          {/* Interference Pattern */}
+          <InterferencePattern
+            sources={sources}
+            time={timeRef.current}
+            simulationWidth={SIMULATION_CONFIG.width}
+            simulationHeight={SIMULATION_CONFIG.height}
+            waveSpeed={waveSpeed}
+            damping={damping}
           />
 
           {/* Wave sources */}
