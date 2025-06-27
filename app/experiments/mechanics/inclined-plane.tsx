@@ -226,13 +226,15 @@ export default function InclinedPlaneExperiment() {
   const forces = calculateForces(state);
   const angleRad = (state.angle * Math.PI) / 180;
   
-  // Mobil için daha büyük boyutlar - uzunlamasına
+  // Mobil için daha büyük boyutlar - uzunlamasına (%30 daha uzun)
   const svgWidth = isMobile ? screenWidth - 32 : 600;
-  const svgHeight = isMobile ? Math.min(screenWidth * 0.8, 500) : 500;
+  const svgHeight = isMobile ? Math.min(screenWidth * 1.0, 650) : 650;
   const scale = isMobile ? 0.8 : 1.0;
   
-  const planeEndX = CONSTANTS.PLANE_LENGTH * Math.cos(angleRad) * scale;
-  const planeEndY = CONSTANTS.PLANE_LENGTH * Math.sin(angleRad) * scale;
+  // Düzlemi %8 küçültüp sola kaydırmak için
+  const planeScale = scale * 0.92; // %8 küçültme
+  const planeEndX = CONSTANTS.PLANE_LENGTH * Math.cos(angleRad) * planeScale;
+  const planeEndY = CONSTANTS.PLANE_LENGTH * Math.sin(angleRad) * planeScale;
 
   // Deney açıklamaları
   const description = `
@@ -290,19 +292,19 @@ export default function InclinedPlaneExperiment() {
             >
               {/* Zemin çizgisi */}
               <Line
-                x1={50}
-                y1={svgHeight - 100}
-                x2={svgWidth - 50}
-                y2={svgHeight - 100}
+                x1={40}
+                y1={svgHeight - 120}
+                x2={svgWidth - 40}
+                y2={svgHeight - 120}
                 stroke="#4a4a4a"
                 strokeWidth={3}
               />
               
-              {/* Eğik düzlem - daha büyük */}
+              {/* Eğik düzlem - küçültülmüş ve sola kaydırılmış */}
               <Path
-                d={`M 60,${svgHeight - 100}
-            L ${60 + planeEndX},${svgHeight - 100 - planeEndY}
-            L ${60 + planeEndX},${svgHeight - 100} Z`}
+                d={`M 45,${svgHeight - 120}
+            L ${45 + planeEndX},${svgHeight - 120 - planeEndY}
+            L ${45 + planeEndX},${svgHeight - 120} Z`}
                 fill="#90a4ae"
                 stroke="#546e7a"
                 strokeWidth={2}
@@ -310,9 +312,9 @@ export default function InclinedPlaneExperiment() {
 
               {/* Açı göstergesi */}
               <Path
-                d={`M 60,${svgHeight - 100}
-            A 30,30 0 0,0 ${60 + 30 * Math.cos(angleRad)},${svgHeight - 100 - 30 * Math.sin(angleRad)}
-            L 60,${svgHeight - 100}`}
+                d={`M 45,${svgHeight - 120}
+            A 30,30 0 0,0 ${45 + 30 * Math.cos(angleRad)},${svgHeight - 120 - 30 * Math.sin(angleRad)}
+            L 45,${svgHeight - 120}`}
                 fill="rgba(76, 175, 80, 0.3)"
                 stroke="#4caf50"
                 strokeWidth={1}
@@ -320,8 +322,8 @@ export default function InclinedPlaneExperiment() {
               
               {/* Açı değeri */}
               <text
-                x={60 + 40}
-                y={svgHeight - 75}
+                x={45 + 40}
+                y={svgHeight - 90}
                 fill="#4caf50"
                 fontSize={isMobile ? "12" : "14"}
                 fontWeight="bold"
@@ -332,9 +334,9 @@ export default function InclinedPlaneExperiment() {
               {/* Kare cisim ve kuvvet vektörü */}
               <G
                 transform={`translate(${
-                  60 + state.position.x * Math.cos(angleRad) * scale
+                  45 + state.position.x * Math.cos(angleRad) * planeScale
                 },${
-                  svgHeight - 100 - state.position.x * Math.sin(angleRad) * scale
+                  svgHeight - 120 - state.position.x * Math.sin(angleRad) * planeScale
                 }) rotate(${-state.angle})`}
               >
                 {/* Kütle (kare) - boyut kütleye göre değişiyor */}
@@ -575,7 +577,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
     width: '100%',
     marginBottom: 20,
-    minHeight: 500,
+    minHeight: 650,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -585,7 +587,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   mobileSimulation: {
-    minHeight: 400,
+    minHeight: 520,
     padding: 12,
   },
   controls: {
