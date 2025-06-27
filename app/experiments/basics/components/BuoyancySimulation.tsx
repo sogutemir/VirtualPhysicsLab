@@ -115,16 +115,24 @@ const ObjectRenderer = memo<{
 
   // Transform hesaplaması - optimize
   const transformStyle = useMemo(() => {
+    // Pozisyonu tersine çevir: 0 = en alt, 100 = en üst
+    const invertedPosition = 100 - obj.position;
+    
+    // Sıvı yoğunluğuna göre batma derinliği hesapla
     const densityRatio = obj.density / liquidDensity;
-    let translateY = 0;
-
-    if (densityRatio < 0.95) {
-      translateY = -20 - (1 - densityRatio) * 10; // Daha fazla yüzme
-    } else if (densityRatio > 1.05) {
-      translateY = 20 + (densityRatio - 1) * 15; // Daha fazla batma
+    let additionalSinkOffset = 0;
+    
+    if (densityRatio > 1.1) {
+      // Yoğun cisimler daha çok batar
+      additionalSinkOffset = (densityRatio - 1) * 5;
+    } else if (densityRatio < 0.9) {
+      // Hafif cisimler daha çok yüzer
+      additionalSinkOffset = -(1 - densityRatio) * 8;
     }
 
-    return [{ translateY }];
+    return [{ 
+      translateY: additionalSinkOffset 
+    }];
   }, [obj.density, liquidDensity]);
 
   // Label container styles - memoized
@@ -147,7 +155,10 @@ const ObjectRenderer = memo<{
   // Position styles - memoized (React Native uyumlu)
   const positionStyle = useMemo((): ViewStyle => {
     const leftPercent = 15 + (obj.id - 1) * 25;
-    const bottomPercent = Math.max(5, Math.min(85, obj.position));
+    
+    // Pozisyonu yüzde olarak hesapla (0-100 arası)
+    // position: 10 = alt sınır, 90 = üst sınır (su yüzeyi)
+    const bottomPercent = Math.max(5, Math.min(95, obj.position));
 
     return {
       position: 'absolute',
@@ -217,12 +228,16 @@ const BuoyancySimulation: React.FC<BuoyancySimulationProps> = memo(
     const surfaceIndicatorStyle = useMemo(
       (): ViewStyle => ({
         position: 'absolute',
-        top: '70%',
+        bottom: '85%',
         left: 0,
         right: 0,
         height: 2,
-        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
         borderRadius: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.3,
+        shadowRadius: 2,
       }),
       []
     );

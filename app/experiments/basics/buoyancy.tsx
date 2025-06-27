@@ -64,7 +64,7 @@ export default function BuoyancyExperiment() {
   );
   const [selectedLiquidType, setSelectedLiquidType] =
     useState<keyof typeof LIQUID_TYPES>('WATER');
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number>(0);
   const lastUpdateTimeRef = useRef<number>(0);
 
   // Başlangıç nesneleri - memoized
@@ -74,36 +74,36 @@ export default function BuoyancyExperiment() {
         id: 1,
         density: MATERIAL_DENSITIES.CORK,
         color: '#FF6B6B',
-        position: 0,
+        position: 50, // Merkez pozisyondan başla
         velocity: 0,
         size: 0.8,
         shape: 'circle',
         label: 'Mantar (240 kg/m³)',
-        mass: 0.1,
+        mass: MATERIAL_DENSITIES.CORK * 0.001, // yoğunluk × hacim
         volume: 0.001,
       },
       {
         id: 2,
         density: MATERIAL_DENSITIES.WOOD,
         color: '#4ECDC4',
-        position: 0,
+        position: 50, // Merkez pozisyondan başla
         velocity: 0,
         size: 1,
         shape: 'square',
         label: 'Tahta (600 kg/m³)',
-        mass: 0.15,
+        mass: MATERIAL_DENSITIES.WOOD * 0.001, // yoğunluk × hacim
         volume: 0.001,
       },
       {
         id: 3,
         density: MATERIAL_DENSITIES.IRON,
         color: '#45B7D1',
-        position: 0,
+        position: 50, // Merkez pozisyondan başla
         velocity: 0,
         size: 0.6,
         shape: 'triangle',
         label: 'Demir (7874 kg/m³)',
-        mass: 0.2,
+        mass: MATERIAL_DENSITIES.IRON * 0.0008, // yoğunluk × hacim
         volume: 0.0008,
       },
     ],
@@ -112,17 +112,50 @@ export default function BuoyancyExperiment() {
 
   const [objects, setObjects] = useState<ObjectState[]>(initialObjects);
 
-  // Fizik hesaplamaları - optimize edilmiş
+  // Sayfa yüklendiğinde simülasyonu otomatik başlat
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsRunning(true);
+    }, 500); // 500ms sonra başlat
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Fizik hesaplamaları - Arşimet prensibine göre düzeltilmiş
   const calculateBuoyantForce = useCallback(
     (objectDensity: number, volume: number, liquidDens: number) => {
+      // Arşimet prensibi: Kaldırma kuvveti = sıvının yer değiştiren hacminin ağırlığı
+      // F_buoyant = ρ_liquid × V_object × g (cisim tamamen sıvı içindeyken)
+      
+      // Cisim tamamen sıvı içindeyken maksimum kaldırma kuvveti
       return liquidDens * PHYSICS_CONSTANTS.GRAVITY * volume;
     },
     []
   );
 
-  const calculateWeight = useCallback((mass: number) => {
-    return mass * PHYSICS_CONSTANTS.GRAVITY;
+  const calculateWeight = useCallback((density: number, volume: number) => {
+    // Ağırlık = kütle × g = yoğunluk × hacim × g
+    return density * volume * PHYSICS_CONSTANTS.GRAVITY;
   }, []);
+
+  // Denge pozisyonu hesaplama
+  const calculateEquilibriumPosition = useCallback(
+    (objectDensity: number, liquidDens: number) => {
+      const densityRatio = objectDensity / liquidDens;
+      
+      if (densityRatio < 0.95) {
+        // Yüzer: Su yüzeyinde (80-90% arası)
+        return 85 + (0.95 - densityRatio) * 10;
+      } else if (densityRatio > 1.05) {
+        // Batar: Tank tabanında (10-20% arası)
+        return 15 - (densityRatio - 1.05) * 5;
+      } else {
+        // Askıda kalır: Ortada (45-55% arası)
+        return 50;
+      }
+    },
+    []
+  );
 
   // Pozisyon hesaplama - gerçekçi fizik simülasyonu
   const updateObjectPositions = useCallback(
@@ -145,53 +178,63 @@ export default function BuoyancyExperiment() {
             obj.volume,
             liquidDensity
           );
-          const weight = calculateWeight(obj.mass);
+          const weight = calculateWeight(obj.density, obj.volume);
           const netForce = buoyantForce - weight;
-          const acceleration = netForce / obj.mass;
+          
+          // Newton'un 2. yasası: F = ma, dolayısıyla a = F/m
+          const mass = obj.density * obj.volume;
+          const acceleration = netForce / mass;
 
-          // Yeni hız ve pozisyon hesaplama (gerçek fizik)
-          let newVelocity = obj.velocity + acceleration * (deltaTime / 1000);
-          let newPosition =
-            obj.position + newVelocity * (deltaTime / 1000) * 100;
+          // Sıvı direnci (viscosity) - yoğunluğa bağlı
+          const viscosity = Math.sqrt(liquidDensity / 1000); // Daha gerçekçi viskozite
+          const dragCoefficient = 0.5 * viscosity; // Basitleştirilmiş sürükleme
+          const dragForce = -dragCoefficient * obj.velocity;
+          const totalAcceleration = acceleration + (dragForce / mass);
 
-          // Sınır kontrolü ve sürtünme
-          const friction = 0.95;
-          if (newPosition > 85) {
-            newPosition = 85;
-            newVelocity = Math.max(0, newVelocity * friction);
-          } else if (newPosition < 15) {
-            newPosition = 15;
-            newVelocity = Math.min(0, newVelocity * friction);
+          // Yeni hız hesaplama
+          let newVelocity = obj.velocity + totalAcceleration * (deltaTime / 1000);
+          
+          // Denge pozisyonunu hesapla
+          const equilibriumPos = calculateEquilibriumPosition(obj.density, liquidDensity);
+          
+          // Pozisyon güncelleme - denge pozisyonuna doğru hareket
+          const positionDiff = equilibriumPos - obj.position;
+          const dampingFactor = 0.95; // Salınımı azalt
+          
+          let newPosition = obj.position + newVelocity * (deltaTime / 1000) * 30; // Daha yavaş hareket
+          
+          // Denge pozisyonuna yakınsa stabilize et
+          if (Math.abs(positionDiff) < 5) {
+            newPosition += positionDiff * 0.1; // Denge pozisyonuna çek
+            newVelocity *= dampingFactor; // Hızı azalt
           }
 
-          // Denge pozisyonu hesaplama
-          const equilibriumPosition =
-            obj.density < liquidDensity
-              ? 75
-              : obj.density > liquidDensity
-              ? 25
-              : 50;
+          // Sınır kontrolü - su tankının alt ve üst sınırları
+          const friction = 0.5; // Çarpışma kaybı
+          if (newPosition > 95) { // Üst sınır (yüzey üstü)
+            newPosition = 95;
+            newVelocity = -Math.abs(newVelocity) * friction;
+          } else if (newPosition < 5) { // Alt sınır (tank tabanı)
+            newPosition = 5;
+            newVelocity = Math.abs(newVelocity) * friction;
+          }
 
-          // Denge yakınında ise stabilize et
-          if (
-            Math.abs(newPosition - equilibriumPosition) <
-            PHYSICS_CONSTANTS.POSITION_TOLERANCE
-          ) {
-            newPosition = equilibriumPosition;
-            newVelocity *= 0.8;
+          // Terminal hız kontrolü - çok yavaş hareket ediyorsa durdur
+          if (Math.abs(newVelocity) < 0.05 && Math.abs(totalAcceleration) < 0.001) {
+            newVelocity = 0;
           }
 
           return {
             ...obj,
-            position: newPosition,
-            velocity: newVelocity * friction,
+            position: Math.max(5, Math.min(95, newPosition)),
+            velocity: newVelocity,
           };
         })
       );
 
       animationFrameRef.current = requestAnimationFrame(updateObjectPositions);
     },
-    [isRunning, liquidDensity, calculateBuoyantForce, calculateWeight]
+    [isRunning, liquidDensity, calculateBuoyantForce, calculateWeight, calculateEquilibriumPosition]
   );
 
   // Animasyon başlatma/durdurma
@@ -215,6 +258,11 @@ export default function BuoyancyExperiment() {
   // Sıvı yoğunluğu değişikliğini işle - optimized
   const handleLiquidDensityChange = useCallback((value: number) => {
     setLiquidDensity(value);
+    
+    // Simülasyonu otomatik başlat
+    if (!isRunning) {
+      setIsRunning(true);
+    }
 
     // Sıvı rengini yoğunluğa göre hesapla
     const densityRatio = Math.min(value / PHYSICS_CONSTANTS.MAX_DENSITY, 1);
@@ -222,7 +270,7 @@ export default function BuoyancyExperiment() {
     const blue = Math.max(255 - densityRatio * 80, 175);
     const newColor = `rgba(173, 216, ${blue}, ${opacity})`;
     setLiquidColor(newColor);
-  }, []);
+  }, [isRunning]);
 
   // Sıvı türü değişikliği
   const handleLiquidTypeChange = useCallback(
@@ -231,25 +279,14 @@ export default function BuoyancyExperiment() {
       setSelectedLiquidType(liquidType);
       setLiquidDensity(liquid.density);
       setLiquidColor(liquid.color);
+      
+      // Simülasyonu otomatik başlat
+      if (!isRunning) {
+        setIsRunning(true);
+      }
     },
-    []
+    [isRunning]
   );
-
-  // Nesne yoğunluğu değişikliğini işle - optimized
-  const handleObjectDensityChange = useCallback((id: number, value: number) => {
-    setObjects((prev) =>
-      prev.map((obj) =>
-        obj.id === id
-          ? {
-              ...obj,
-              density: value,
-              label: `${getMaterialName(value)} (${value} kg/m³)`,
-              mass: value * obj.volume, // Kütleyi güncelle
-            }
-          : obj
-      )
-    );
-  }, []);
 
   // Malzeme adını yoğunluğa göre belirle - memoized
   const getMaterialName = useMemo(
@@ -269,20 +306,39 @@ export default function BuoyancyExperiment() {
     []
   );
 
+  // Nesne yoğunluğu değişikliğini işle - optimized
+  const handleObjectDensityChange = useCallback((id: number, value: number) => {
+    setObjects((prev) =>
+      prev.map((obj) =>
+        obj.id === id
+          ? {
+              ...obj,
+              density: value,
+              label: `${getMaterialName(value)} (${value} kg/m³)`,
+              mass: value * obj.volume, // Kütleyi güncelle
+            }
+          : obj
+      )
+    );
+    
+    // Simülasyonu otomatik başlat
+    if (!isRunning) {
+      setIsRunning(true);
+    }
+  }, [getMaterialName, isRunning]);
+
   // Simülasyonu sıfırla - optimized
   const handleReset = useCallback(() => {
     setIsRunning(false);
     setLiquidDensity(PHYSICS_CONSTANTS.WATER_DENSITY);
     setLiquidColor(LIQUID_TYPES.WATER.color);
     setSelectedLiquidType('WATER');
-    setObjects((prevObjects) =>
-      prevObjects.map((obj) => ({
-        ...obj,
-        position: 0,
-        velocity: 0,
-      }))
-    );
-  }, []);
+    setObjects(initialObjects.map((obj) => ({
+      ...obj,
+      position: 50,
+      velocity: 0,
+    })));
+  }, [initialObjects]);
 
   // Simülasyon toggle - optimized
   const handleToggleSimulation = useCallback(() => {
