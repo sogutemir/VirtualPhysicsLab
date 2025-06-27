@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
+import { CustomSlider } from '../../../../../components/ui/slider';
 
 interface ParameterSliderProps {
   label: string;
@@ -13,6 +13,45 @@ interface ParameterSliderProps {
   description?: string;
   color?: string;
 }
+
+// Web için HTML slider komponenti
+const WebSlider: React.FC<{
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (value: number) => void;
+  color: string;
+  isMobile: boolean;
+}> = ({ value, min, max, step, onChange, color, isMobile }) => {
+  if (Platform.OS !== 'web') return null;
+
+  const progressPercent = ((value - min) / (max - min)) * 100;
+
+  return (
+    <input
+      type="range"
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      onChange={(e) => onChange(parseFloat(e.target.value))}
+      style={{
+        width: '100%',
+        height: isMobile ? '35px' : '40px',
+        background: `linear-gradient(to right, ${color} 0%, ${color} ${progressPercent}%, #e5e7eb ${progressPercent}%, #e5e7eb 100%)`,
+        outline: 'none',
+        cursor: 'pointer',
+        appearance: 'none',
+        borderRadius: '8px',
+        WebkitAppearance: 'none',
+        border: 'none',
+        marginTop: isMobile ? '6px' : '8px',
+        marginBottom: isMobile ? '6px' : '8px',
+      }}
+    />
+  );
+};
 
 export const ParameterSlider: React.FC<ParameterSliderProps> = memo(({
   label,
@@ -40,17 +79,29 @@ export const ParameterSlider: React.FC<ParameterSliderProps> = memo(({
         </View>
       </View>
 
-      <Slider
-        style={[styles.slider, isMobile && styles.mobileSlider]}
-        minimumValue={min}
-        maximumValue={max}
-        value={value}
-        step={step}
-        onValueChange={onChange}
-        minimumTrackTintColor={color}
-        maximumTrackTintColor="rgba(0, 0, 0, 0.1)"
-        thumbTintColor={color}
-      />
+      {Platform.OS === 'web' ? (
+        <WebSlider
+          value={value}
+          min={min}
+          max={max}
+          step={step}
+          onChange={onChange}
+          color={color}
+          isMobile={isMobile}
+        />
+      ) : (
+        <CustomSlider
+          style={[styles.slider, isMobile && styles.mobileSlider]}
+          min={min}
+          max={max}
+          value={value}
+          step={step}
+          onValueChange={onChange}
+          minimumTrackTintColor={color}
+          maximumTrackTintColor="rgba(0, 0, 0, 0.1)"
+          thumbTintColor={color}
+        />
+      )}
 
       <View style={styles.range}>
         <Text style={[styles.rangeText, isMobile && styles.mobileRangeText]}>
@@ -117,25 +168,6 @@ const styles = StyleSheet.create({
   mobileSlider: {
     height: 35,
     marginVertical: 6,
-  },
-  thumb: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
-  customThumb: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  track: {
-    height: 4,
-    borderRadius: 2,
   },
   range: {
     flexDirection: 'row',
