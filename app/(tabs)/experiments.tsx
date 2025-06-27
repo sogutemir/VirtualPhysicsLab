@@ -24,7 +24,6 @@ type ExperimentRoute =
   | '/experiments/mechanics/weighted-pulley'
   | '/experiments/mechanics/collisions'
   | '/experiments/mechanics/atwood'
-  | '/experiments/mechanics/friction'
   | '/experiments/mechanics/accelerated-motion'
   | '/experiments/mechanics/free-fall'
   | '/experiments/mechanics/vector-addition'
@@ -127,17 +126,6 @@ export const experiments: Experiment[] = [
     description: 'Atwood makinesi ve ivmeli hareket',
     descriptionEn: 'Atwood machine and accelerated motion',
     route: '/experiments/mechanics/atwood' as any,
-  },
-  {
-    id: '7',
-    title: 'Dinamik Sürtünme',
-    titleEn: 'Dynamic Friction',
-    category: 'mechanics',
-    difficulty: 'Başlangıç',
-    difficultyEn: 'Beginner',
-    description: 'Sürtünme kuvveti ve hareket analizi',
-    descriptionEn: 'Friction force and motion analysis',
-    route: '/experiments/mechanics/friction' as any,
   },
   {
     id: '8',
