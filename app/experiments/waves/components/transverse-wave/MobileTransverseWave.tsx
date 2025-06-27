@@ -18,10 +18,10 @@ import { useTransverseWave } from './useTransverseWave';
 import { TransverseWaveControls } from './TransverseWaveControls';
 import { calculateWaveParameters } from './wave';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
-  ({ width = SCREEN_WIDTH * 0.9, height = 200, onStateChange }, ref) => {
+  ({ width = SCREEN_WIDTH - 32, height = Math.min(SCREEN_HEIGHT * 0.35, 300), onStateChange }, ref) => {
     const {
       state,
       waveParameters,
@@ -75,8 +75,8 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
       const centerY = height / 2;
       const gridLines = [];
 
-      // Yatay ızgara çizgileri
-      for (let y = centerY; y >= 0; y -= state.amplitude / 4) {
+      // Yatay ızgara çizgileri - mobilde daha seyrek
+      for (let y = centerY; y >= 0; y -= state.amplitude / 2) {
         gridLines.push(
           <Line
             key={`h-up-${y}`}
@@ -86,11 +86,12 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
             y2={y}
             stroke="#e9ecef"
             strokeWidth={1}
+            opacity={0.6}
           />
         );
       }
 
-      for (let y = centerY; y <= height; y += state.amplitude / 4) {
+      for (let y = centerY; y <= height; y += state.amplitude / 2) {
         gridLines.push(
           <Line
             key={`h-down-${y}`}
@@ -100,12 +101,13 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
             y2={y}
             stroke="#e9ecef"
             strokeWidth={1}
+            opacity={0.6}
           />
         );
       }
 
-      // Dikey ızgara çizgileri
-      for (let x = 0; x < width; x += state.wavelength / 4) {
+      // Dikey ızgara çizgileri - mobilde daha seyrek
+      for (let x = 0; x < width; x += state.wavelength / 2) {
         gridLines.push(
           <Line
             key={`v-${x}`}
@@ -115,11 +117,12 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
             y2={height}
             stroke="#e9ecef"
             strokeWidth={1}
+            opacity={0.6}
           />
         );
       }
 
-      // X ekseni
+      // X ekseni - mobilde daha kalın
       gridLines.push(
         <Line
           key="x-axis"
@@ -128,11 +131,11 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
           x2={width}
           y2={centerY}
           stroke="#adb5bd"
-          strokeWidth={2}
+          strokeWidth={3}
         />
       );
 
-      // Y ekseni
+      // Y ekseni - mobilde daha kalın
       gridLines.push(
         <Line
           key="y-axis"
@@ -141,18 +144,19 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
           x2={0}
           y2={height}
           stroke="#adb5bd"
-          strokeWidth={2}
+          strokeWidth={3}
         />
       );
 
-      // Eksen etiketleri
+      // Eksen etiketleri - mobilde daha büyük
       gridLines.push(
         <SvgText
           key="x-label"
-          x={width - 10}
-          y={centerY - 10}
+          x={width - 20}
+          y={centerY - 15}
           fill="#495057"
-          fontSize={12}
+          fontSize={16}
+          fontWeight="bold"
           textAnchor="middle"
         >
           x
@@ -162,10 +166,11 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
       gridLines.push(
         <SvgText
           key="y-label"
-          x={10}
-          y={10}
+          x={15}
+          y={15}
           fill="#495057"
-          fontSize={12}
+          fontSize={16}
+          fontWeight="bold"
           textAnchor="middle"
         >
           y
@@ -175,7 +180,7 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
       return gridLines;
     };
 
-    // İşaretli noktaları oluştur
+    // İşaretli noktaları oluştur - mobilde daha büyük
     const renderMarkedPoints = () => {
       const { amplitude, waveNumber } = waveParameters;
       const centerY = height / 2;
@@ -195,14 +200,16 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
             key={`point-${index}`}
             cx={point.x}
             cy={canvasY}
-            r={6}
+            r={8} // Mobilde daha büyük nokta
             fill={colors[index % colors.length]}
+            stroke="#fff"
+            strokeWidth={2}
           />
         );
       });
     };
 
-    // Hız vektörlerini oluştur
+    // Hız vektörlerini oluştur - mobilde daha büyük
     const renderVelocityVectors = () => {
       if (!state.showVelocity) return null;
 
@@ -225,10 +232,10 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
           -omega *
           amplitude *
           Math.cos(waveNumber * point.x + directionFactor * state.phase);
-        const scaledVelocity = velocityY / 5; // Ölçeklendirme faktörü
+        const scaledVelocity = velocityY / 4; // Mobilde biraz daha büyük
 
         // Ok başı için açı
-        const arrowLength = 10;
+        const arrowLength = 12; // Mobilde daha büyük ok
         const angle = Math.atan2(-scaledVelocity, 0);
 
         // Nokta rengiyle aynı renkte vektör
@@ -242,7 +249,7 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
               x2={point.x}
               y2={canvasY - scaledVelocity}
               stroke={color}
-              strokeWidth={2}
+              strokeWidth={3} // Mobilde daha kalın
             />
             <Path
               d={`
@@ -266,11 +273,11 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
       });
     };
 
-    // Periyot grafiğini SVG ile çiz
+    // Periyot grafiğini SVG ile çiz - mobilde optimize edilmiş
     const renderPeriodGraph = () => {
       if (!state.showPeriodGraph || !periodGraphData) return null;
 
-      const periodGraphHeight = height / 2;
+      const periodGraphHeight = Math.min(height * 0.8, 200); // Mobilde daha kompakt
       const centerY = periodGraphHeight / 2;
       const elements = [];
 
@@ -279,7 +286,9 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
         <Path
           key="background"
           d={`M 0 0 H ${width} V ${periodGraphHeight} H 0 Z`}
-          fill="#f8f9fa"
+          fill="rgba(248, 249, 250, 0.95)"
+          stroke="#e9ecef"
+          strokeWidth={1}
         />
       );
 
@@ -292,34 +301,35 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
           x2={width}
           y2={centerY}
           stroke="#adb5bd"
-          strokeWidth={2}
+          strokeWidth={3}
         />
       );
 
-      // Zaman işaretleri
+      // Zaman işaretleri - mobilde daha büyük
       const period = waveParameters.period;
       const timeScale = width / (period * 2);
 
-      for (let t = 0; t <= period * 2; t += period / 4) {
+      for (let t = 0; t <= period * 2; t += period / 2) { // Mobilde daha seyrek işaret
         const x = t * timeScale;
         elements.push(
           <Line
             key={`time-mark-${t}`}
             x1={x}
-            y1={centerY - 5}
+            y1={centerY - 8}
             x2={x}
-            y2={centerY + 5}
+            y2={centerY + 8}
             stroke="#adb5bd"
-            strokeWidth={1}
+            strokeWidth={2}
           />
         );
         elements.push(
           <SvgText
             key={`time-label-${t}`}
             x={x}
-            y={centerY + 20}
+            y={centerY + 25}
             fill="#495057"
-            fontSize={10}
+            fontSize={12}
+            fontWeight="500"
             textAnchor="middle"
           >
             {t.toFixed(1)}s
@@ -327,7 +337,7 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
         );
       }
 
-      // Her nokta için zaman grafiği çiz
+      // Her nokta için zaman grafiği çiz - mobilde daha kalın
       const colors = ['#4263eb', '#fa5252', '#40c057', '#fab005', '#7950f2'];
 
       Object.keys(periodGraphData).forEach((pointIndex, idx) => {
@@ -349,7 +359,7 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
             points={points}
             fill="none"
             stroke={color}
-            strokeWidth={2}
+            strokeWidth={3} // Mobilde daha kalın çizgi
           />
         );
       });
@@ -369,7 +379,7 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
             <Path
               d={createWavePath()}
               stroke="#4263eb"
-              strokeWidth={3}
+              strokeWidth={4} // Mobilde ana dalga daha kalın
               fill="none"
             />
             {renderMarkedPoints()}
@@ -378,10 +388,10 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
         </View>
 
         {state.showPeriodGraph && (
-          <View style={[styles.canvasContainer, { width, height: height / 2 }]}>
+          <View style={[styles.periodGraphContainer, { width, height: Math.min(height * 0.8, 200) }]}>
             <Svg
               width={width}
-              height={height / 2}
+              height={Math.min(height * 0.8, 200)}
               style={{ backgroundColor: '#f8f9fa' }}
             >
               {renderPeriodGraph()}
@@ -389,17 +399,19 @@ export const MobileTransverseWave = forwardRef<any, TransverseWaveProps>(
           </View>
         )}
 
-        <TransverseWaveControls
-          state={state}
-          onAmplitudeChange={setAmplitude}
-          onWavelengthChange={setWavelength}
-          onSpeedChange={setWaveSpeed}
-          onDirectionChange={setDirection}
-          onVelocityToggle={toggleVelocity}
-          onMarkedPointsChange={setMarkedPoints}
-          onStepSizeChange={setStepSize}
-          onPeriodGraphToggle={togglePeriodGraph}
-        />
+        <View style={styles.controlsWrapper}>
+          <TransverseWaveControls
+            state={state}
+            onAmplitudeChange={setAmplitude}
+            onWavelengthChange={setWavelength}
+            onSpeedChange={setWaveSpeed}
+            onDirectionChange={setDirection}
+            onVelocityToggle={toggleVelocity}
+            onMarkedPointsChange={setMarkedPoints}
+            onStepSizeChange={setStepSize}
+            onPeriodGraphToggle={togglePeriodGraph}
+          />
+        </View>
       </View>
     );
   }
@@ -409,14 +421,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    padding: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   canvasContainer: {
     backgroundColor: '#f8f9fa',
-    borderRadius: 8,
+    borderRadius: 12,
     overflow: 'hidden',
-    marginBottom: 15,
-    borderWidth: 1,
+    marginBottom: 20,
+    borderWidth: 2,
     borderColor: '#e9ecef',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  periodGraphContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#e9ecef',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  controlsWrapper: {
+    width: '100%',
+    paddingTop: 10,
   },
 });

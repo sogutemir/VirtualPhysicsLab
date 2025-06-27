@@ -5,9 +5,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  Dimensions,
 } from 'react-native';
 import { useLanguage } from '../../../../../components/LanguageContext';
 import { TransverseWaveControlsProps } from './types';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isMobile = SCREEN_WIDTH < 600;
 
 export const TransverseWaveControls: React.FC<TransverseWaveControlsProps> = ({
   state,
@@ -68,187 +72,209 @@ export const TransverseWaveControls: React.FC<TransverseWaveControlsProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.controlGroup}>
-        <Text style={styles.label}>
-          {t('Genlik', 'Amplitude')}: {state.amplitude.toFixed(0)}
+      {/* Parametre Kontrolleri */}
+      <View style={styles.parametersSection}>
+        <Text style={styles.sectionTitle}>
+          {t('Dalga Parametreleri', 'Wave Parameters')}
         </Text>
-        <View style={styles.inputContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              const newValue = Math.max(10, state.amplitude - 5);
-              onAmplitudeChange(newValue);
-              setLocalAmplitude(newValue.toString());
-            }}
-          >
-            <Text style={styles.buttonText}>-</Text>
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            value={localAmplitude}
-            onChangeText={handleAmplitudeChange}
-            keyboardType="numeric"
-          />
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              const newValue = Math.min(100, state.amplitude + 5);
-              onAmplitudeChange(newValue);
-              setLocalAmplitude(newValue.toString());
-            }}
-          >
-            <Text style={styles.buttonText}>+</Text>
-          </TouchableOpacity>
+        
+        <View style={styles.controlGroup}>
+          <Text style={styles.label}>
+            {t('Genlik', 'Amplitude')}: {state.amplitude.toFixed(0)}
+          </Text>
+          <View style={styles.inputContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                const newValue = Math.max(10, state.amplitude - 5);
+                onAmplitudeChange(newValue);
+                setLocalAmplitude(newValue.toString());
+              }}
+            >
+              <Text style={styles.buttonText}>-</Text>
+            </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              value={localAmplitude}
+              onChangeText={handleAmplitudeChange}
+              keyboardType="numeric"
+              textAlign="center"
+            />
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                const newValue = Math.min(100, state.amplitude + 5);
+                onAmplitudeChange(newValue);
+                setLocalAmplitude(newValue.toString());
+              }}
+            >
+              <Text style={styles.buttonText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text style={styles.label}>
+            {t('Dalga Boyu', 'Wavelength')}: {state.wavelength.toFixed(0)}
+          </Text>
+          <View style={styles.inputContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                const newValue = Math.max(50, state.wavelength - 10);
+                onWavelengthChange(newValue);
+                setLocalWavelength(newValue.toString());
+              }}
+            >
+              <Text style={styles.buttonText}>-</Text>
+            </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              value={localWavelength}
+              onChangeText={handleWavelengthChange}
+              keyboardType="numeric"
+              textAlign="center"
+            />
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                const newValue = Math.min(400, state.wavelength + 10);
+                onWavelengthChange(newValue);
+                setLocalWavelength(newValue.toString());
+              }}
+            >
+              <Text style={styles.buttonText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text style={styles.label}>
+            {t('Dalga Hızı', 'Wave Speed')}: {state.waveSpeed.toFixed(0)}
+          </Text>
+          <View style={styles.inputContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                const newValue = Math.max(10, state.waveSpeed - 5);
+                onSpeedChange(newValue);
+                setLocalWaveSpeed(newValue.toString());
+              }}
+            >
+              <Text style={styles.buttonText}>-</Text>
+            </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              value={localWaveSpeed}
+              onChangeText={handleWaveSpeedChange}
+              keyboardType="numeric"
+              textAlign="center"
+            />
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                const newValue = Math.min(100, state.waveSpeed + 5);
+                onSpeedChange(newValue);
+                setLocalWaveSpeed(newValue.toString());
+              }}
+            >
+              <Text style={styles.buttonText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text style={styles.label}>
+            {t('İşaretli Noktalar', 'Marked Points')}: {state.markedPoints.length}
+          </Text>
+          <View style={styles.inputContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                const newValue = Math.max(1, state.markedPoints.length - 1);
+                onMarkedPointsChange(newValue);
+                setLocalMarkedPoints(newValue.toString());
+              }}
+            >
+              <Text style={styles.buttonText}>-</Text>
+            </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              value={localMarkedPoints}
+              onChangeText={handleMarkedPointsChange}
+              keyboardType="numeric"
+              textAlign="center"
+            />
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                const newValue = Math.min(5, state.markedPoints.length + 1);
+                onMarkedPointsChange(newValue);
+                setLocalMarkedPoints(newValue.toString());
+              }}
+            >
+              <Text style={styles.buttonText}>+</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
-      <View style={styles.controlGroup}>
-        <Text style={styles.label}>
-          {t('Dalga Boyu', 'Wavelength')}: {state.wavelength.toFixed(0)}
+      {/* Yön Kontrolleri */}
+      <View style={styles.directionSection}>
+        <Text style={styles.sectionTitle}>
+          {t('Dalga Yönü', 'Wave Direction')}
         </Text>
-        <View style={styles.inputContainer}>
+        <View style={styles.buttonGroup}>
           <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              const newValue = Math.max(50, state.wavelength - 10);
-              onWavelengthChange(newValue);
-              setLocalWavelength(newValue.toString());
-            }}
-          >
-            <Text style={styles.buttonText}>-</Text>
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            value={localWavelength}
-            onChangeText={handleWavelengthChange}
-            keyboardType="numeric"
-          />
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              const newValue = Math.min(400, state.wavelength + 10);
-              onWavelengthChange(newValue);
-              setLocalWavelength(newValue.toString());
-            }}
-          >
-            <Text style={styles.buttonText}>+</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.controlGroup}>
-        <Text style={styles.label}>
-          {t('Dalga Hızı', 'Wave Speed')}: {state.waveSpeed.toFixed(0)}
-        </Text>
-        <View style={styles.inputContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              const newValue = Math.max(10, state.waveSpeed - 5);
-              onSpeedChange(newValue);
-              setLocalWaveSpeed(newValue.toString());
-            }}
-          >
-            <Text style={styles.buttonText}>-</Text>
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            value={localWaveSpeed}
-            onChangeText={handleWaveSpeedChange}
-            keyboardType="numeric"
-          />
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              const newValue = Math.min(100, state.waveSpeed + 5);
-              onSpeedChange(newValue);
-              setLocalWaveSpeed(newValue.toString());
-            }}
-          >
-            <Text style={styles.buttonText}>+</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.controlGroup}>
-        <Text style={styles.label}>
-          {t('İşaretli Noktalar', 'Marked Points')}: {state.markedPoints.length}
-        </Text>
-        <View style={styles.inputContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              const newValue = Math.max(1, state.markedPoints.length - 1);
-              onMarkedPointsChange(newValue);
-              setLocalMarkedPoints(newValue.toString());
-            }}
-          >
-            <Text style={styles.buttonText}>-</Text>
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            value={localMarkedPoints}
-            onChangeText={handleMarkedPointsChange}
-            keyboardType="numeric"
-          />
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              const newValue = Math.min(5, state.markedPoints.length + 1);
-              onMarkedPointsChange(newValue);
-              setLocalMarkedPoints(newValue.toString());
-            }}
-          >
-            <Text style={styles.buttonText}>+</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.buttonGroup}>
-        <TouchableOpacity
-          style={[
-            styles.directionButton,
-            state.direction === 'right'
-              ? styles.activeButton
-              : styles.inactiveButton,
-          ]}
-          onPress={() => onDirectionChange('right')}
-        >
-          <Text
             style={[
-              styles.buttonText,
+              styles.directionButton,
               state.direction === 'right'
-                ? styles.activeButtonText
-                : styles.inactiveButtonText,
+                ? styles.activeButton
+                : styles.inactiveButton,
             ]}
+            onPress={() => onDirectionChange('right')}
           >
-            {t('Sağa', 'Right')}
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.buttonText,
+                state.direction === 'right'
+                  ? styles.activeButtonText
+                  : styles.inactiveButtonText,
+              ]}
+            >
+              {t('Sağa →', 'Right →')}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.directionButton,
-            state.direction === 'left'
-              ? styles.activeButton
-              : styles.inactiveButton,
-          ]}
-          onPress={() => onDirectionChange('left')}
-        >
-          <Text
+          <TouchableOpacity
             style={[
-              styles.buttonText,
+              styles.directionButton,
               state.direction === 'left'
-                ? styles.activeButtonText
-                : styles.inactiveButtonText,
+                ? styles.activeButton
+                : styles.inactiveButton,
             ]}
+            onPress={() => onDirectionChange('left')}
           >
-            {t('Sola', 'Left')}
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.buttonText,
+                state.direction === 'left'
+                  ? styles.activeButtonText
+                  : styles.inactiveButtonText,
+              ]}
+            >
+              {t('← Sola', '← Left')}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.buttonGroup}>
+      {/* Görünüm Kontrolleri */}
+      <View style={styles.viewSection}>
+        <Text style={styles.sectionTitle}>
+          {t('Görünüm Seçenekleri', 'View Options')}
+        </Text>
+        
         <TouchableOpacity
           style={[
             styles.toggleButton,
@@ -258,21 +284,19 @@ export const TransverseWaveControls: React.FC<TransverseWaveControlsProps> = ({
         >
           <Text
             style={[
-              styles.buttonText,
+              styles.toggleButtonText,
               state.showVelocity
                 ? styles.activeButtonText
                 : styles.inactiveButtonText,
             ]}
           >
             {state.showVelocity
-              ? t('Hız Vektörleri: Açık', 'Velocity Vectors: On')
-              : t('Hız Vektörleri: Kapalı', 'Velocity Vectors: Off')}
+              ? t('✓ Hız Vektörleri', '✓ Velocity Vectors')
+              : t('Hız Vektörleri', 'Velocity Vectors')}
           </Text>
         </TouchableOpacity>
-      </View>
 
-      {onPeriodGraphToggle && (
-        <View style={styles.buttonGroup}>
+        {onPeriodGraphToggle && (
           <TouchableOpacity
             style={[
               styles.toggleButton,
@@ -284,22 +308,25 @@ export const TransverseWaveControls: React.FC<TransverseWaveControlsProps> = ({
           >
             <Text
               style={[
-                styles.buttonText,
+                styles.toggleButtonText,
                 state.showPeriodGraph
                   ? styles.activeButtonText
                   : styles.inactiveButtonText,
               ]}
             >
               {state.showPeriodGraph
-                ? t('Periyot Grafiği: Açık', 'Period Graph: On')
-                : t('Periyot Grafiği: Kapalı', 'Period Graph: Off')}
+                ? t('✓ Periyot Grafiği', '✓ Period Graph')
+                : t('Periyot Grafiği', 'Period Graph')}
             </Text>
           </TouchableOpacity>
-        </View>
-      )}
+        )}
+      </View>
 
-      <View style={styles.stepSizeContainer}>
-        <Text style={styles.label}>{t('Adım Boyutu', 'Step Size')}:</Text>
+      {/* Adım Boyutu */}
+      <View style={styles.stepSection}>
+        <Text style={styles.sectionTitle}>
+          {t('Adım Boyutu', 'Step Size')}
+        </Text>
         <View style={styles.stepSizeButtons}>
           <TouchableOpacity
             style={[
@@ -392,19 +419,45 @@ export const TransverseWaveControls: React.FC<TransverseWaveControlsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
     backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 10,
+    borderRadius: 12,
+    padding: isMobile ? 16 : 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  sectionTitle: {
+    fontSize: isMobile ? 18 : 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: isMobile ? 12 : 8,
+    textAlign: 'center',
+  },
+  parametersSection: {
+    marginBottom: isMobile ? 20 : 15,
+  },
+  directionSection: {
+    marginBottom: isMobile ? 20 : 15,
+  },
+  viewSection: {
+    marginBottom: isMobile ? 20 : 15,
+  },
+  stepSection: {
+    marginBottom: 0,
   },
   controlGroup: {
-    marginBottom: 15,
+    marginBottom: isMobile ? 20 : 15,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 5,
+    fontSize: isMobile ? 16 : 14,
+    fontWeight: '600',
+    marginBottom: isMobile ? 10 : 8,
     color: '#495057',
+    textAlign: 'center',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -413,52 +466,74 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: 40,
-    borderWidth: 1,
+    height: isMobile ? 50 : 40,
+    borderWidth: 2,
     borderColor: '#e9ecef',
-    borderRadius: 4,
-    paddingHorizontal: 10,
+    borderRadius: 8,
+    paddingHorizontal: 12,
     textAlign: 'center',
-    marginHorizontal: 5,
+    marginHorizontal: 8,
+    fontSize: isMobile ? 16 : 14,
+    backgroundColor: '#f8f9fa',
   },
   button: {
-    width: 40,
-    height: 40,
+    width: isMobile ? 50 : 40,
+    height: isMobile ? 50 : 40,
     backgroundColor: '#4263eb',
-    borderRadius: 4,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   buttonText: {
     color: '#fff',
-    fontWeight: '500',
-    fontSize: 14,
+    fontWeight: 'bold',
+    fontSize: isMobile ? 18 : 14,
   },
   buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
+    gap: 10,
   },
   directionButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    paddingVertical: isMobile ? 15 : 10,
+    paddingHorizontal: isMobile ? 20 : 15,
+    borderRadius: 8,
     flex: 1,
-    marginHorizontal: 5,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   toggleButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    flex: 1,
+    paddingVertical: isMobile ? 15 : 12,
+    paddingHorizontal: isMobile ? 20 : 15,
+    borderRadius: 8,
     alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  toggleButtonText: {
+    fontWeight: '600',
+    fontSize: isMobile ? 16 : 14,
   },
   activeButton: {
     backgroundColor: '#4263eb',
   },
   inactiveButton: {
-    backgroundColor: '#e9ecef',
+    backgroundColor: '#f1f3f4',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
   },
   activeButtonText: {
     color: '#fff',
@@ -466,30 +541,33 @@ const styles = StyleSheet.create({
   inactiveButtonText: {
     color: '#495057',
   },
-  stepSizeContainer: {
-    marginBottom: 15,
-  },
   stepSizeButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 5,
+    gap: isMobile ? 8 : 5,
   },
   stepButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
+    paddingVertical: isMobile ? 12 : 8,
+    paddingHorizontal: isMobile ? 15 : 10,
+    borderRadius: 8,
     alignItems: 'center',
     flex: 1,
-    marginHorizontal: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
   },
   activeStepButton: {
     backgroundColor: '#4263eb',
   },
   inactiveStepButton: {
-    backgroundColor: '#e9ecef',
+    backgroundColor: '#f1f3f4',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
   },
   stepButtonText: {
-    fontWeight: '500',
-    fontSize: 12,
+    fontWeight: 'bold',
+    fontSize: isMobile ? 14 : 12,
   },
 });
