@@ -129,6 +129,11 @@ const constrainPosition = (
 
 export default function InclinedPlaneExperiment() {
   const { t } = useLanguage();
+  
+  // Mobil optimizasyonu
+  const screenWidth = Dimensions.get('window').width;
+  const isMobile = screenWidth < 600;
+  
   const [state, setState] = useState<InclinedPlaneState>({
     angle: 30,
     mass: 1,
@@ -220,8 +225,14 @@ export default function InclinedPlaneExperiment() {
 
   const forces = calculateForces(state);
   const angleRad = (state.angle * Math.PI) / 180;
-  const planeEndX = CONSTANTS.PLANE_LENGTH * Math.cos(angleRad);
-  const planeEndY = CONSTANTS.PLANE_LENGTH * Math.sin(angleRad);
+  
+  // Mobil için daha büyük boyutlar - uzunlamasına
+  const svgWidth = isMobile ? screenWidth - 32 : 600;
+  const svgHeight = isMobile ? Math.min(screenWidth * 0.8, 500) : 500;
+  const scale = isMobile ? 0.8 : 1.0;
+  
+  const planeEndX = CONSTANTS.PLANE_LENGTH * Math.cos(angleRad) * scale;
+  const planeEndY = CONSTANTS.PLANE_LENGTH * Math.sin(angleRad) * scale;
 
   // Deney açıklamaları
   const description = `
@@ -270,51 +281,109 @@ export default function InclinedPlaneExperiment() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.container}>
-          <View style={styles.simulation}>
+          <View style={[styles.simulation, isMobile && styles.mobileSimulation]}>
             <Svg
-              width="100%"
-              height="100%"
-              viewBox="0 0 500 300"
+              width={svgWidth}
+              height={svgHeight}
+              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
               preserveAspectRatio="xMidYMid meet"
             >
-              {/* Eğik düzlem */}
+              {/* Zemin çizgisi */}
+              <Line
+                x1={50}
+                y1={svgHeight - 100}
+                x2={svgWidth - 50}
+                y2={svgHeight - 100}
+                stroke="#4a4a4a"
+                strokeWidth={3}
+              />
+              
+              {/* Eğik düzlem - daha büyük */}
               <Path
-                d={`M 40,250
-        L ${40 + planeEndX * 0.6},${250 - planeEndY * 0.6}
-        L ${40 + planeEndX * 0.6},250 Z`}
+                d={`M 60,${svgHeight - 100}
+            L ${60 + planeEndX},${svgHeight - 100 - planeEndY}
+            L ${60 + planeEndX},${svgHeight - 100} Z`}
                 fill="#90a4ae"
-                stroke="black"
+                stroke="#546e7a"
+                strokeWidth={2}
+              />
+
+              {/* Açı göstergesi */}
+              <Path
+                d={`M 60,${svgHeight - 100}
+            A 30,30 0 0,0 ${60 + 30 * Math.cos(angleRad)},${svgHeight - 100 - 30 * Math.sin(angleRad)}
+            L 60,${svgHeight - 100}`}
+                fill="rgba(76, 175, 80, 0.3)"
+                stroke="#4caf50"
                 strokeWidth={1}
               />
+              
+              {/* Açı değeri */}
+              <text
+                x={60 + 40}
+                y={svgHeight - 75}
+                fill="#4caf50"
+                fontSize={isMobile ? "12" : "14"}
+                fontWeight="bold"
+              >
+                {state.angle.toFixed(0)}°
+              </text>
 
               {/* Kare cisim ve kuvvet vektörü */}
               <G
                 transform={`translate(${
-                  40 + state.position.x * Math.cos(angleRad) * 0.6
+                  60 + state.position.x * Math.cos(angleRad) * scale
                 },${
-                  250 - state.position.x * Math.sin(angleRad) * 0.6
+                  svgHeight - 100 - state.position.x * Math.sin(angleRad) * scale
                 }) rotate(${-state.angle})`}
               >
-                {/* Küçültülmüş kare */}
+                {/* Kütle (kare) - boyut kütleye göre değişiyor */}
                 <Rect
-                  x={-15} // x konumu ayarlandı
-                  y={-30} // y konumu ayarlandı (yukarı kaldırıldı)
-                  width={30} // Genişlik azaltıldı
-                  height={30} // Yükseklik azaltıldı
+                  x={-15 - state.mass * 2}
+                  y={-30 - state.mass * 2}
+                  width={30 + state.mass * 4}
+                  height={30 + state.mass * 4}
                   fill="#f44336"
+                  stroke="#d32f2f"
+                  strokeWidth={2}
                 />
+                
+                {/* Kütle değeri */}
+                <text
+                  x={0}
+                  y={-15}
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize={isMobile ? "10" : "12"}
+                  fontWeight="bold"
+                >
+                  {state.mass.toFixed(1)}kg
+                </text>
 
                 {/* Uygulanan kuvvet vektörü */}
                 {state.appliedForce !== 0 && (
-                  <Line
-                    x1={0}
-                    y1={-30} // y1 konumu kare boyutuna göre ayarlandı
-                    x2={state.appliedForce > 0 ? 50 : -50} // Ok uzunluğu aynı kaldı
-                    y2={-30} // y2 konumu kare boyutuna göre ayarlandı
-                    stroke="#2196f3"
-                    strokeWidth={2}
-                    markerEnd="url(#arrowhead)"
-                  />
+                  <>
+                    <Line
+                      x1={0}
+                      y1={-15}
+                      x2={state.appliedForce > 0 ? Math.min(state.appliedForce * 2, 80) : Math.max(state.appliedForce * 2, -80)}
+                      y2={-15}
+                      stroke="#2196f3"
+                      strokeWidth={3}
+                      markerEnd="url(#arrowhead)"
+                    />
+                    {/* Kuvvet değeri */}
+                    <text
+                      x={state.appliedForce > 0 ? 40 : -40}
+                      y={-35}
+                      textAnchor="middle"
+                      fill="#2196f3"
+                      fontSize={isMobile ? "10" : "12"}
+                      fontWeight="bold"
+                    >
+                      {Math.abs(state.appliedForce).toFixed(0)}N
+                    </text>
+                  </>
                 )}
               </G>
 
@@ -322,13 +391,13 @@ export default function InclinedPlaneExperiment() {
               <Defs>
                 <Marker
                   id="arrowhead"
-                  markerWidth="6"
-                  markerHeight="4"
-                  refX="6"
-                  refY="2"
+                  markerWidth="10"
+                  markerHeight="8"
+                  refX="10"
+                  refY="4"
                   orient="auto"
                 >
-                  <Polygon points="0,0 6,2 0,4" fill="#2196f3" />
+                  <Polygon points="0,0 10,4 0,8" fill="#2196f3" />
                 </Marker>
               </Defs>
             </Svg>
@@ -496,18 +565,28 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 12,
+    padding: 16,
   },
   simulation: {
-    aspectRatio: 2,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 8,
-    backgroundColor: '#f5f5f5',
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: '#f8f9fa',
     width: '100%',
-    marginBottom: 12,
-    maxHeight: 400,
+    marginBottom: 20,
+    minHeight: 500,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  mobileSimulation: {
+    minHeight: 400,
+    padding: 12,
   },
   controls: {
     flex: 1,
@@ -516,7 +595,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sliderContainer: {
-    marginBottom: 12,
+    marginBottom: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   sliderHeader: {
     flexDirection: 'row',
@@ -525,13 +609,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sliderLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2c3e50',
   },
   sliderValue: {
-    fontSize: 14,
-    color: '#7f8c8d',
+    fontSize: 16,
+    color: '#3498db',
+    fontWeight: '600',
   },
   slider: {
     width: '100%',

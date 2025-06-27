@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Platform, Text } from 'react-native';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { View, ScrollView, StyleSheet, Platform, Text, Dimensions } from 'react-native';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { SpringMassSystem } from './components/spring-mass/SpringMassSystem';
 import { ControlPanel } from './components/spring-mass/ControlPanel';
@@ -10,11 +10,15 @@ import { useLanguage } from '../../../components/LanguageContext';
 export default function SpringMassExperiment() {
   const { t } = useLanguage();
 
+  // Mobil optimizasyonu
+  const screenWidth = Dimensions.get('window').width;
+  const isMobile = screenWidth < 600;
+
   // Simülasyon durumu
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTrail, setShowTrail] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
-  const [speed, setSpeed] = useState(1);
+  const [speed, setSpeed] = useState(isMobile ? 8 : 1); // Mobil için 8x (1x görünüyor), Web için 1x
 
   // Fizik parametreleri
   const [mass, setMass] = useState(1.0);
@@ -41,7 +45,7 @@ export default function SpringMassExperiment() {
     },
   });
 
-  // Event handlers
+  // Memoized event handlers - performans için
   const handlePlayPause = useCallback(() => {
     setIsPlaying((prev) => !prev);
   }, []);
@@ -82,7 +86,7 @@ export default function SpringMassExperiment() {
     setCurrentState(state);
   }, []);
 
-  // Parameter change handlers
+  // Parameter change handlers - memoized
   const handleMassChange = useCallback((value: number) => {
     setMass(value);
   }, []);
@@ -103,7 +107,8 @@ export default function SpringMassExperiment() {
     setInitialVelocity(value);
   }, []);
 
-  const description = t(
+  // Memoized description
+  const description = useMemo(() => t(
     `Gelişmiş Yay-Kütle Sistemi: Bu deneyde basit harmonik hareketin detaylı analizini yapabilirsiniz.
     
     🔧 Özellikler:
@@ -145,7 +150,18 @@ export default function SpringMassExperiment() {
     • Observe frequency changes with different masses
     • Analyze damping effects
     • Study energy conservation`
-  );
+  ), [t]);
+
+  // Memoized styles for mobile optimization
+  const containerStyle = useMemo(() => ({
+    ...styles.container,
+    gap: isMobile ? 12 : 16,
+  }), [isMobile]);
+
+  const scrollViewContentStyle = useMemo(() => ({
+    ...styles.scrollViewContent,
+    paddingBottom: Platform.OS === 'web' ? 50 : (isMobile ? 150 : 200),
+  }), [isMobile]);
 
   return (
     <ExperimentLayout
@@ -161,10 +177,10 @@ export default function SpringMassExperiment() {
     >
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        contentContainerStyle={scrollViewContentStyle}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.container}>
+        <View style={containerStyle}>
           {/* Kontrol Paneli */}
           <ControlPanel
             isPlaying={isPlaying}
@@ -195,9 +211,9 @@ export default function SpringMassExperiment() {
           </View>
 
           {/* Parametreler */}
-          <View style={styles.parametersContainer}>
+          <View style={[styles.parametersContainer, isMobile && styles.mobileParametersContainer]}>
             <View style={styles.parametersHeader}>
-              <Text style={styles.parametersTitle}>
+              <Text style={[styles.parametersTitle, isMobile && styles.mobileParametersTitle]}>
                 {t('Deney Parametreleri', 'Experiment Parameters')}
               </Text>
             </View>
@@ -280,17 +296,17 @@ export default function SpringMassExperiment() {
             </View>
           </View>
 
-          {/* Sistem Bilgileri */}
-          <View style={styles.infoContainer}>
+          {/* Sistem Bilgileri - mobil için kompakt */}
+          <View style={[styles.infoContainer, isMobile && styles.mobileInfoContainer]}>
             <View style={styles.infoCard}>
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, isMobile && styles.mobileInfoRow]}>
                 <View style={styles.infoItem}>
                   <View style={styles.infoLabel}>
                     <View
                       style={[styles.colorDot, { backgroundColor: '#3b82f6' }]}
                     />
                     <View style={styles.infoTextContainer}>
-                      <Text style={styles.infoValueText}>
+                      <Text style={[styles.infoValueText, isMobile && styles.mobileInfoText]}>
                         {t('Zaman:', 'Time:')} {currentState.time.toFixed(2)} s
                       </Text>
                     </View>
@@ -302,7 +318,7 @@ export default function SpringMassExperiment() {
                       style={[styles.colorDot, { backgroundColor: '#ef4444' }]}
                     />
                     <View style={styles.infoTextContainer}>
-                      <Text style={styles.infoValueText}>
+                      <Text style={[styles.infoValueText, isMobile && styles.mobileInfoText]}>
                         {t('Pozisyon:', 'Position:')}{' '}
                         {currentState.position.toFixed(3)} m
                       </Text>
@@ -311,14 +327,14 @@ export default function SpringMassExperiment() {
                 </View>
               </View>
 
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, isMobile && styles.mobileInfoRow]}>
                 <View style={styles.infoItem}>
                   <View style={styles.infoLabel}>
                     <View
                       style={[styles.colorDot, { backgroundColor: '#10b981' }]}
                     />
                     <View style={styles.infoTextContainer}>
-                      <Text style={styles.infoValueText}>
+                      <Text style={[styles.infoValueText, isMobile && styles.mobileInfoText]}>
                         {t('Hız:', 'Velocity:')}{' '}
                         {currentState.velocity.toFixed(3)} m/s
                       </Text>
@@ -331,7 +347,7 @@ export default function SpringMassExperiment() {
                       style={[styles.colorDot, { backgroundColor: '#f59e0b' }]}
                     />
                     <View style={styles.infoTextContainer}>
-                      <Text style={styles.infoValueText}>
+                      <Text style={[styles.infoValueText, isMobile && styles.mobileInfoText]}>
                         {t('İvme:', 'Acceleration:')}{' '}
                         {currentState.acceleration.toFixed(3)} m/s²
                       </Text>
@@ -340,28 +356,28 @@ export default function SpringMassExperiment() {
                 </View>
               </View>
 
-              <View style={styles.energyRow}>
+              <View style={[styles.energyRow, isMobile && styles.mobileEnergyRow]}>
                 <View style={styles.energyItem}>
-                  <Text style={styles.energyLabel}>
+                  <Text style={[styles.energyLabel, isMobile && styles.mobileEnergyLabel]}>
                     {t('Kinetik Enerji', 'Kinetic Energy')}
                   </Text>
-                  <Text style={styles.energyValue}>
+                  <Text style={[styles.energyValue, isMobile && styles.mobileEnergyValue]}>
                     {currentState.energy.kinetic.toFixed(3)} J
                   </Text>
                 </View>
                 <View style={styles.energyItem}>
-                  <Text style={styles.energyLabel}>
+                  <Text style={[styles.energyLabel, isMobile && styles.mobileEnergyLabel]}>
                     {t('Potansiyel Enerji', 'Potential Energy')}
                   </Text>
-                  <Text style={styles.energyValue}>
+                  <Text style={[styles.energyValue, isMobile && styles.mobileEnergyValue]}>
                     {currentState.energy.potential.toFixed(3)} J
                   </Text>
                 </View>
                 <View style={styles.energyItem}>
-                  <Text style={styles.energyLabel}>
+                  <Text style={[styles.energyLabel, isMobile && styles.mobileEnergyLabel]}>
                     {t('Toplam Enerji', 'Total Energy')}
                   </Text>
-                  <Text style={styles.energyValue}>
+                  <Text style={[styles.energyValue, isMobile && styles.mobileEnergyValue]}>
                     {currentState.energy.total.toFixed(3)} J
                   </Text>
                 </View>
@@ -381,12 +397,10 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingBottom: Platform.OS === 'web' ? 50 : 200,
   },
   container: {
     flex: 1,
     padding: 16,
-    gap: 16,
   },
   simulationContainer: {
     backgroundColor: 'white',
@@ -408,6 +422,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  mobileParametersContainer: {
+    padding: 16,
+  },
   infoContainer: {
     backgroundColor: 'white',
     borderRadius: 12,
@@ -418,6 +435,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  mobileInfoContainer: {
+    padding: 12,
+  },
   infoCard: {
     backgroundColor: '#f1f5f9',
     borderRadius: 8,
@@ -427,6 +447,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  mobileInfoRow: {
+    marginBottom: 6,
   },
   infoItem: {
     flex: 1,
@@ -450,6 +473,9 @@ const styles = StyleSheet.create({
     color: '#334155',
     fontWeight: '500',
   },
+  mobileInfoText: {
+    fontSize: 12,
+  },
   energyRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -457,6 +483,10 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#e2e8f0',
+  },
+  mobileEnergyRow: {
+    marginTop: 6,
+    paddingTop: 6,
   },
   energyItem: {
     flex: 1,
@@ -466,11 +496,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748b',
     marginBottom: 4,
+    textAlign: 'center',
+  },
+  mobileEnergyLabel: {
+    fontSize: 10,
+    marginBottom: 2,
   },
   energyValue: {
     fontSize: 14,
     color: '#1e40af',
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  mobileEnergyValue: {
+    fontSize: 12,
   },
   parametersHeader: {
     marginBottom: 15,
@@ -482,6 +521,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#2c3e50',
+  },
+  mobileParametersTitle: {
+    fontSize: 16,
   },
   parametersContent: {
     marginBottom: 10,
