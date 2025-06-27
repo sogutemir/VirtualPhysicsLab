@@ -283,20 +283,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: isMobile ? 12 : 16,
+    padding: isMobile ? 8 : 16,
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 2,
-    marginBottom: isMobile ? 0 : 16,
+    marginBottom: isMobile ? 8 : 16,
   },
   title: {
-    fontSize: isMobile ? 16 : 18,
+    fontSize: isMobile ? 14 : 18,
     fontWeight: 'bold',
-    marginBottom: isMobile ? 12 : 16,
+    marginBottom: isMobile ? 8 : 16,
     color: '#2c3e50',
   },
   controlRow: {
@@ -306,13 +306,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   control: {
-    marginBottom: isMobile ? 12 : 16,
+    marginBottom: isMobile ? 8 : 16,
   },
   controlHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: isMobile ? 6 : 8,
+    marginBottom: isMobile ? 4 : 8,
   },
   label: {
     fontSize: isMobile ? 13 : 14,
@@ -358,17 +358,17 @@ const styles = StyleSheet.create({
   metalTypeSelector: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 8,
-    gap: isMobile ? 6 : 8,
+    marginTop: isMobile ? 4 : 8,
+    gap: isMobile ? 4 : 8,
   },
   metalTypeButton: {
-    paddingHorizontal: isMobile ? 10 : 12,
-    paddingVertical: isMobile ? 6 : 8,
+    paddingHorizontal: isMobile ? 8 : 12,
+    paddingVertical: isMobile ? 4 : 8,
     borderRadius: 4,
     borderWidth: 1,
     borderColor: '#ddd',
     backgroundColor: 'white',
-    minWidth: isMobile ? 70 : 'auto',
+    minWidth: isMobile ? 60 : 'auto',
     alignItems: 'center',
   },
   metalTypeButtonActive: {
@@ -385,17 +385,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   stoppingPotentialInfo: {
-    marginTop: 8,
-    padding: isMobile ? 6 : 8,
+    marginTop: isMobile ? 4 : 8,
+    padding: isMobile ? 4 : 8,
     backgroundColor: 'rgba(52, 152, 219, 0.1)',
     borderRadius: 4,
-    borderLeftWidth: 3,
+    borderLeftWidth: isMobile ? 2 : 3,
     borderLeftColor: '#3498db',
   },
   infoText: {
-    fontSize: isMobile ? 11 : 12,
+    fontSize: isMobile ? 10 : 12,
     color: '#34495e',
-    marginBottom: 2,
+    marginBottom: isMobile ? 1 : 2,
   },
   stoppedText: {
     color: '#e74c3c',

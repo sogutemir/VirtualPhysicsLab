@@ -19,7 +19,7 @@ const MetalSurface: React.FC<MetalSurfaceProps> = ({
 }) => {
   const { t } = useLanguage();
   // Metal genişliği (referans olarak kullanılacak)
-  const metalWidth = isMobile ? 35 : 80;
+  const metalWidth = isMobile ? 25 : 80;
 
   // Elektron animasyonları için değişkenler
   const electronAnimValues = useRef<Animated.Value[]>([]);
@@ -117,13 +117,13 @@ const MetalSurface: React.FC<MetalSurfaceProps> = ({
             style={[
               styles.electron,
               {
-                top: 100 + Math.random() * 40 - 20,
+                top: (isMobile ? 60 : 100) + Math.random() * (isMobile ? 20 : 40) - (isMobile ? 10 : 20),
                 left: metalWidth, // Metal yüzeyin kenarından elektronlar çıkacak
                 transform: [
                   {
                     translateX: anim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [0, 80],
+                      outputRange: [0, isMobile ? 50 : 80],
                     }),
                   },
                   {
@@ -156,9 +156,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   metalSurface: {
-    height: isMobile ? 200 : 256,
+    height: isMobile ? 120 : 256,
     width: 80, // Web için varsayılan, mobilde override edilecek
-    borderRadius: 8,
+    borderRadius: isMobile ? 6 : 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 8,
+    borderRadius: isMobile ? 6 : 8,
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -179,14 +179,14 @@ const styles = StyleSheet.create({
   },
   electron: {
     position: 'absolute',
-    width: isMobile ? 10 : 8,
-    height: isMobile ? 10 : 8,
-    borderRadius: isMobile ? 5 : 4,
+    width: isMobile ? 8 : 8,
+    height: isMobile ? 8 : 8,
+    borderRadius: isMobile ? 4 : 4,
     backgroundColor: '#50a8ff',
     shadowColor: '#1e90ff',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
-    shadowRadius: isMobile ? 6 : 4,
+    shadowRadius: isMobile ? 4 : 4,
     elevation: 4,
     // left özelliği inline style olarak belirlenecek
   },
