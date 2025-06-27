@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useLanguage } from '../../../components/LanguageContext';
+import FormulaText from '../../../components/ui/FormulaText';
 
 export default function ElectricFieldsTheory() {
   const { t } = useLanguage();
@@ -35,15 +36,10 @@ export default function ElectricFieldsTheory() {
                 'An electric field is the interaction field created by a charged object in the surrounding space. This field defines the force that other charged objects would experience at any point in this space. Electric field is one of the fundamental concepts of modern electromagnetic theory.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>E = F/q</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'E: Elektrik alan şiddeti (N/C), F: Kuvvet (N), q: Test yükü (C)',
-                  'E: Electric field strength (N/C), F: Force (N), q: Test charge (C)'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="E = F/q"
+              description={t('E: Elektrik alan şiddeti (N/C), F: Kuvvet (N), q: Test yükü (C)', 'E: Electric field strength (N/C), F: Force (N), q: Test charge (C)')}
+            />
           </View>
 
           {/* Coulomb Yasası */}
@@ -60,30 +56,20 @@ export default function ElectricFieldsTheory() {
                 'The law formulated by Charles-Augustin de Coulomb in 1785 defines the electrostatic force between two point charges. The concept of electric field is derived from this law.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>F = k × (q₁ × q₂)/r²</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'k: Coulomb sabiti (8.99×10⁹ N⋅m²/C²), r: Yükler arası mesafe',
-                  'k: Coulomb constant (8.99×10⁹ N⋅m²/C²), r: Distance between charges'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="F = k × (q₁ × q₂)/r²"
+              description={t('k: Coulomb sabiti (8.99×10⁹ N⋅m²/C²), r: Yükler arası mesafe', 'k: Coulomb constant (8.99×10⁹ N⋅m²/C²), r: Distance between charges')}
+            />
             <Text style={styles.paragraph}>
               {t(
                 'Nokta yükün oluşturduğu elektrik alan her yönde eşit şiddette yayılır ve mesafenin karesi ile ters orantılı olarak azalır.',
                 'The electric field created by a point charge spreads equally in all directions and decreases inversely proportional to the square of distance.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>E = k × q/r²</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'Nokta yükün elektrik alanı',
-                  'Electric field of a point charge'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="E = k × q/r²"
+              description={t('Nokta yükün elektrik alanı', 'Electric field of a point charge')}
+            />
           </View>
 
           {/* Elektrik Alan Çizgileri */}
@@ -137,17 +123,10 @@ export default function ElectricFieldsTheory() {
                 'In the presence of multiple charges, the total electric field at any point equals the vector sum of electric fields created by each charge at that point.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>
-                E⃗ₜₒₚₗₐₘ = E⃗₁ + E⃗₂ + E⃗₃ + ...
-              </Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'Elektrik alanların vektörel toplamı',
-                  'Vector sum of electric fields'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="E_toplam = E₁ + E₂ + E₃ + ..."
+              description={t('Elektrik alanların vektörel toplamı', 'Vector sum of electric fields')}
+            />
             <Text style={styles.paragraph}>
               {t(
                 'Bu ilke, karmaşık yük dağılımlarının elektrik alanlarını hesaplamamızı sağlar. Örneğin, elektrik dipol, dört kutup gibi konfigürasyonlar bu şekilde analiz edilir.',
@@ -167,15 +146,10 @@ export default function ElectricFieldsTheory() {
                 'This law formulated by Carl Friedrich Gauss is one of the most fundamental laws of electric field. It states that the electric flux through a closed surface is proportional to the total charge within that surface.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>∮ E⃗ · dA⃗ = Q_içerideki/ε₀</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'ε₀: Elektrik geçirgenlik sabiti (8.85×10⁻¹² F/m)',
-                  'ε₀: Electric permittivity constant (8.85×10⁻¹² F/m)'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="∮ E · dA = Q_içerideki/ε₀"
+              description={t('ε₀: Elektrik geçirgenlik sabiti (8.85×10⁻¹² F/m)', 'ε₀: Electric permittivity constant (8.85×10⁻¹² F/m)')}
+            />
             <Text style={styles.subTitle}>
               {t(
                 'Gauss Yasasının Uygulamaları:',
@@ -243,15 +217,10 @@ export default function ElectricFieldsTheory() {
                 'Dielectric materials become polarized under the influence of an electric field. This polarization weakens the external electric field.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>E = E₀/εᵣ</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'εᵣ: Bağıl dielektrik sabiti (εᵣ > 1)',
-                  'εᵣ: Relative dielectric constant (εᵣ > 1)'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="E = E₀/εᵣ"
+              description={t('εᵣ: Bağıl dielektrik sabiti (εᵣ > 1)', 'εᵣ: Relative dielectric constant (εᵣ > 1)')}
+            />
           </View>
 
           {/* Teknolojik Uygulamalar */}
@@ -349,30 +318,20 @@ export default function ElectricFieldsTheory() {
                 'Electric potential is the work done to bring a unit positive charge from infinity to that point. There is an important relationship between electric field and potential.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>V = W/q = kQ/r</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'V: Elektrik potansiyeli (Volt), W: Yapılan iş (Joule)',
-                  'V: Electric potential (Volt), W: Work done (Joule)'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="V = W/q = kQ/r"
+              description={t('V: Elektrik potansiyeli (Volt), W: Yapılan iş (Joule)', 'V: Electric potential (Volt), W: Work done (Joule)')}
+            />
             <Text style={styles.paragraph}>
               {t(
                 'Elektrik alan, potansiyelin negatif gradyanıdır. Bu, elektrik alanın potansiyelin en hızlı azaldığı yönde olduğunu gösterir.',
                 'Electric field is the negative gradient of potential. This shows that electric field is in the direction of fastest decrease of potential.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>E⃗ = -∇V</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'Elektrik alan ve potansiyel ilişkisi',
-                  'Electric field and potential relationship'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="E = -dV/dr"
+              description={t('Elektrik alan ve potansiyel ilişkisi', 'Electric field and potential relationship')}
+            />
           </View>
 
           {/* Enerji Depolama */}
@@ -386,15 +345,10 @@ export default function ElectricFieldsTheory() {
                 'Electric field carries energy and this energy is distributed in space. The energy density of electric field is proportional to the square of field strength.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>u = ½ε₀E²</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'u: Enerji yoğunluğu (J/m³), E: Elektrik alan şiddeti',
-                  'u: Energy density (J/m³), E: Electric field strength'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="u = ½ε₀E²"
+              description={t('u: Enerji yoğunluğu (J/m³), E: Elektrik alan şiddeti', 'u: Energy density (J/m³), E: Electric field strength')}
+            />
             <Text style={styles.paragraph}>
               {t(
                 'Bu kavram, kapasitörlerin enerji depolama mekanizmasını anlamada kritiktir. Kapasitörler elektrik alanında enerji depolar.',

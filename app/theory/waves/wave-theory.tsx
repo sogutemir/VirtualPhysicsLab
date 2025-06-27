@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useLanguage } from '../../../components/LanguageContext';
+import FormulaText from '../../../components/ui/FormulaText';
 
 export default function WaveTheory() {
   const { t } = useLanguage();
@@ -35,15 +36,10 @@ export default function WaveTheory() {
                 'A wave is a form of energy propagation through space. It enables the transfer of energy and information from one place to another without matter transfer. Waves are everywhere in nature: from our voice to light, from earthquake waves to radio signals.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>v = f × λ</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'v: Dalga hızı (m/s), f: Frekans (Hz), λ: Dalga boyu (m)',
-                  'v: Wave speed (m/s), f: Frequency (Hz), λ: Wavelength (m)'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="v = f × λ"
+              description={t('v: Dalga hızı (m/s), f: Frekans (Hz), λ: Dalga boyu (m)', 'v: Wave speed (m/s), f: Frequency (Hz), λ: Wavelength (m)')}
+            />
           </View>
 
           {/* Dalga Türleri */}
@@ -145,15 +141,10 @@ export default function WaveTheory() {
               )}
             </Text>
 
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>E ∝ A² × f²</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'Dalga enerjisi, genliğin ve frekansın karesi ile doğru orantılıdır',
-                  'Wave energy is proportional to the square of amplitude and frequency'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="E ∝ A² × f²"
+              description={t('Dalga enerjisi, genliğin ve frekansın karesi ile doğru orantılıdır', 'Wave energy is proportional to the square of amplitude and frequency')}
+            />
           </View>
 
           {/* Dalga Davranışları */}
@@ -275,15 +266,10 @@ export default function WaveTheory() {
               )}
             </Text>
 
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>E = h × f</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'E: Foton enerjisi, h: Planck sabiti, f: Frekans',
-                  'E: Photon energy, h: Planck constant, f: Frequency'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="E = h × f"
+              description={t('E: Foton enerjisi, h: Planck sabiti, f: Frekans', 'E: Photon energy, h: Planck constant, f: Frequency')}
+            />
 
             <Text style={styles.subTitle}>
               {t('Görünür Spektrum:', 'Visible Spectrum:')}
@@ -404,15 +390,10 @@ export default function WaveTheory() {
               )}
             </Text>
 
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>∂²ψ/∂t² = v² × ∂²ψ/∂x²</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'ψ: Dalga fonksiyonu, v: Dalga hızı, t: Zaman, x: Konum',
-                  'ψ: Wave function, v: Wave speed, t: Time, x: Position'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="∂²ψ/∂t² = v² × ∂²ψ/∂x²"
+              description={t('ψ: Dalga fonksiyonu, v: Dalga hızı, t: Zaman, x: Konum', 'ψ: Wave function, v: Wave speed, t: Time, x: Position')}
+            />
 
             <Text style={styles.paragraph}>
               {t(

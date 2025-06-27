@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useLanguage } from '../../../components/LanguageContext';
+import FormulaText from '../../../components/ui/FormulaText';
 
 export default function NewtonLawsTheory() {
   const { t } = useLanguage();
@@ -92,15 +93,10 @@ export default function NewtonLawsTheory() {
                 )}
               </Text>
             </View>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>F = m × a</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'F: Kuvvet (Newton), m: Kütle (kg), a: İvme (m/s²)',
-                  'F: Force (Newton), m: Mass (kg), a: Acceleration (m/s²)'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="F = m × a"
+              description={t('F: Kuvvet (Newton), m: Kütle (kg), a: İvme (m/s²)', 'F: Force (Newton), m: Mass (kg), a: Acceleration (m/s²)')}
+            />
             <Text style={styles.paragraph}>
               {t(
                 'Bu kanun, kuvvet, kütle ve ivme arasındaki matematiksel ilişkiyi tanımlar. Aynı kuvvet uygulandığında, kütlesi daha az olan cisim daha fazla ivme kazanır. Aynı ivmeyi elde etmek için, kütlesi daha fazla olan cisme daha büyük kuvvet uygulanmalıdır.',

@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useLanguage } from '../../../components/LanguageContext';
+import FormulaText from '../../../components/ui/FormulaText';
 
 export default function MomentumTheory() {
   const { t } = useLanguage();
@@ -35,15 +36,10 @@ export default function MomentumTheory() {
                 'Momentum is a physical quantity defined as the product of mass and velocity of an object. Being a vector quantity, momentum completely characterizes the motion state of an object and plays a critical role in collision analysis.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>p = m × v</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'p: Momentum (kg⋅m/s), m: Kütle (kg), v: Hız vektörü (m/s)',
-                  'p: Momentum (kg⋅m/s), m: Mass (kg), v: Velocity vector (m/s)'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="p = m × v"
+              description={t('p: Momentum (kg⋅m/s), m: Kütle (kg), v: Hız vektörü (m/s)', 'p: Momentum (kg⋅m/s), m: Mass (kg), v: Velocity vector (m/s)')}
+            />
           </View>
 
           {/* Momentum Korunum Yasası */}
@@ -65,15 +61,10 @@ export default function MomentumTheory() {
                 "This fundamental conservation law is derived from Newton's third law. In situations where two or more objects interact, the total momentum of the system remains the same before and after collision. This principle is valid at every scale from subatomic particles to galaxies."
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>p₁ᵢ + p₂ᵢ = p₁f + p₂f</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'i: Başlangıç durumu, f: Son durum',
-                  'i: Initial state, f: Final state'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="p₁ᵢ + p₂ᵢ = p₁f + p₂f"
+              description={t('i: Başlangıç durumu, f: Son durum', 'i: Initial state, f: Final state')}
+            />
           </View>
 
           {/* Çarpışma Türleri */}
@@ -91,14 +82,12 @@ export default function MomentumTheory() {
                 'These are collisions where both momentum and kinetic energy are conserved. Perfectly elastic collisions are rare in real life, but collisions between billiard balls and gas molecules are close to this condition.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>
+            <FormulaText 
+              formula="
                 ½m₁v₁ᵢ² + ½m₂v₂ᵢ² = ½m₁v₁f² + ½m₂v₂f²
-              </Text>
-              <Text style={styles.formulaDesc}>
-                {t('Kinetik enerji korunumu', 'Kinetic energy conservation')}
-              </Text>
-            </View>
+              "
+              description={t('Kinetik enerji korunumu', 'Kinetic energy conservation')}
+            />
 
             <Text style={styles.subTitle}>
               {t('2. İnelastik Çarpışmalar', '2. Inelastic Collisions')}
@@ -122,12 +111,10 @@ export default function MomentumTheory() {
                 'The colliding objects stick together and move with the same velocity. This is the case of maximum kinetic energy loss.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>vf = (m₁v₁ᵢ + m₂v₂ᵢ)/(m₁ + m₂)</Text>
-              <Text style={styles.formulaDesc}>
-                {t('Ortak son hız', 'Common final velocity')}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="vf = (m₁v₁ᵢ + m₂v₂ᵢ)/(m₁ + m₂)"
+              description={t('Ortak son hız', 'Common final velocity')}
+            />
           </View>
 
           {/* İmpuls */}
@@ -141,15 +128,10 @@ export default function MomentumTheory() {
                 'Impulse is the product of force applied to an object and time, and it equals the change in momentum. This concept is critical in understanding the effects of short-duration large forces.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>J = F⋅Δt = Δp</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'J: İmpuls (N⋅s), F: Kuvvet (N), Δt: Zaman (s), Δp: Momentum değişimi',
-                  'J: Impulse (N⋅s), F: Force (N), Δt: Time (s), Δp: Change in momentum'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="J = F⋅Δt = Δp"
+              description={t('J: İmpuls (N⋅s), F: Kuvvet (N), Δt: Zaman (s), Δp: Momentum değişimi', 'J: Impulse (N⋅s), F: Force (N), Δt: Time (s), Δp: Change in momentum')}
+            />
 
             <Text style={styles.subTitle}>
               {t('İmpuls Uygulamaları:', 'Impulse Applications:')}
@@ -242,15 +224,10 @@ export default function MomentumTheory() {
                 'Kinetic theory explains gas pressure through momentum transfer of molecules. Molecules transfer momentum by colliding with container walls, which is observed as macroscopic pressure.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>P = (1/3)nm⟨v²⟩</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'P: Basınç, n: Molekül yoğunluğu, m: Molekül kütlesi, ⟨v²⟩: Ortalama hız karesi',
-                  'P: Pressure, n: Molecular density, m: Molecular mass, ⟨v²⟩: Mean square velocity'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="P = (1/3)nm⟨v²⟩"
+              description={t('P: Basınç, n: Molekül yoğunluğu, m: Molekül kütlesi, ⟨v²⟩: Ortalama hız karesi', 'P: Pressure, n: Molecular density, m: Molecular mass, ⟨v²⟩: Mean square velocity')}
+            />
           </View>
 
           {/* Problem Çözüm Stratejileri */}
