@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
-  Text,
+  Text as RNText,
   Pressable,
   StyleSheet,
   Dimensions,
@@ -18,6 +18,7 @@ import Svg, {
   Marker,
   Polygon,
   Rect,
+  Text,
 } from 'react-native-svg';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useLanguage } from '../../../components/LanguageContext';
@@ -229,10 +230,10 @@ export default function InclinedPlaneExperiment() {
   // Mobil için daha büyük boyutlar - uzunlamasına (%30 daha uzun)
   const svgWidth = isMobile ? screenWidth - 32 : 600;
   const svgHeight = isMobile ? Math.min(screenWidth * 1.0, 650) : 650;
-  const scale = isMobile ? 0.8 : 1.0;
+  const scale = isMobile ? 0.65 : 1.0; // Mobilde %15 daha küçültme
   
-  // Düzlemi %8 küçültüp sola kaydırmak için
-  const planeScale = scale * 0.92; // %8 küçültme
+  // Düzlemi küçültüp sola kaydırmak için
+  const planeScale = scale * 0.92;
   const planeEndX = CONSTANTS.PLANE_LENGTH * Math.cos(angleRad) * planeScale;
   const planeEndY = CONSTANTS.PLANE_LENGTH * Math.sin(angleRad) * planeScale;
 
@@ -292,19 +293,19 @@ export default function InclinedPlaneExperiment() {
             >
               {/* Zemin çizgisi */}
               <Line
-                x1={40}
-                y1={svgHeight - 120}
-                x2={svgWidth - 40}
-                y2={svgHeight - 120}
+                x1={isMobile ? 30 : 40}
+                y1={svgHeight - (isMobile ? 100 : 120)}
+                x2={svgWidth - (isMobile ? 30 : 40)}
+                y2={svgHeight - (isMobile ? 100 : 120)}
                 stroke="#4a4a4a"
                 strokeWidth={3}
               />
               
               {/* Eğik düzlem - küçültülmüş ve sola kaydırılmış */}
               <Path
-                d={`M 45,${svgHeight - 120}
-            L ${45 + planeEndX},${svgHeight - 120 - planeEndY}
-            L ${45 + planeEndX},${svgHeight - 120} Z`}
+                d={`M ${isMobile ? 35 : 45},${svgHeight - (isMobile ? 100 : 120)}
+            L ${(isMobile ? 35 : 45) + planeEndX},${svgHeight - (isMobile ? 100 : 120) - planeEndY}
+            L ${(isMobile ? 35 : 45) + planeEndX},${svgHeight - (isMobile ? 100 : 120)} Z`}
                 fill="#90a4ae"
                 stroke="#546e7a"
                 strokeWidth={2}
@@ -312,31 +313,31 @@ export default function InclinedPlaneExperiment() {
 
               {/* Açı göstergesi */}
               <Path
-                d={`M 45,${svgHeight - 120}
-            A 30,30 0 0,0 ${45 + 30 * Math.cos(angleRad)},${svgHeight - 120 - 30 * Math.sin(angleRad)}
-            L 45,${svgHeight - 120}`}
+                d={`M ${isMobile ? 35 : 45},${svgHeight - (isMobile ? 100 : 120)}
+            A 30,30 0 0,0 ${(isMobile ? 35 : 45) + 30 * Math.cos(angleRad)},${svgHeight - (isMobile ? 100 : 120) - 30 * Math.sin(angleRad)}
+            L ${isMobile ? 35 : 45},${svgHeight - (isMobile ? 100 : 120)}`}
                 fill="rgba(76, 175, 80, 0.3)"
                 stroke="#4caf50"
                 strokeWidth={1}
               />
               
               {/* Açı değeri */}
-              <text
-                x={45 + 40}
-                y={svgHeight - 90}
+              <Text
+                x={(isMobile ? 35 : 45) + 40}
+                y={svgHeight - (isMobile ? 70 : 90)}
                 fill="#4caf50"
                 fontSize={isMobile ? "12" : "14"}
                 fontWeight="bold"
               >
                 {state.angle.toFixed(0)}°
-              </text>
+              </Text>
 
               {/* Kare cisim ve kuvvet vektörü */}
               <G
                 transform={`translate(${
-                  45 + state.position.x * Math.cos(angleRad) * planeScale
+                  (isMobile ? 35 : 45) + state.position.x * Math.cos(angleRad) * planeScale
                 },${
-                  svgHeight - 120 - state.position.x * Math.sin(angleRad) * planeScale
+                  svgHeight - (isMobile ? 100 : 120) - state.position.x * Math.sin(angleRad) * planeScale
                 }) rotate(${-state.angle})`}
               >
                 {/* Kütle (kare) - boyut kütleye göre değişiyor */}
@@ -351,7 +352,7 @@ export default function InclinedPlaneExperiment() {
                 />
                 
                 {/* Kütle değeri */}
-                <text
+                <Text
                   x={0}
                   y={-15}
                   textAnchor="middle"
@@ -360,7 +361,7 @@ export default function InclinedPlaneExperiment() {
                   fontWeight="bold"
                 >
                   {state.mass.toFixed(1)}kg
-                </text>
+                </Text>
 
                 {/* Uygulanan kuvvet vektörü */}
                 {state.appliedForce !== 0 && (
@@ -375,7 +376,7 @@ export default function InclinedPlaneExperiment() {
                       markerEnd="url(#arrowhead)"
                     />
                     {/* Kuvvet değeri */}
-                    <text
+                    <Text
                       x={state.appliedForce > 0 ? 40 : -40}
                       y={-35}
                       textAnchor="middle"
@@ -384,7 +385,7 @@ export default function InclinedPlaneExperiment() {
                       fontWeight="bold"
                     >
                       {Math.abs(state.appliedForce).toFixed(0)}N
-                    </text>
+                    </Text>
                   </>
                 )}
               </G>
@@ -409,10 +410,10 @@ export default function InclinedPlaneExperiment() {
             <View style={styles.sliders}>
               <View style={styles.sliderContainer}>
                 <View style={styles.sliderHeader}>
-                  <Text style={styles.sliderLabel}>{t('Açı', 'Angle')}</Text>
-                  <Text style={styles.sliderValue}>
+                  <RNText style={styles.sliderLabel}>{t('Açı', 'Angle')}</RNText>
+                  <RNText style={styles.sliderValue}>
                     {state.angle.toFixed(1)}°
-                  </Text>
+                  </RNText>
                 </View>
                 <CustomSlider
                   style={styles.slider}
@@ -430,10 +431,10 @@ export default function InclinedPlaneExperiment() {
 
               <View style={styles.sliderContainer}>
                 <View style={styles.sliderHeader}>
-                  <Text style={styles.sliderLabel}>{t('Kütle', 'Mass')}</Text>
-                  <Text style={styles.sliderValue}>
+                  <RNText style={styles.sliderLabel}>{t('Kütle', 'Mass')}</RNText>
+                  <RNText style={styles.sliderValue}>
                     {state.mass.toFixed(1)} kg
-                  </Text>
+                  </RNText>
                 </View>
                 <CustomSlider
                   style={styles.slider}
@@ -452,12 +453,12 @@ export default function InclinedPlaneExperiment() {
 
               <View style={styles.sliderContainer}>
                 <View style={styles.sliderHeader}>
-                  <Text style={styles.sliderLabel}>
+                  <RNText style={styles.sliderLabel}>
                     {t('Sürtünme Katsayısı', 'Friction Coefficient')}
-                  </Text>
-                  <Text style={styles.sliderValue}>
+                  </RNText>
+                  <RNText style={styles.sliderValue}>
                     {state.friction.toFixed(2)}
-                  </Text>
+                  </RNText>
                 </View>
                 <CustomSlider
                   style={styles.slider}
@@ -476,12 +477,12 @@ export default function InclinedPlaneExperiment() {
 
               <View style={styles.sliderContainer}>
                 <View style={styles.sliderHeader}>
-                  <Text style={styles.sliderLabel}>
+                  <RNText style={styles.sliderLabel}>
                     {t('Uygulanan Kuvvet', 'Applied Force')}
-                  </Text>
-                  <Text style={styles.sliderValue}>
+                  </RNText>
+                  <RNText style={styles.sliderValue}>
                     {state.appliedForce.toFixed(1)} N
-                  </Text>
+                  </RNText>
                 </View>
                 <CustomSlider
                   style={styles.slider}
@@ -499,53 +500,53 @@ export default function InclinedPlaneExperiment() {
             </View>
 
             <View style={styles.info}>
-              <Text style={styles.infoTitle}>
+              <RNText style={styles.infoTitle}>
                 {t('Ölçüm Değerleri', 'Measurement Values')}
-              </Text>
+              </RNText>
               <View style={styles.infoGrid}>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>{t('Hız', 'Velocity')}</Text>
-                  <Text style={styles.infoValue}>
+                  <RNText style={styles.infoLabel}>{t('Hız', 'Velocity')}</RNText>
+                  <RNText style={styles.infoValue}>
                     {state.velocity.toFixed(2)} m/s
-                  </Text>
+                  </RNText>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>
+                  <RNText style={styles.infoLabel}>
                     {t('İvme', 'Acceleration')}
-                  </Text>
-                  <Text style={styles.infoValue}>
+                  </RNText>
+                  <RNText style={styles.infoValue}>
                     {state.acceleration.toFixed(2)} m/s²
-                  </Text>
+                  </RNText>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>
+                  <RNText style={styles.infoLabel}>
                     {t('Net Kuvvet', 'Net Force')}
-                  </Text>
-                  <Text style={styles.infoValue}>
+                  </RNText>
+                  <RNText style={styles.infoValue}>
                     {forces.net.toFixed(2)} N
-                  </Text>
+                  </RNText>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>
+                  <RNText style={styles.infoLabel}>
                     {t('Normal Kuvvet', 'Normal Force')}
-                  </Text>
-                  <Text style={styles.infoValue}>
+                  </RNText>
+                  <RNText style={styles.infoValue}>
                     {forces.normal.toFixed(2)} N
-                  </Text>
+                  </RNText>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>
+                  <RNText style={styles.infoLabel}>
                     {t('Sürtünme Kuvveti', 'Friction Force')}
-                  </Text>
-                  <Text style={styles.infoValue}>
+                  </RNText>
+                  <RNText style={styles.infoValue}>
                     {forces.friction.toFixed(2)} N
-                  </Text>
+                  </RNText>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>{t('Ağırlık', 'Weight')}</Text>
-                  <Text style={styles.infoValue}>
+                  <RNText style={styles.infoLabel}>{t('Ağırlık', 'Weight')}</RNText>
+                  <RNText style={styles.infoValue}>
                     {forces.gravity.toFixed(2)} N
-                  </Text>
+                  </RNText>
                 </View>
               </View>
             </View>
