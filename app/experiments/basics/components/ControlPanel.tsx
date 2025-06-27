@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useLanguage } from '../../../../components/LanguageContext';
 import { Play, Pause, RotateCcw, Info } from 'lucide-react-native';
+import { CustomSlider } from '../../../../components/ui/slider';
 
 interface ControlPanelProps {
   acceleration: number;
@@ -33,104 +34,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   resetSimulation,
 }) => {
   const { t } = useLanguage();
-
-  // Custom Slider bileşeni
-  const CustomSlider: React.FC<{
-    value: number;
-    minimumValue: number;
-    maximumValue: number;
-    step: number;
-    onValueChange: (value: number) => void;
-    disabled: boolean;
-    minimumTrackTintColor: string;
-    maximumTrackTintColor: string;
-    thumbTintColor: string;
-    style: any;
-  }> = ({
-    value,
-    minimumValue,
-    maximumValue,
-    step,
-    onValueChange,
-    disabled,
-    minimumTrackTintColor,
-    maximumTrackTintColor,
-    thumbTintColor,
-    style,
-  }) => {
-    const handleChange = (event: any) => {
-      const newValue = parseFloat(event.target.value);
-      onValueChange(newValue);
-    };
-
-    const percentage =
-      ((value - minimumValue) / (maximumValue - minimumValue)) * 100;
-
-    return Platform.OS === 'web' ? (
-      <input
-        type="range"
-        min={minimumValue}
-        max={maximumValue}
-        step={step}
-        value={value}
-        onChange={handleChange}
-        disabled={disabled}
-        style={{
-          width: '100%',
-          height: 8,
-          background: `linear-gradient(to right, ${minimumTrackTintColor} 0%, ${minimumTrackTintColor} ${percentage}%, ${maximumTrackTintColor} ${percentage}%, ${maximumTrackTintColor} 100%)`,
-          borderRadius: 4,
-          outline: 'none',
-          appearance: 'none',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          margin: '16px 0',
-          ...style,
-        }}
-      />
-    ) : (
-      <View
-        style={[
-          {
-            backgroundColor: maximumTrackTintColor,
-            height: 8,
-            borderRadius: 4,
-            position: 'relative',
-            marginVertical: 16,
-          },
-          style,
-        ]}
-      >
-        <View
-          style={{
-            width: `${percentage}%`,
-            height: '100%',
-            backgroundColor: minimumTrackTintColor,
-            borderRadius: 4,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-          }}
-        />
-        <View
-          style={{
-            position: 'absolute',
-            top: -6,
-            left: `${percentage}%`,
-            width: 20,
-            height: 20,
-            borderRadius: 10,
-            backgroundColor: thumbTintColor,
-            marginLeft: -10,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 2,
-          }}
-        />
-      </View>
-    );
-  };
 
   const renderTooltip = (title: string, content: string) => (
     <TouchableOpacity
@@ -159,8 +62,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           </View>
         </View>
         <CustomSlider
-          minimumValue={-10}
-          maximumValue={10}
+          min={-10}
+          max={10}
           step={0.1}
           value={acceleration}
           onValueChange={setAcceleration}
@@ -189,8 +92,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           </View>
         </View>
         <CustomSlider
-          minimumValue={-10}
-          maximumValue={10}
+          min={-10}
+          max={10}
           step={0.1}
           value={initialVelocity}
           onValueChange={setInitialVelocity}
@@ -217,8 +120,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           </View>
         </View>
         <CustomSlider
-          minimumValue={1}
-          maximumValue={10}
+          min={1}
+          max={10}
           step={0.1}
           value={time}
           onValueChange={setTime}

@@ -304,7 +304,7 @@ const BuoyancySimulation: React.FC<BuoyancySimulationProps> = memo(
         <View
           style={{
             flex: 1,
-            minHeight: 650, // 500'den 650'ye çıkardım - çok büyük alan
+            minHeight: isMobile ? 400 : 500, // Mobilde daha küçük
             height: '100%', // Tam yükseklik kullan
             backgroundColor: '#f0f9ff',
             borderRadius: 12,

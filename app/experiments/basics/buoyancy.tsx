@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import BuoyancySimulation from './components/BuoyancySimulation';
 import DensityControls from './components/DensityControls';
-import { View } from 'react-native';
+import { View, ScrollView, Dimensions } from 'react-native';
 import './styles/buoyancy.css';
 
 // Fizik sabitleri
@@ -345,6 +345,10 @@ export default function BuoyancyExperiment() {
     setIsRunning((prev) => !prev);
   }, []);
 
+  // Ekran boyutlarını al
+  const screenHeight = Dimensions.get('window').height;
+  const isSmallScreen = screenHeight < 700;
+  
   return (
     <ExperimentLayout
       title="Kaldırma Kuvveti Deneyi"
@@ -357,25 +361,29 @@ export default function BuoyancyExperiment() {
       onToggleSimulation={handleToggleSimulation}
       onReset={handleReset}
     >
-      <View style={containerStyles.root}>
-        <View style={containerStyles.content}>
-          <View style={containerStyles.simulationCard}>
-            <BuoyancySimulation
-              objects={objects}
-              liquidColor={liquidColor}
-              liquidDensity={liquidDensity}
-            />
-          </View>
-          <View style={containerStyles.controlsCard}>
-            <DensityControls
-              liquidDensity={liquidDensity}
-              objects={objects}
-              onLiquidDensityChange={handleLiquidDensityChange}
-              onObjectDensityChange={handleObjectDensityChange}
-            />
-          </View>
+      <ScrollView 
+        style={containerStyles.root}
+        contentContainerStyle={containerStyles.scrollContainer}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+        alwaysBounceVertical={false}
+      >
+        <View style={[containerStyles.simulationCard, isSmallScreen && containerStyles.simulationCardSmall]}>
+          <BuoyancySimulation
+            objects={objects}
+            liquidColor={liquidColor}
+            liquidDensity={liquidDensity}
+          />
         </View>
-      </View>
+        <View style={[containerStyles.controlsCard, isSmallScreen && containerStyles.controlsCardSmall]}>
+          <DensityControls
+            liquidDensity={liquidDensity}
+            objects={objects}
+            onLiquidDensityChange={handleLiquidDensityChange}
+            onObjectDensityChange={handleObjectDensityChange}
+          />
+        </View>
+      </ScrollView>
     </ExperimentLayout>
   );
 }
@@ -386,14 +394,19 @@ const containerStyles = {
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 16,
+    paddingBottom: 40, // Alt boşluk
+  },
   content: {
     flex: 1,
     padding: 16,
     gap: 16,
   },
   simulationCard: {
-    flex: 5,
-    minHeight: 650,
+    minHeight: 500,
+    height: 500,
     backgroundColor: 'white',
     borderRadius: 12,
     overflow: 'visible',
@@ -402,10 +415,14 @@ const containerStyles = {
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    marginBottom: 16,
+  },
+  simulationCardSmall: {
+    minHeight: 400,
+    height: 400,
   },
   controlsCard: {
-    flex: 1.5,
-    maxHeight: 250,
+    minHeight: 350,
     backgroundColor: 'white',
     borderRadius: 12,
     overflow: 'hidden',
@@ -414,5 +431,8 @@ const containerStyles = {
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+  },
+  controlsCardSmall: {
+    minHeight: 300,
   },
 } as const;

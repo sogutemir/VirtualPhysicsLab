@@ -382,9 +382,11 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
     return (
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
+        nestedScrollEnabled={true}
+        scrollEventThrottle={16}
       >
         {/* Sıvı Yoğunluğu Kontrolleri */}
         <View

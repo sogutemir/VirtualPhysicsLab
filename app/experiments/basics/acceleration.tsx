@@ -201,7 +201,9 @@ const AccelerationExperiment: React.FC = () => {
     >
       <ScrollView
         style={styles.container}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 40, flexGrow: 1 }}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
       >
         <View style={styles.header}>
           <Text style={styles.title}>
