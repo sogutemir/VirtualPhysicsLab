@@ -21,17 +21,15 @@ import Svg, {
   Defs,
 } from 'react-native-svg';
 import { useLanguage } from '../../../../../components/LanguageContext';
-import {
-  ArrowDown,
-  RotateCcw,
-  Grid,
-  Zap,
-  Magnet,
-  Eye,
-  EyeOff,
-  Plus,
-  Minus,
-} from 'lucide-react-native';
+// Icons için React Native ile uyumlu import
+import { Platform } from 'react-native';
+
+// React Native'de Lucide ikonları bazen sorun çıkarabilir, basit metinlerle değiştirebiliriz
+const IconText = ({ children }: { children: string }) => (
+  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>
+    {children}
+  </Text>
+);
 import { FieldType, MagneticSimulatorProps, ChargeParticle } from './types';
 
 const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
@@ -53,44 +51,36 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
   onChargeSpeedChange,
 }) => {
   const { language, t } = useLanguage();
-  const [screenWidth, setScreenWidth] = useState(
-    Dimensions.get('window').width
-  );
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const isMobile = screenWidth < 600;
   const animatedValue = useRef(new Animated.Value(0)).current;
-  const svgWidth = screenWidth > 600 ? 500 : screenWidth - 40;
-  const svgHeight = 400;
+  
+  // Mobil için daha büyük simülasyon alanı
+  const svgWidth = isMobile ? screenWidth - 32 : 500;
+  const svgHeight = isMobile ? Math.min(screenHeight * 0.4, 350) : 400;
+  
   const [animationPhase, setAnimationPhase] = useState(0);
   const [charges, setCharges] = useState<ChargeParticle[]>([]);
   const [chargePaths, setChargePaths] = useState<{
     [key: string]: { x: number; y: number }[];
   }>({});
 
-  // Simülasyon parametreleri - Basitleştirilmiş ama doğru fizik
-  const BASE_MAGNETIC_STRENGTH = 0.0001; // Temel manyetik alan şiddeti
-  const CHARGE_FORCE_FACTOR = 0.02; // Yük kuvvet çarpanı
-  const DAMPING = 0.998; // Hafif damping
-  const MAX_SPEED_FACTOR = 15; // Maksimum hız çarpanı
+  // PERFORMANS: Mobil için daha az yük parçacığı
+  const chargeCount = isMobile ? 3 : 6;
+  const maxTrailLength = isMobile ? 15 : 50;
 
-  useEffect(() => {
-    const updateLayout = () => {
-      setScreenWidth(Dimensions.get('window').width);
-    };
+  // PERFORMANS: Mobil için optimize edilmiş parametreler
+  const BASE_MAGNETIC_STRENGTH = isMobile ? 0.0002 : 0.0001; // Mobilde daha güçlü etki
+  const CHARGE_FORCE_FACTOR = isMobile ? 0.015 : 0.02; // Mobilde daha düşük hesaplama
+  const DAMPING = isMobile ? 0.995 : 0.998; // Mobilde daha hızlı stabilizasyon
+  const MAX_SPEED_FACTOR = isMobile ? 10 : 15; // Mobilde daha düşük maksimum hız
 
-    Dimensions.addEventListener('change', updateLayout);
-    return () => {
-      const dimensionsHandler = Dimensions.addEventListener(
-        'change',
-        updateLayout
-      );
-      dimensionsHandler.remove();
-    };
-  }, []);
+  // Artık Dimensions.get kullandığımız için bu effect'e gerek yok
 
   // Yük parçacıklarını başlat
   useEffect(() => {
     if (showCharges) {
       const newCharges: ChargeParticle[] = [];
-      const chargeCount = 6; // Daha az yük için daha net hareket
 
       for (let i = 0; i < chargeCount; i++) {
         const angle = (i * 2 * Math.PI) / chargeCount;
@@ -131,7 +121,7 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
   }, [showCharges, chargeType, svgWidth, svgHeight, chargeSpeed]);
 
   useEffect(() => {
-    let animationInterval: number;
+    let animationInterval: any;
 
     if (animateField) {
       const animation = Animated.loop(
@@ -143,7 +133,7 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
       );
       animation.start();
 
-      animationInterval = window.setInterval(() => {
+      animationInterval = setInterval(() => {
         setAnimationPhase((prev) => (prev + 0.02) % 1);
 
         // Yük parçacıklarını güncelle - VEKTÖREL ALAN İLE DOĞRU FİZİK
@@ -163,19 +153,7 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
                 svgHeight
               );
 
-              // Debug log (geliştirme amaçlı)
-              if (Math.random() < 0.001) {
-                // %0.1 olasılıkla log
-                console.log(
-                  'Field Components:',
-                  fieldComponents,
-                  'Current:',
-                  currentIntensity,
-                  'Charge pos:',
-                  charge.x,
-                  charge.y
-                );
-              }
+              // Debug log kaldırıldı (mobil performans için)
 
               let forceX = 0;
               let forceY = 0;
@@ -288,8 +266,8 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
                 newPaths[charge.id] = [];
               }
 
-              // Son 50 noktayı tut (performans için)
-              if (newPaths[charge.id].length > 50) {
+              // PERFORMANS: Mobilde daha az trail point
+              if (newPaths[charge.id].length > maxTrailLength) {
                 newPaths[charge.id].shift();
               }
 
@@ -298,11 +276,11 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
             return newPaths;
           });
         }
-      }, 16); // 60 FPS için 16ms
+              }, isMobile ? 33 : 16); // Mobilde 30 FPS, web'de 60 FPS
 
       return () => {
         animation.stop();
-        window.clearInterval(animationInterval);
+        clearInterval(animationInterval);
       };
     } else {
       animatedValue.setValue(0);
@@ -402,14 +380,14 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
     return { x: fieldX, y: fieldY, z: fieldZ };
   };
 
-  // Yük parçacıklarını render etme
-  const renderChargeParticles = () => {
+  // PERFORMANS: Memoized yük parçacığı render
+  const renderChargeParticles = React.useMemo(() => {
     if (!showCharges) return null;
 
     return (
       <G>
-        {/* Yük yolları (iz) */}
-        {Object.entries(chargePaths).map(([chargeId, path]) => {
+        {/* PERFORMANS: Mobilde yük yollarını basitleştir */}
+        {!isMobile && Object.entries(chargePaths).map(([chargeId, path]) => {
           if (path.length < 2) return null;
 
           const charge = charges.find((c) => c.id === chargeId);
@@ -439,22 +417,24 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
         {/* Yük parçacıkları */}
         {charges.map((charge) => (
           <G key={charge.id}>
-            {/* Yük parçacığı gölgesi */}
-            <Circle
-              cx={charge.x + 1}
-              cy={charge.y + 1}
-              r={8}
-              fill="rgba(0,0,0,0.2)"
-            />
+            {/* PERFORMANS: Mobilde gölge yok */}
+            {!isMobile && (
+              <Circle
+                cx={charge.x + 1}
+                cy={charge.y + 1}
+                r={8}
+                fill="rgba(0,0,0,0.2)"
+              />
+            )}
 
             {/* Yük parçacığı */}
             <Circle
               cx={charge.x}
               cy={charge.y}
-              r={8}
+              r={isMobile ? 6 : 8} // Mobilde daha küçük
               fill={charge.charge > 0 ? '#ef4444' : '#3b82f6'}
               stroke={charge.charge > 0 ? '#dc2626' : '#2563eb'}
-              strokeWidth={2}
+              strokeWidth={isMobile ? 1 : 2}
             />
 
             {/* Yük işareti */}
@@ -463,14 +443,14 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
               y={charge.y + 3}
               textAnchor="middle"
               fill="white"
-              fontSize="12"
+              fontSize={isMobile ? "10" : "12"}
               fontWeight="bold"
             >
               {charge.charge > 0 ? '+' : '-'}
             </SvgText>
 
-            {/* Hız vektörü (animasyon sırasında) */}
-            {animateField && (
+            {/* PERFORMANS: Mobilde hız vektörü ve kuvvet göstergesi yok */}
+            {!isMobile && animateField && (
               <G>
                 <Line
                   x1={charge.x}
@@ -480,37 +460,32 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
                   stroke={charge.charge > 0 ? '#fca5a5' : '#93c5fd'}
                   strokeWidth={3}
                 />
-                {/* Hız vektörü ok başı */}
                 <Circle
                   cx={charge.x + charge.vx * 0.05}
                   cy={charge.y + charge.vy * 0.05}
                   r={2}
                   fill={charge.charge > 0 ? '#fca5a5' : '#93c5fd'}
                 />
+                <Circle
+                  cx={charge.x}
+                  cy={charge.y}
+                  r={12}
+                  fill="none"
+                  stroke={
+                    charge.charge > 0
+                      ? 'rgba(239, 68, 68, 0.3)'
+                      : 'rgba(59, 130, 246, 0.3)'
+                  }
+                  strokeWidth={1}
+                  opacity={Math.abs(charge.vx + charge.vy) / 50}
+                />
               </G>
-            )}
-
-            {/* Kuvvet göstergesi (alan etkisi) */}
-            {animateField && (
-              <Circle
-                cx={charge.x}
-                cy={charge.y}
-                r={12}
-                fill="none"
-                stroke={
-                  charge.charge > 0
-                    ? 'rgba(239, 68, 68, 0.3)'
-                    : 'rgba(59, 130, 246, 0.3)'
-                }
-                strokeWidth={1}
-                opacity={Math.abs(charge.vx + charge.vy) / 50}
-              />
             )}
           </G>
         ))}
       </G>
     );
-  };
+  }, [showCharges, charges, chargePaths, animateField, isMobile]);
 
   const renderStraightWireMagneticField = () => {
     const centerX = svgWidth / 2;
@@ -861,19 +836,21 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.tabContainer}>
+    <View style={[styles.container, isMobile && styles.mobileContainer]}>
+      <View style={[styles.tabContainer, isMobile && styles.mobileTabContainer]}>
         <TouchableOpacity
-          style={[styles.tab, fieldType === 'straight' && styles.activeTab]}
+          style={[
+            styles.tab, 
+            isMobile && styles.mobileTab,
+            fieldType === 'straight' && styles.activeTab
+          ]}
           onPress={() => onChangeFieldType('straight')}
         >
-          <Zap
-            size={16}
-            color={fieldType === 'straight' ? '#374151' : '#666'}
-          />
+          <IconText>⚡</IconText>
           <Text
             style={[
               styles.tabText,
+              isMobile && styles.mobileTabText,
               fieldType === 'straight' && styles.activeTabText,
             ]}
           >
@@ -881,13 +858,18 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, fieldType === 'coil' && styles.activeTab]}
+          style={[
+            styles.tab, 
+            isMobile && styles.mobileTab,
+            fieldType === 'coil' && styles.activeTab
+          ]}
           onPress={() => onChangeFieldType('coil')}
         >
-          <Grid size={16} color={fieldType === 'coil' ? '#374151' : '#666'} />
+          <IconText>🔄</IconText>
           <Text
             style={[
               styles.tabText,
+              isMobile && styles.mobileTabText,
               fieldType === 'coil' && styles.activeTabText,
             ]}
           >
@@ -895,13 +877,18 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, fieldType === 'bar' && styles.activeTab]}
+          style={[
+            styles.tab, 
+            isMobile && styles.mobileTab,
+            fieldType === 'bar' && styles.activeTab
+          ]}
           onPress={() => onChangeFieldType('bar')}
         >
-          <Magnet size={16} color={fieldType === 'bar' ? '#374151' : '#666'} />
+          <IconText>🧲</IconText>
           <Text
             style={[
               styles.tabText,
+              isMobile && styles.mobileTabText,
               fieldType === 'bar' && styles.activeTabText,
             ]}
           >
@@ -910,19 +897,13 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
         </TouchableOpacity>
       </View>
 
-      <View style={styles.svgContainer}>
+      <View style={[styles.svgContainer, isMobile && styles.mobileSvgContainer]}>
         <Svg width={svgWidth} height={svgHeight}>
           <Defs>
-            <marker
-              id="arrowhead"
-              markerWidth="10"
-              markerHeight="7"
-              refX="0"
-              refY="3.5"
-              orient="auto"
-            >
-              <Polygon points="0 0, 10 3.5, 0 7" fill="#666" />
-            </marker>
+            <LinearGradient id="fieldGradient" x1="0" y1="0" x2="1" y2="0">
+              <Stop offset="0" stopColor="rgba(147, 112, 219, 0.3)" />
+              <Stop offset="1" stopColor="rgba(147, 112, 219, 0.7)" />
+            </LinearGradient>
           </Defs>
 
           {fieldType === 'straight' && renderStraightWireMagneticField()}
@@ -930,49 +911,51 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
           {fieldType === 'bar' && renderBarMagnetField()}
 
           {/* Yük parçacıklarını en üstte render et */}
-          {renderChargeParticles()}
+          {renderChargeParticles}
         </Svg>
       </View>
 
-      <View style={styles.controlsContainer}>
+      <View style={[styles.controlsContainer, isMobile && styles.mobileControlsContainer]}>
         <TouchableOpacity
-          style={styles.controlButton}
+          style={[styles.controlButton, isMobile && styles.mobileControlButton]}
           onPress={onToggleAnimation}
         >
-          <RotateCcw size={20} color={animateField ? '#374151' : '#666'} />
-          <Text style={styles.controlButtonText}>
-            {animateField
-              ? t('Animasyonu Durdur', 'Stop Animation')
-              : t('Alanı Canlandır', 'Animate Field')}
-          </Text>
+          <IconText>{animateField ? '⏸️' : '▶️'}</IconText>
+          {!isMobile && (
+            <Text style={styles.controlButtonText}>
+              {animateField
+                ? t('Animasyonu Durdur', 'Stop Animation')
+                : t('Alanı Canlandır', 'Animate Field')}
+            </Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.controlButton}
+          style={[styles.controlButton, isMobile && styles.mobileControlButton]}
           onPress={onToggleFieldLines}
         >
-          {showFieldLines ? (
-            <Eye size={20} color="#374151" />
-          ) : (
-            <EyeOff size={20} color="#666" />
+          <IconText>{showFieldLines ? '👁️' : '🙈'}</IconText>
+          {!isMobile && (
+            <Text style={styles.controlButtonText}>
+              {showFieldLines
+                ? t('Alan Çizgilerini Gizle', 'Hide Field Lines')
+                : t('Alan Çizgilerini Göster', 'Show Field Lines')}
+            </Text>
           )}
-          <Text style={styles.controlButtonText}>
-            {showFieldLines
-              ? t('Alan Çizgilerini Gizle', 'Hide Field Lines')
-              : t('Alan Çizgilerini Göster', 'Show Field Lines')}
-          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.controlButton}
+          style={[styles.controlButton, isMobile && styles.mobileControlButton]}
           onPress={onToggleCharges}
         >
-          <Zap size={20} color={showCharges ? '#374151' : '#666'} />
-          <Text style={styles.controlButtonText}>
-            {showCharges
-              ? t('Yükleri Gizle', 'Hide Charges')
-              : t('Yükleri Göster', 'Show Charges')}
-          </Text>
+          <IconText>{showCharges ? '⚡' : '💤'}</IconText>
+          {!isMobile && (
+            <Text style={styles.controlButtonText}>
+              {showCharges
+                ? t('Yükleri Gizle', 'Hide Charges')
+                : t('Yükleri Göster', 'Show Charges')}
+            </Text>
+          )}
         </TouchableOpacity>
 
         {fieldType === 'coil' && (
@@ -981,14 +964,14 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
               style={styles.coilButton}
               onPress={() => onCoilTurnsChange(Math.max(1, coilTurns - 1))}
             >
-              <Minus size={16} color="#666" />
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>−</Text>
             </TouchableOpacity>
             <Text style={styles.coilTurnsText}>{coilTurns}</Text>
             <TouchableOpacity
               style={styles.coilButton}
               onPress={() => onCoilTurnsChange(Math.min(20, coilTurns + 1))}
             >
-              <Plus size={16} color="#666" />
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>+</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -1009,10 +992,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  mobileContainer: {
+    marginVertical: 8,
+    borderRadius: 8,
+  },
   tabContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderColor: '#e5e7eb',
+  },
+  mobileTabContainer: {
+    paddingHorizontal: 4,
   },
   tab: {
     flexDirection: 'row',
@@ -1022,6 +1012,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     flex: 1,
   },
+  mobileTab: {
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    minHeight: 50,
+  },
   activeTab: {
     borderBottomWidth: 2,
     borderColor: '#6b7280',
@@ -1030,6 +1025,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginLeft: 8,
+  },
+  mobileTabText: {
+    fontSize: 12,
+    marginLeft: 4,
+    textAlign: 'center',
   },
   activeTabText: {
     color: '#374151',
@@ -1041,11 +1041,23 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f9fafb',
   },
+  mobileSvgContainer: {
+    padding: 8,
+    backgroundColor: '#f9fafb',
+  },
   controlsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     padding: 16,
+    borderTopWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  mobileControlsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: 12,
     borderTopWidth: 1,
     borderColor: '#e5e7eb',
   },
@@ -1055,6 +1067,15 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     backgroundColor: '#f3f4f6',
+  },
+  mobileControlButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    minWidth: 50,
+    minHeight: 50,
   },
   controlButtonText: {
     marginLeft: 8,

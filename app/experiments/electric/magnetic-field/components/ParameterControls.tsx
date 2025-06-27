@@ -8,17 +8,12 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import {
-  ChevronDown,
-  ChevronUp,
-  Sliders,
-  Plus,
-  Minus,
-  RefreshCw,
-  Zap,
-  RotateCw,
-  Magnet,
-} from 'lucide-react-native';
+// React Native uyumlu icon helper
+const IconText = ({ children }: { children: string }) => (
+  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#6b7280' }}>
+    {children}
+  </Text>
+);
 import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
 import { FieldType, ChargeType, ParameterControlsProps } from './types';
@@ -99,7 +94,7 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
       >
         <View style={styles.headerContent}>
           <View style={styles.iconContainer}>
-            <Sliders size={16} color="#6b7280" />
+            <IconText>🎚️</IconText>
           </View>
           <Text style={styles.headerText}>{title}</Text>
         </View>
@@ -107,11 +102,7 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
           onPress={toggleExpanded}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          {isExpanded ? (
-            <ChevronUp size={20} color="#666" />
-          ) : (
-            <ChevronDown size={20} color="#666" />
-          )}
+          <IconText>{isExpanded ? '🔽' : '▶️'}</IconText>
         </TouchableOpacity>
       </TouchableOpacity>
 
@@ -148,7 +139,7 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
                     handleCoilTurnsChange(Math.max(1, coilTurns - 1))
                   }
                 >
-                  <Minus size={16} color="#666" />
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>−</Text>
                 </TouchableOpacity>
                 <Text style={styles.coilTurnsText}>{coilTurns}</Text>
                 <TouchableOpacity
@@ -157,7 +148,7 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
                     handleCoilTurnsChange(Math.min(20, coilTurns + 1))
                   }
                 >
-                  <Plus size={16} color="#666" />
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>+</Text>
                 </TouchableOpacity>
               </View>
             </View>

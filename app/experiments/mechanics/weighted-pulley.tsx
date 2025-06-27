@@ -315,8 +315,9 @@ const WeightedPulleyExperiment = memo(() => {
       }
     };
 
-    if (isMobile) {
-      // Add error listeners for mobile
+    // React Native'de window objesi yoktur, sadece web'de kullan
+    if (!isMobile && typeof window !== 'undefined') {
+      // Add error listeners for web only
       window.addEventListener('error', errorHandler);
       window.addEventListener('unhandledrejection', errorHandler);
 
@@ -354,22 +355,22 @@ const WeightedPulleyExperiment = memo(() => {
   // 🔧 MOBILE OPTIMIZATION: Safe dimensions without problematic hooks
   const svgDimensions = useMemo(() => {
     if (isMobile) {
-      // Mobilde sabit, güvenli boyutlar
+      // Mobilde sabit, güvenli boyutlar - çok daha uzun çerçeve
       return {
         svgWidth: 350,
-        svgHeight: 280,
+        svgHeight: 600, // 420'den 600'e artırıldı (çok daha uzun)
         centerX: 175,
-        centerY: 93,
+        centerY: 120, // 110'dan 120'ye artırıldı
         R: 45, // Daha küçük makara
         r: 22, // Daha küçük kütle
       };
     } else {
-      // Web için normal boyut
+      // Web için uzatılmış boyut
       return {
         svgWidth: 500,
-        svgHeight: 400,
+        svgHeight: 600, // 400'den 600'e artırıldı
         centerX: 250,
-        centerY: 133,
+        centerY: 150, // 133'ten 150'ye artırıldı
         R: 60,
         r: 30,
       };
@@ -712,7 +713,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingBottom: Platform.OS === 'web' ? 50 : 200,
+    paddingBottom: Platform.OS === 'web' ? 100 : 300, // Daha fazla padding
   },
   experimentArea: {
     flex: 1,
@@ -723,12 +724,12 @@ const styles = StyleSheet.create({
   canvasContainer: {
     width: '100%',
     maxWidth: 500,
-    height: 400,
+    minHeight: Platform.OS === 'web' ? 600 : 600, // Minimum yükseklik
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: 'visible', // Taşma görünür olsun
     marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.2)',

@@ -6,7 +6,7 @@ import React, {
   memo,
   useMemo,
 } from 'react';
-import { View, StyleSheet, Platform, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, Platform, Dimensions } from 'react-native';
 import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
 import WeightedPulleyControls from './components/WeightedPulleyControls';
 import { WeightedPulleyState, DEFAULT_STATE } from './types';
@@ -197,7 +197,7 @@ const MeasurementsDisplay = memo<{
 ));
 
 const WeightedPulleyExperiment: React.FC = memo(() => {
-  const { width, height } = useWindowDimensions();
+  const { width, height } = Dimensions.get('window');
   const [state, setState] = useState<WeightedPulleyState>(DEFAULT_STATE);
   const animationRef = useRef<number | null>(null);
   const isMountedRef = useRef(true);
@@ -206,9 +206,9 @@ const WeightedPulleyExperiment: React.FC = memo(() => {
   const dimensions = useMemo(() => {
     const isWeb = Platform.OS === 'web';
 
-    // Web için sabit boyut
+    // Web için uzatılmış boyut
     const WEB_WIDTH = 420;
-    const WEB_HEIGHT = 530;
+    const WEB_HEIGHT = 730; // 530'dan 730'a artırıldı
 
     // Mobil için maksimum boyut
     const MOBILE_MAX_WIDTH = width * 0.9;
@@ -225,7 +225,7 @@ const WeightedPulleyExperiment: React.FC = memo(() => {
       const svgSize = Math.min(MOBILE_MAX_WIDTH, MOBILE_MAX_HEIGHT);
       return {
         svgWidth: svgSize,
-        svgHeight: svgSize * 1.2,
+        svgHeight: svgSize * 2.2, // 1.6'dan 2.2'ye artırıldı - çok daha uzun çerçeve
         scale: svgSize * 0.4,
         padding: 10,
       };
@@ -234,7 +234,7 @@ const WeightedPulleyExperiment: React.FC = memo(() => {
 
   const { svgWidth, svgHeight, scale, padding } = dimensions;
   const centerX = svgWidth / 2;
-  const centerY = svgHeight / 4;
+  const centerY = Platform.OS === 'web' ? svgHeight / 5 : svgHeight / 6; // Web'de 1/4'ten 1/5'e, mobilde 1/6
 
   // Memoized position calculations
   const positions = useMemo(() => {

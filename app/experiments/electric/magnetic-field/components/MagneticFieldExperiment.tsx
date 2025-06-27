@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import MagneticSimulator from './MagneticSimulator';
 import ParameterControls from './ParameterControls';
 import { useLanguage } from '../../../../../components/LanguageContext';
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f3f4f6',
-    padding: 16,
+    padding: Platform.OS === 'web' ? 16 : 8, // Mobilde daha az padding
   },
 });
 
