@@ -228,16 +228,16 @@ const BuoyancySimulation: React.FC<BuoyancySimulationProps> = memo(
     const surfaceIndicatorStyle = useMemo(
       (): ViewStyle => ({
         position: 'absolute',
-        bottom: '85%',
+        bottom: '67%', // Yüzen cisimler 60-70% arasında olduğu için su yüzeyi ortası
         left: 0,
         right: 0,
-        height: 2,
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        borderRadius: 1,
+        height: 4, // Biraz daha kalın çizgi
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.3,
-        shadowRadius: 2,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.5,
+        shadowRadius: 4,
       }),
       []
     );
@@ -304,9 +304,11 @@ const BuoyancySimulation: React.FC<BuoyancySimulationProps> = memo(
         <View
           style={{
             flex: 1,
+            minHeight: 650, // 500'den 650'ye çıkardım - çok büyük alan
+            height: '100%', // Tam yükseklik kullan
             backgroundColor: '#f0f9ff',
             borderRadius: 12,
-            overflow: 'hidden',
+            overflow: 'visible', // 'hidden' yerine 'visible' - cisimler çerçeve dışına çıkabilir
             position: 'relative',
           }}
           className="buoyancy-container"

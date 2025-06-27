@@ -143,15 +143,15 @@ export default function BuoyancyExperiment() {
     (objectDensity: number, liquidDens: number) => {
       const densityRatio = objectDensity / liquidDens;
       
-      if (densityRatio < 0.95) {
-        // Yüzer: Su yüzeyinde (80-90% arası)
-        return 85 + (0.95 - densityRatio) * 10;
-      } else if (densityRatio > 1.05) {
-        // Batar: Tank tabanında (10-20% arası)
-        return 15 - (densityRatio - 1.05) * 5;
+      if (densityRatio < 0.9) {
+        // Yüzer: Büyük alanda güvenli (60-70% arası)
+        return 65 + (0.9 - densityRatio) * 2; // Maksimum 70% pozisyon
+      } else if (densityRatio > 1.1) {
+        // Batar: Büyük alanda güvenli (25-35% arası)
+        return 35 - (densityRatio - 1.1) * 1; // Minimum 25% pozisyon
       } else {
         // Askıda kalır: Ortada (45-55% arası)
-        return 50;
+        return 50 + (densityRatio - 1) * 5;
       }
     },
     []
@@ -392,10 +392,11 @@ const containerStyles = {
     gap: 16,
   },
   simulationCard: {
-    flex: 2,
+    flex: 5,
+    minHeight: 650,
     backgroundColor: 'white',
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: 'visible',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -403,7 +404,8 @@ const containerStyles = {
     shadowRadius: 4,
   },
   controlsCard: {
-    flex: 1,
+    flex: 1.5,
+    maxHeight: 250,
     backgroundColor: 'white',
     borderRadius: 12,
     overflow: 'hidden',
