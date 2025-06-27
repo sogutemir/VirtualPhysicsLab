@@ -9,6 +9,9 @@ interface PhotonSourceProps {
   isActive: boolean;
 }
 
+// Mobil kontrol değişkeni
+const isMobile = Platform.OS !== 'web';
+
 const PhotonSource: React.FC<PhotonSourceProps> = ({
   wavelength,
   intensity,
@@ -16,7 +19,6 @@ const PhotonSource: React.FC<PhotonSourceProps> = ({
 }) => {
   const { t } = useLanguage();
   const lightColor = wavelengthToColor(wavelength);
-  const isMobile = Platform.OS !== 'web';
 
   // Animasyon için Animated değerleri
   const photonAnimValues = useRef<Animated.Value[]>([]);
@@ -142,15 +144,15 @@ const PhotonSource: React.FC<PhotonSourceProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 160,
-    width: 96,
+    height: isMobile ? 140 : 160,
+    width: isMobile ? 80 : 96,
     alignItems: 'center',
     justifyContent: 'flex-end',
     position: 'relative',
   },
   source: {
-    width: 64,
-    height: 96,
+    width: isMobile ? 50 : 64,
+    height: isMobile ? 80 : 96,
     backgroundColor: '#333',
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
@@ -160,10 +162,10 @@ const styles = StyleSheet.create({
   },
   sourceInner: {
     position: 'absolute',
-    top: 8,
-    bottom: 8,
-    left: 8,
-    right: 8,
+    top: isMobile ? 6 : 8,
+    bottom: isMobile ? 6 : 8,
+    left: isMobile ? 6 : 8,
+    right: isMobile ? 6 : 8,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
     backgroundColor: '#444',
@@ -171,18 +173,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   lightBulb: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    shadowRadius: 10,
+    width: isMobile ? 26 : 32,
+    height: isMobile ? 26 : 32,
+    borderRadius: isMobile ? 13 : 16,
+    shadowRadius: isMobile ? 8 : 10,
     shadowOffset: { width: 0, height: 0 },
   },
   photon: {
     position: 'absolute',
-    height: 4,
-    width: 20,
-    borderRadius: 2,
-    left: 80,
+    height: isMobile ? 5 : 4,
+    width: isMobile ? 25 : 20,
+    borderRadius: isMobile ? 2.5 : 2,
+    left: isMobile ? 65 : 80,
   },
 });
 

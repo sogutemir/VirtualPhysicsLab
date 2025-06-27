@@ -15,16 +15,19 @@ import ControlPanel from './ControlPanel';
 import {
   MetalType,
   calculateCurrent,
-  calculateKineticEnergy,
+  calculateMaxKineticEnergy,
+  calculateStoppingPotential,
   calculateThresholdFrequency,
   generateIVCurveData,
   generateEnergyFrequencyData,
   frequencyToWavelength,
 } from '../../utils/photoelectric';
 
+// Mobil kontrol değişkeni
+const isMobile = Platform.OS !== 'web';
+
 const PhotoelectricSimulator: React.FC = () => {
   const { language, t } = useLanguage();
-  const isMobile = Platform.OS !== 'web';
 
   // Durum değişkenleri
   const [frequency, setFrequency] = useState(6e14); // 600 THz (yaklaşık 500 nm)
@@ -36,7 +39,8 @@ const PhotoelectricSimulator: React.FC = () => {
 
   // Hesaplanmış değerler
   const [current, setCurrent] = useState(0);
-  const [kineticEnergy, setKineticEnergy] = useState(0);
+  const [maxKineticEnergy, setMaxKineticEnergy] = useState(0);
+  const [theoreticalStoppingPotential, setTheoreticalStoppingPotential] = useState(0);
   const [ivCurveData, setIVCurveData] = useState<any[]>([]);
   const [efCurveData, setEFCurveData] = useState<any[]>([]);
 
@@ -51,7 +55,7 @@ const PhotoelectricSimulator: React.FC = () => {
 
   // Elektron emisyonu oluyor mu?
   const isEmittingElectrons =
-    isLightOn && frequency >= thresholdFrequency && kineticEnergy > 0;
+    isLightOn && frequency >= thresholdFrequency && maxKineticEnergy > 0;
 
   // Emisyon durumu değiştiğinde animasyon
   useEffect(() => {
@@ -115,11 +119,8 @@ const PhotoelectricSimulator: React.FC = () => {
   // Değerler değiştiğinde hesaplamaları güncelle
   useEffect(() => {
     if (isLightOn) {
-      const newKineticEnergy = calculateKineticEnergy(
-        frequency,
-        metalType,
-        stoppingVoltage
-      );
+      const newMaxKineticEnergy = calculateMaxKineticEnergy(frequency, metalType);
+      const newTheoreticalStoppingPotential = calculateStoppingPotential(frequency, metalType);
       const newCurrent = calculateCurrent(
         frequency,
         intensity,
@@ -128,7 +129,8 @@ const PhotoelectricSimulator: React.FC = () => {
         temperature
       );
 
-      setKineticEnergy(newKineticEnergy);
+      setMaxKineticEnergy(newMaxKineticEnergy);
+      setTheoreticalStoppingPotential(newTheoreticalStoppingPotential);
       setCurrent(newCurrent);
 
       // I-V eğrisi verilerini güncelle
@@ -141,7 +143,8 @@ const PhotoelectricSimulator: React.FC = () => {
       const maxFreq = 2e15;
       setEFCurveData(generateEnergyFrequencyData(minFreq, maxFreq, metalType));
     } else {
-      setKineticEnergy(0);
+      setMaxKineticEnergy(0);
+      setTheoreticalStoppingPotential(0);
       setCurrent(0);
     }
   }, [
@@ -304,12 +307,12 @@ const PhotoelectricSimulator: React.FC = () => {
             </View>
             <View style={styles.resultsRow}>
               <Text style={styles.resultsLabel}>
-                {t('Kinetik Enerji:', 'Kinetic Energy:')}
+                {t('Maks. Kinetik Enerji:', 'Max. Kinetic Energy:')}
               </Text>
               <Animated.View
                 style={[
                   styles.resultIndicator,
-                  kineticEnergy > 0
+                  maxKineticEnergy > 0
                     ? styles.resultIndicatorSuccess
                     : styles.resultIndicatorWarning,
                   { opacity: emissionAnimation },
@@ -318,10 +321,18 @@ const PhotoelectricSimulator: React.FC = () => {
               <Text
                 style={[
                   styles.resultsValue,
-                  kineticEnergy > 0 ? styles.resultPositive : null,
+                  maxKineticEnergy > 0 ? styles.resultPositive : null,
                 ]}
               >
-                {kineticEnergy.toFixed(2)} eV
+                {maxKineticEnergy.toFixed(2)} eV
+              </Text>
+            </View>
+            <View style={styles.resultsRow}>
+              <Text style={styles.resultsLabel}>
+                {t('Teorik Durdurucu Potansiyel:', 'Theoretical Stopping Potential:')}
+              </Text>
+              <Text style={styles.resultsValue}>
+                {theoreticalStoppingPotential.toFixed(2)} V
               </Text>
             </View>
             <View style={styles.resultsRow}>
@@ -361,8 +372,14 @@ const PhotoelectricSimulator: React.FC = () => {
         </Text>
         <Text style={styles.infoText}>
           {t(
-            "Einstein'ın açıklamasına göre, ışık foton adı verilen enerji paketlerinden oluşur ve her fotonun enerjisi E = hf formülüyle hesaplanır (h: Planck sabiti, f: frekans). Bir foton, enerjisi metalin iş fonksiyonundan (Φ) büyükse elektron koparabilir: E = hf - Φ",
-            "According to Einstein's explanation, light consists of energy packets called photons, and the energy of each photon is calculated by the formula E = hf (h: Planck's constant, f: frequency). A photon can eject an electron if its energy is greater than the metal's work function (Φ): E = hf - Φ"
+            "Einstein'ın açıklamasına göre, ışık foton adı verilen enerji paketlerinden oluşur ve her fotonun enerjisi E = hf formülüyle hesaplanır (h: Planck sabiti, f: frekans). Bir foton, enerjisi metalin iş fonksiyonundan (Φ) büyükse elektron koparabilir: E_max = hf - Φ",
+            "According to Einstein's explanation, light consists of energy packets called photons, and the energy of each photon is calculated by the formula E = hf (h: Planck's constant, f: frequency). A photon can eject an electron if its energy is greater than the metal's work function (Φ): E_max = hf - Φ"
+          )}
+        </Text>
+        <Text style={styles.infoText}>
+          {t(
+            "Önemli fiziksel kurallar: 1) Eşik frekansının altında hiç elektron koparılmaz, 2) Akım sadece ışık şiddetine bağlıdır, frekansa bağlı değildir, 3) Elektronların maksimum kinetik enerjisi sadece frekansa bağlıdır, şiddete bağlı değildir, 4) Durdurucu potansiyel elektronları durdurur ve akımı sıfırlar.",
+            "Important physical rules: 1) No electrons are emitted below the threshold frequency, 2) Current depends only on light intensity, not on frequency, 3) Maximum kinetic energy of electrons depends only on frequency, not on intensity, 4) Stopping potential stops electrons and cuts current to zero."
           )}
         </Text>
       </View>
@@ -382,7 +399,8 @@ const PhotoelectricSimulator: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: isMobile ? 12 : 16,
+    paddingBottom: isMobile ? 20 : 16,
   },
   experimentContainer: {
     flexDirection: 'column',
@@ -391,15 +409,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    height: 300,
+    height: isMobile ? 250 : 300,
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
-    padding: 16,
+    padding: isMobile ? 8 : 16,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    elevation: 2,
   },
   apparatusContainer: {
     flexDirection: 'row',
@@ -410,44 +429,46 @@ const styles = StyleSheet.create({
   apparatusMobile: {
     // Mobil cihazlarda bileşenlerin arasındaki mesafeyi ayarla
     justifyContent: 'space-between',
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   controlsAndResults: {
-    flexDirection: 'row',
+    flexDirection: isMobile ? 'column' : 'row',
     flexWrap: 'wrap',
-    gap: 16,
+    gap: isMobile ? 12 : 16,
   },
   resultsContainer: {
     flex: 1,
-    minWidth: 250,
+    minWidth: isMobile ? 'auto' : 250,
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
-    padding: 16,
+    padding: isMobile ? 12 : 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    marginTop: isMobile ? 8 : 0,
   },
   resultsTitle: {
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: isMobile ? 12 : 16,
     color: '#2c3e50',
   },
   resultsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: isMobile ? 6 : 8,
     position: 'relative',
+    minHeight: isMobile ? 28 : 24,
   },
   resultIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: isMobile ? 10 : 8,
+    height: isMobile ? 10 : 8,
+    borderRadius: isMobile ? 5 : 4,
     position: 'absolute',
-    right: '30%',
+    right: isMobile ? '25%' : '30%',
   },
   resultIndicatorSuccess: {
     backgroundColor: '#2ecc71',
@@ -466,49 +487,53 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   resultsLabel: {
-    fontSize: 14,
+    fontSize: isMobile ? 13 : 14,
     color: '#34495e',
+    flex: 1,
+    flexWrap: 'wrap',
   },
   resultsValue: {
-    fontSize: 14,
+    fontSize: isMobile ? 13 : 14,
     fontWeight: '500',
     color: '#2c3e50',
+    textAlign: 'right',
+    marginLeft: 8,
   },
   infoContainer: {
-    marginTop: 24,
+    marginTop: isMobile ? 16 : 24,
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
-    padding: 16,
+    padding: isMobile ? 12 : 16,
   },
   infoTitle: {
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: isMobile ? 8 : 12,
     color: '#2c3e50',
   },
   infoText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: isMobile ? 13 : 14,
+    lineHeight: isMobile ? 20 : 22,
     color: '#34495e',
-    marginBottom: 12,
+    marginBottom: isMobile ? 8 : 12,
   },
   chartSection: {
-    marginTop: 24,
+    marginTop: isMobile ? 16 : 24,
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
-    padding: 16,
+    padding: isMobile ? 12 : 16,
   },
   chartTitle: {
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: isMobile ? 8 : 12,
     color: '#2c3e50',
   },
   chartDescription: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: isMobile ? 13 : 14,
+    lineHeight: isMobile ? 20 : 22,
     color: '#34495e',
-    marginBottom: 12,
+    marginBottom: isMobile ? 8 : 12,
     fontStyle: 'italic',
   },
 });

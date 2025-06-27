@@ -9,15 +9,17 @@ interface MetalSurfaceProps {
   intensity: number;
 }
 
+// Mobil kontrol değişkeni
+const isMobile = Platform.OS !== 'web';
+
 const MetalSurface: React.FC<MetalSurfaceProps> = ({
   metalType,
   emittingElectrons,
   intensity,
 }) => {
   const { t } = useLanguage();
-  const isMobile = Platform.OS !== 'web';
   // Metal genişliği (referans olarak kullanılacak)
-  const metalWidth = isMobile ? 40 : 80;
+  const metalWidth = isMobile ? 35 : 80;
 
   // Elektron animasyonları için değişkenler
   const electronAnimValues = useRef<Animated.Value[]>([]);
@@ -154,7 +156,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   metalSurface: {
-    height: 256,
+    height: isMobile ? 200 : 256,
     width: 80, // Web için varsayılan, mobilde override edilecek
     borderRadius: 8,
     shadowColor: '#000',
@@ -177,14 +179,14 @@ const styles = StyleSheet.create({
   },
   electron: {
     position: 'absolute',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: isMobile ? 10 : 8,
+    height: isMobile ? 10 : 8,
+    borderRadius: isMobile ? 5 : 4,
     backgroundColor: '#50a8ff',
     shadowColor: '#1e90ff',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
-    shadowRadius: 4,
+    shadowRadius: isMobile ? 6 : 4,
     elevation: 4,
     // left özelliği inline style olarak belirlenecek
   },
