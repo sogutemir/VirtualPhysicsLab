@@ -238,33 +238,99 @@ export default function InclinedPlaneExperiment() {
   const planeEndY = CONSTANTS.PLANE_LENGTH * Math.sin(angleRad) * planeScale;
 
   // Deney açıklamaları
-  const description = `
-    Eğik düzlem deneyi, bir cismin eğimli bir yüzey üzerindeki hareketini incelememizi sağlar.
-    Bu deneyde, açı, kütle, sürtünme katsayısı ve uygulanan kuvvet gibi parametreleri değiştirerek
-    cismin hareketini gözlemleyebilirsiniz.
+  const description = `🎯 Eğik düzlem deneyi, bir cismin eğimli yüzey üzerindeki hareketini inceleyen temel fizik deneyidir.
 
-    Eğik düzlem üzerindeki bir cisim, yerçekimi kuvvetinin eğik düzleme paralel bileşeni, sürtünme kuvveti
-    ve uygulanan kuvvetin etkisi altında hareket eder. Net kuvvet, cismin ivmesini belirler.
+📚 TEORİ VE FORMÜLLER:
 
-    Deneyde şunları gözlemleyebilirsiniz:
-    - Açı arttıkça yerçekiminin eğik düzleme paralel bileşeni artar
-    - Sürtünme kuvveti, normal kuvvet ve sürtünme katsayısına bağlıdır
-    - Cisim, net kuvvetin sıfır olduğu durumda sabit hızla hareket eder
-  `;
+⚡ Kuvvet Bileşenleri:
+• Paralel bileşen: Fg∥ = mg sin θ
+• Dik bileşen: Fg⊥ = mg cos θ
+• Normal kuvvet: N = mg cos θ + Fapplied cos α
 
-  const descriptionEn = `
-    The inclined plane experiment allows us to study the motion of an object on a sloped surface.
-    In this experiment, you can observe the motion of an object by changing parameters such as angle,
-    mass, friction coefficient, and applied force.
+🔄 Hareket Denklemleri:
+• Net kuvvet: Fnet = Fapplied + mg sin θ - Ffriction
+• Sürtünme kuvveti: Ff = μN = μmg cos θ
+• İvme: a = Fnet / m
+• Hız: v(t) = v₀ + at
+• Konum: x(t) = x₀ + v₀t + ½at²
 
-    An object on an inclined plane moves under the influence of the parallel component of gravity,
-    friction force, and applied force. The net force determines the acceleration of the object.
+⚖️ Denge Koşulları:
+• Statik denge: mg sin θ ≤ μs mg cos θ
+• Kinetik hareket: mg sin θ > μk mg cos θ
+• Kritik açı: θc = arctan(μs)
 
-    In this experiment, you can observe:
-    - As the angle increases, the parallel component of gravity increases
-    - The friction force depends on the normal force and the coefficient of friction
-    - The object moves at constant velocity when the net force is zero
-  `;
+🔋 Enerji Analizi:
+• Potansiyel enerji: Ep = mgh = mgx sin θ
+• Kinetik enerji: Ek = ½mv²
+• İş-enerji teoremi: W = ΔEk
+
+💡 Sürtünme Türleri:
+• Statik sürtünme: fs ≤ μsN
+• Kinetik sürtünme: fk = μkN
+• Genellikle μs > μk
+
+🎮 Parametre Aralıkları:
+- Eğim Açısı (θ): 0° - 90°
+- Kütle (m): 0.1 - 10.0 kg
+- Sürtünme Katsayısı (μ): 0.0 - 1.0
+- Uygulanan Kuvvet: -100 - +100 N
+
+🔬 Gözlemlenebilir Durumlar:
+• Statik denge (cisim hareketsiz)
+• Sabit hızla hareket (a = 0)
+• İvmeli hareket (a ≠ 0)
+• Açı artışının etkisi
+• Sürtünmenin hareket üzerindeki etkisi
+
+💻 Fiziksel İlkeler:
+Newton'un hareket yasaları ve sürtünme kuvvetlerinin eğik düzlemde uygulanması. Sistem, yerçekimi, normal kuvvet, sürtünme ve uygulanan kuvvetlerin dengesini gösterir.`;
+
+  const descriptionEn = `🎯 The inclined plane experiment studies the motion of an object on a sloped surface, a fundamental physics experiment.
+
+📚 THEORY AND FORMULAS:
+
+⚡ Force Components:
+• Parallel component: Fg∥ = mg sin θ
+• Perpendicular component: Fg⊥ = mg cos θ
+• Normal force: N = mg cos θ + Fapplied cos α
+
+🔄 Equations of Motion:
+• Net force: Fnet = Fapplied + mg sin θ - Ffriction
+• Friction force: Ff = μN = μmg cos θ
+• Acceleration: a = Fnet / m
+• Velocity: v(t) = v₀ + at
+• Position: x(t) = x₀ + v₀t + ½at²
+
+⚖️ Equilibrium Conditions:
+• Static equilibrium: mg sin θ ≤ μs mg cos θ
+• Kinetic motion: mg sin θ > μk mg cos θ
+• Critical angle: θc = arctan(μs)
+
+🔋 Energy Analysis:
+• Potential energy: Ep = mgh = mgx sin θ
+• Kinetic energy: Ek = ½mv²
+• Work-energy theorem: W = ΔEk
+
+💡 Types of Friction:
+• Static friction: fs ≤ μsN
+• Kinetic friction: fk = μkN
+• Generally μs > μk
+
+🎮 Parameter Ranges:
+- Incline Angle (θ): 0° - 90°
+- Mass (m): 0.1 - 10.0 kg
+- Friction Coefficient (μ): 0.0 - 1.0
+- Applied Force: -100 - +100 N
+
+🔬 Observable Phenomena:
+• Static equilibrium (object at rest)
+• Constant velocity motion (a = 0)
+• Accelerated motion (a ≠ 0)
+• Effect of angle increase
+• Friction's impact on motion
+
+💻 Physical Principles:
+Application of Newton's laws of motion and friction forces on an inclined plane. The system demonstrates the balance of gravity, normal force, friction, and applied forces.`;
 
   return (
     <ExperimentLayout

@@ -109,47 +109,107 @@ export default function SpringMassExperiment() {
 
   // Memoized description
   const description = useMemo(() => t(
-    `Gelişmiş Yay-Kütle Sistemi: Bu deneyde basit harmonik hareketin detaylı analizini yapabilirsiniz.
-    
-    🔧 Özellikler:
-    • Gerçek zamanlı fizik simülasyonu (Runge-Kutta 4. derece entegrasyon)
-    • İnteraktif yay-kütle sistemi (dokunarak pozisyon ayarlayabilirsiniz)
-    • Hareket izi görselleştirmesi
-    • Enerji analizi ve kuvvet hesaplamaları
-    • Değiştirilebilir fizik parametreleri
-    
-    📊 Parametreler:
-    • Kütle: Sistemin eylemsizliğini belirler
-    • Yay Sabiti: Yayın sertliğini ve frekansı etkiler
-    • Sönümleme: Sistemdeki enerji kaybını simüle eder
-    • Başlangıç Pozisyonu: İlk çekme mesafesi
-    • Başlangıç Hızı: İlk hız değeri
-    
-    🎯 Deneyler:
-    • Farklı kütle değerleriyle frekans değişimini gözlemleyin
-    • Sönümleme etkisini analiz edin
-    • Enerji korunumunu inceleyin`,
+    `🎯 Gelişmiş Yay-Kütle Sistemi: Basit harmonik hareketin detaylı analizi için kapsamlı fizik deneyidir.
 
-    `Advanced Spring-Mass System: Perform detailed analysis of simple harmonic motion.
-    
-    🔧 Features:
-    • Real-time physics simulation (Runge-Kutta 4th order integration)
-    • Interactive spring-mass system (touch to set position)
-    • Motion trail visualization
-    • Energy analysis and force calculations
-    • Adjustable physics parameters
-    
-    📊 Parameters:
-    • Mass: Determines system's inertia
-    • Spring Constant: Affects spring stiffness and frequency
-    • Damping: Simulates energy loss in the system
-    • Initial Position: Initial displacement
-    • Initial Velocity: Initial velocity value
-    
-    🎯 Experiments:
-    • Observe frequency changes with different masses
-    • Analyze damping effects
-    • Study energy conservation`
+📚 TEORİ VE FORMÜLLER:
+
+⚡ Hareket Denklemi:
+• Kuvvet: F = -kx - bv
+• İvme: a = F/m = -(k/m)x - (b/m)v
+• Diferansiyel denklem: mẍ + bẋ + kx = 0
+
+🔄 Basit Harmonik Hareket:
+• Açısal frekans: ω = √(k/m)
+• Periyot: T = 2π√(m/k)
+• Frekans: f = 1/T = (1/2π)√(k/m)
+• Çözüm: x(t) = A cos(ωt + φ)
+
+⚖️ Sönümlü Hareket:
+• Sönümleme oranı: γ = b/(2m)
+• Sönümlü frekans: ωd = √(ω² - γ²)
+• Çözüm: x(t) = Ae^(-γt) cos(ωdt + φ)
+
+🔋 Enerji Analizi:
+• Potansiyel enerji: Ep = ½kx²
+• Kinetik enerji: Ek = ½mv²
+• Toplam enerji: E = Ek + Ep
+• Sönümlü sistemde: E(t) = E₀e^(-2γt)
+
+💡 Sönümleme Türleri:
+• Az sönümlü (γ < ω): Salınımlı hareket
+• Kritik sönümlü (γ = ω): En hızlı dönüş
+• Aşırı sönümlü (γ > ω): Salınımsız dönüş
+
+🎮 Parametre Aralıkları:
+- Kütle (m): 0.1 - 5.0 kg
+- Yay Sabiti (k): 1.0 - 50.0 N/m
+- Sönümleme Katsayısı (b): 0.0 - 2.0 Ns/m
+- Başlangıç Pozisyonu: -1.5 - +1.5 m
+- Başlangıç Hızı: -5.0 - +5.0 m/s
+
+🔬 Gözlemlenebilir Durumlar:
+• Basit harmonik salınım
+• Sönümlü salınım
+• Rezonans frekansı
+• Enerji dönüşümleri
+• Faz ilişkileri
+
+💻 Sayısal Çözüm:
+• Runge-Kutta 4. derece integrasyon
+• Gerçek zamanlı hareket analizi
+• İnteraktif parametre değişikliği
+• Görsel hareket izi takibi`,
+
+    `🎯 Advanced Spring-Mass System: Comprehensive physics experiment for detailed analysis of simple harmonic motion.
+
+📚 THEORY AND FORMULAS:
+
+⚡ Equation of Motion:
+• Force: F = -kx - bv
+• Acceleration: a = F/m = -(k/m)x - (b/m)v
+• Differential equation: mẍ + bẋ + kx = 0
+
+🔄 Simple Harmonic Motion:
+• Angular frequency: ω = √(k/m)
+• Period: T = 2π√(m/k)
+• Frequency: f = 1/T = (1/2π)√(k/m)
+• Solution: x(t) = A cos(ωt + φ)
+
+⚖️ Damped Motion:
+• Damping ratio: γ = b/(2m)
+• Damped frequency: ωd = √(ω² - γ²)
+• Solution: x(t) = Ae^(-γt) cos(ωdt + φ)
+
+🔋 Energy Analysis:
+• Potential energy: Ep = ½kx²
+• Kinetic energy: Ek = ½mv²
+• Total energy: E = Ek + Ep
+• Damped system: E(t) = E₀e^(-2γt)
+
+💡 Damping Types:
+• Underdamped (γ < ω): Oscillatory motion
+• Critically damped (γ = ω): Fastest return
+• Overdamped (γ > ω): Non-oscillatory return
+
+🎮 Parameter Ranges:
+- Mass (m): 0.1 - 5.0 kg
+- Spring Constant (k): 1.0 - 50.0 N/m
+- Damping Coefficient (b): 0.0 - 2.0 Ns/m
+- Initial Position: -1.5 - +1.5 m
+- Initial Velocity: -5.0 - +5.0 m/s
+
+🔬 Observable Phenomena:
+• Simple harmonic oscillation
+• Damped oscillation
+• Resonance frequency
+• Energy transformations
+• Phase relationships
+
+💻 Numerical Solution:
+• Runge-Kutta 4th order integration
+• Real-time motion analysis
+• Interactive parameter changes
+• Visual motion trail tracking`
   ), [t]);
 
   // Memoized styles for mobile optimization

@@ -100,8 +100,96 @@ const MomentumBulletExperiment = memo(() => {
     <ExperimentLayout
       title="Mermi-Kutu Çarpışma Deneyi"
       titleEn="Bullet-Box Collision Experiment"
-      description="Merminin hedefe çarpması ve momentum aktarımını gözlemleyin."
-      descriptionEn="Observe bullet collision with a target and momentum transfer."
+      description={`🎯 Mermi-kutu çarpışma deneyi, momentum korunumu ve çarpışma mekaniğini inceleyen ileri seviye fizik deneyidir.
+
+📚 TEORİ VE FORMÜLLER:
+
+⚡ Momentum Korunumu:
+• Çarpışma öncesi: p₁ = m₁v₁ + m₂v₂
+• Çarpışma sonrası: p₂ = m₁v₁' + m₂v₂'
+• Korunum yasası: p₁ = p₂
+
+🔄 Çarpışma Türleri:
+• Elastik çarpışma: Ek₁ = Ek₂ (enerji korunur)
+• İnelastik çarpışma: Ek₁ > Ek₂ (enerji kaybı)
+• Tam inelastik: Cisimler birleşir (v₁' = v₂')
+
+⚖️ Penetrasyon Analizi:
+• Kinetik enerji: Ek = ½mv²
+• Penetrasyon derinliği: d ∝ Ek/F_direnc
+• Direnç kuvveti: F = σ × A × sertlik
+
+🔋 Enerji Dönüşümü:
+• Başlangıç enerjisi: E₀ = ½mv₀²
+• Penetrasyon işi: W = F_ortalama × d
+• Isı enerjisi: Q = E₀ - E_son
+
+💡 Çarpışma Parametreleri:
+• İmpuls: J = ∫F dt = Δp
+• Çarpışma süresi: Δt ~ ms cinsinden
+• Ortalama kuvvet: F_ort = Δp/Δt
+
+🎮 Parametre Aralıkları:
+- Mermi Kütlesi: 1 - 50 gram
+- Mermi Hızı: 50 - 800 m/s
+- Kutu Kütlesi: 100 - 2000 gram
+- Kutu Sertliği: Yumuşak - Çok Sert
+- Kutu Kalınlığı: 1 - 10 cm
+
+🔬 Gözlemlenebilir Durumlar:
+• Elastik geri sekme
+• Penetrasyon ve delme
+• Momentum aktarımı
+• Enerji dağılımı
+• Hız değişimleri
+
+💻 Fiziksel Modelleme:
+Gerçekçi çarpışma fiziği simülasyonu. Mermi penetrasyonu, kutu hareketi ve enerji transferi hesaplamaları içerir.`}
+      descriptionEn={`🎯 The bullet-box collision experiment studies momentum conservation and collision mechanics in advanced physics.
+
+📚 THEORY AND FORMULAS:
+
+⚡ Momentum Conservation:
+• Before collision: p₁ = m₁v₁ + m₂v₂
+• After collision: p₂ = m₁v₁' + m₂v₂'
+• Conservation law: p₁ = p₂
+
+🔄 Collision Types:
+• Elastic collision: Ek₁ = Ek₂ (energy conserved)
+• Inelastic collision: Ek₁ > Ek₂ (energy loss)
+• Perfectly inelastic: Objects stick together (v₁' = v₂')
+
+⚖️ Penetration Analysis:
+• Kinetic energy: Ek = ½mv²
+• Penetration depth: d ∝ Ek/F_resistance
+• Resistance force: F = σ × A × hardness
+
+🔋 Energy Transformation:
+• Initial energy: E₀ = ½mv₀²
+• Penetration work: W = F_average × d
+• Heat energy: Q = E₀ - E_final
+
+💡 Collision Parameters:
+• Impulse: J = ∫F dt = Δp
+• Collision time: Δt ~ milliseconds
+• Average force: F_avg = Δp/Δt
+
+🎮 Parameter Ranges:
+- Bullet Mass: 1 - 50 grams
+- Bullet Velocity: 50 - 800 m/s
+- Box Mass: 100 - 2000 grams
+- Box Hardness: Soft - Very Hard
+- Box Thickness: 1 - 10 cm
+
+🔬 Observable Phenomena:
+• Elastic bounce
+• Penetration and perforation
+• Momentum transfer
+• Energy distribution
+• Velocity changes
+
+💻 Physical Modeling:
+Realistic collision physics simulation. Includes bullet penetration, box motion, and energy transfer calculations.`}
       difficulty="Orta Seviye"
       difficultyEn="Intermediate"
       isRunning={simulation.isRunning}
