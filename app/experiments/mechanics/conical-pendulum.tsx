@@ -205,8 +205,100 @@ export default function ConicalPendulumExperiment() {
       titleEn="Conical Pendulum"
       difficulty="Orta Seviye"
       difficultyEn="Intermediate"
-      description="Konik sarkaç, bir ipin ucuna bağlı bir kütlenin yatay düzlemde dairesel hareket yaparak konik bir yörünge izlediği fiziksel bir sistemdir. Bu deneyde, konik sarkacın hareketini ve açısal hızın sarkaç açısına etkisini gözlemleyebilirsiniz. Görüş açısını değiştirmek için ekrana dokunup sürükleyin."
-      descriptionEn="A conical pendulum is a physical system where a mass attached to the end of a string moves in a circular path in the horizontal plane, tracing a conical trajectory. In this experiment, you can observe the motion of the conical pendulum and the effect of angular velocity on the pendulum angle. Touch and drag the screen to change the viewing angle."
+      description={`🎯 Konik sarkaç, bir ipin ucuna bağlı kütlenin yatay düzlemde dairesel hareket yaparak konik yörünge izlediği fiziksel sistemdir.
+
+📚 TEORİ VE FORMÜLLER:
+
+⚡ Temel Denge Denklemi:
+cos(α) = g/(L·ω²)
+- α: İp ile düşey arasındaki açı
+- g: Yerçekimi ivmesi (9.81 m/s²)
+- L: İp uzunluğu
+- ω: Açısal hız
+
+🔄 Geometrik İlişkiler:
+r = L·sin(α)  (Yörünge yarıçapı)
+h = L·cos(α)  (Düşey yükseklik)
+
+⏰ Periyot ve Frekans:
+T = 2π/ω  (Periyot)
+f = ω/(2π)  (Frekans)
+
+🎯 Kuvvet Analizi:
+T = mg/cos(α)  (İp gerginliği)
+Fc = mω²r = mg·tan(α)  (Merkezcil kuvvet)
+Fyatay = T·sin(α) = mg·tan(α)
+Fdüşey = T·cos(α) = mg
+
+⚖️ Kritik Koşullar:
+• Minimum ω: ω > √(g/L) (Konik hareket için)
+• Maksimum α: α < 90° (Fiziksel sınır)
+• Kararlılık: cos(α) ≤ 1
+
+🎮 Parametre Aralıkları:
+- İp Uzunluğu (L): 0.50 - 0.75 m
+- Açısal Hız (ω): 3.0 - 7.0 rad/s
+- Görüş Açısı: 360° döndürülebilir
+
+🔬 Gözlemlenebilir Durumlar:
+• Açısal hız arttıkça konik açı artar
+• Yörünge yarıçapı açısal hıza bağlı değişir
+• 3D perspektif ile geometrik ilişkiler
+• Kuvvet dengesinin görsel analizi
+• Kararlı dairesel hareket
+
+🎨 İnteraktif Özellikler:
+• Dokunarak sürükle → Görüş açısı değişir
+• Gerçek zamanlı parametre ayarları
+• Kuvvet vektörleri gösterimi
+• Yörünge izleme modu`}
+      descriptionEn={`🎯 A conical pendulum is a physical system where a mass attached to a string moves in a circular path in the horizontal plane, tracing a conical trajectory.
+
+📚 THEORY AND FORMULAS:
+
+⚡ Fundamental Equilibrium Equation:
+cos(α) = g/(L·ω²)
+- α: Angle between string and vertical
+- g: Gravitational acceleration (9.81 m/s²)
+- L: String length
+- ω: Angular velocity
+
+🔄 Geometric Relations:
+r = L·sin(α)  (Trajectory radius)
+h = L·cos(α)  (Vertical height)
+
+⏰ Period and Frequency:
+T = 2π/ω  (Period)
+f = ω/(2π)  (Frequency)
+
+🎯 Force Analysis:
+T = mg/cos(α)  (String tension)
+Fc = mω²r = mg·tan(α)  (Centripetal force)
+Fhorizontal = T·sin(α) = mg·tan(α)
+Fvertical = T·cos(α) = mg
+
+⚖️ Critical Conditions:
+• Minimum ω: ω > √(g/L) (For conical motion)
+• Maximum α: α < 90° (Physical limit)
+• Stability: cos(α) ≤ 1
+
+🎮 Parameter Ranges:
+- String Length (L): 0.50 - 0.75 m
+- Angular Velocity (ω): 3.0 - 7.0 rad/s
+- View Angle: 360° rotatable
+
+🔬 Observable Phenomena:
+• Conical angle increases with angular velocity
+• Trajectory radius depends on angular velocity
+• 3D perspective shows geometric relationships
+• Visual force balance analysis
+• Stable circular motion
+
+🎨 Interactive Features:
+• Touch and drag → Change view angle
+• Real-time parameter adjustments
+• Force vector display
+• Trajectory tracking mode`}
       isRunning={state.isRunning}
       onToggleSimulation={toggleSimulation}
       onReset={resetAnimation}
