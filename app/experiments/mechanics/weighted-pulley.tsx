@@ -355,22 +355,22 @@ const WeightedPulleyExperiment = memo(() => {
   // 🔧 MOBILE OPTIMIZATION: Safe dimensions without problematic hooks
   const svgDimensions = useMemo(() => {
     if (isMobile) {
-      // Mobilde sabit, güvenli boyutlar - çok daha uzun çerçeve
+      // Mobilde makul boyutlar
       return {
         svgWidth: 350,
-        svgHeight: 600, // 420'den 600'e artırıldı (çok daha uzun)
+        svgHeight: 500, // Yükseklik optimize edildi
         centerX: 175,
-        centerY: 120, // 110'dan 120'ye artırıldı
+        centerY: 100, // Daha yukarıda konumlandırıldı
         R: 45, // Daha küçük makara
         r: 22, // Daha küçük kütle
       };
     } else {
-      // Web için uzatılmış boyut
+      // Web için optimize edilmiş boyut
       return {
         svgWidth: 500,
-        svgHeight: 600, // 400'den 600'e artırıldı
+        svgHeight: 500, // Makul yükseklik
         centerX: 250,
-        centerY: 150, // 133'ten 150'ye artırıldı
+        centerY: 120, // Daha yukarıda konumlandırıldı
         R: 60,
         r: 30,
       };
@@ -381,7 +381,8 @@ const WeightedPulleyExperiment = memo(() => {
 
   // Memoized position calculations
   const positions = useMemo(() => {
-    const L = 100 + 80 * PULLEY_RADIUS * state.phi;
+    // İp uzunluğu hesaplama - yeni zemin seviyesine uygun
+    const L = Math.min(120 + 60 * PULLEY_RADIUS * Math.abs(state.phi), 420);
     const Xf = centerX - R - 20; // Sol tarafa daha fazla kaydır
     const Xm = centerX + r * Math.sin(state.phi);
     const Ym = centerY + r * Math.cos(state.phi);
@@ -435,6 +436,18 @@ const WeightedPulleyExperiment = memo(() => {
           massM: state.massM / 1000,
           massm: state.massm / 1000,
         };
+
+        // Zemin çarpma kontrolü - mobil versiyonu
+        const stringLength = 1.2 + PULLEY_RADIUS * Math.abs(state.phi);
+        if (stringLength >= 4.2) {
+          // Kütle yere çarptı - simülasyonu durdur
+          setState((prev) => ({
+            ...prev,
+            isRunning: false,
+            dphi: 0,
+          }));
+          return;
+        }
 
         // Simplified acceleration calculation
         const R = PULLEY_RADIUS;

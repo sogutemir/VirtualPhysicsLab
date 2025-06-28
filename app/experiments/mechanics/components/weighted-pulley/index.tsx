@@ -206,9 +206,9 @@ const WeightedPulleyExperiment: React.FC = memo(() => {
   const dimensions = useMemo(() => {
     const isWeb = Platform.OS === 'web';
 
-    // Web için uzatılmış boyut
+    // Web için optimize edilmiş boyut
     const WEB_WIDTH = 420;
-    const WEB_HEIGHT = 730; // 530'dan 730'a artırıldı
+    const WEB_HEIGHT = 550; // Daha makul yükseklik
 
     // Mobil için maksimum boyut
     const MOBILE_MAX_WIDTH = width * 0.9;
@@ -225,7 +225,7 @@ const WeightedPulleyExperiment: React.FC = memo(() => {
       const svgSize = Math.min(MOBILE_MAX_WIDTH, MOBILE_MAX_HEIGHT);
       return {
         svgWidth: svgSize,
-        svgHeight: svgSize * 2.2, // 1.6'dan 2.2'ye artırıldı - çok daha uzun çerçeve
+        svgHeight: svgSize * 1.8, // Daha makul oran
         scale: svgSize * 0.4,
         padding: 10,
       };
@@ -234,13 +234,14 @@ const WeightedPulleyExperiment: React.FC = memo(() => {
 
   const { svgWidth, svgHeight, scale, padding } = dimensions;
   const centerX = svgWidth / 2;
-  const centerY = Platform.OS === 'web' ? svgHeight / 5 : svgHeight / 6; // Web'de 1/4'ten 1/5'e, mobilde 1/6
+  const centerY = Platform.OS === 'web' ? svgHeight / 4.5 : svgHeight / 5; // Daha makul pozisyon
 
   // Memoized position calculations
   const positions = useMemo(() => {
     const R = 80; // Makara yarıçapı (piksel)
     const r = 40; // Kütle yarıçapı (piksel)
-    const L = 120 + 100 * PULLEY_RADIUS * state.phi;
+    // İp uzunluğu sınırlandırılması - yeni zemin seviyesine uygun
+    const L = Math.min(120 + 80 * PULLEY_RADIUS * Math.abs(state.phi), 480);
     const Xf = centerX - R;
 
     // Bağlı kütle m (kırmızı) konumu
