@@ -2,6 +2,7 @@ import React, { memo, useMemo, useCallback, useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { cn } from '../lib/utils';
 import { CustomSlider } from '../../../../components/ui/slider';
+import { useLanguage } from '../../../../components/LanguageContext';
 
 interface ObjectProps {
   id: number;
@@ -33,39 +34,39 @@ const SLIDER_CONFIG = {
   OBJECT_STEP: 1, // Hassas kontrol
 } as const;
 
-// Hazır sıvı türleri ve yoğunlukları - memoized
-const liquidPresets = [
-  { name: 'Benzin', density: 750, color: '#fef3c7' },
-  { name: 'Su', density: 1000, color: '#bfdbfe' },
-  { name: 'Deniz Suyu', density: 1025, color: '#93c5fd' },
-  { name: 'Süt', density: 1030, color: '#fecaca' },
-  { name: 'Gliserin', density: 1260, color: '#fbbf24' },
-  { name: 'Cıva', density: 13600, color: '#d1d5db' },
+// Hazır sıvı türleri ve yoğunlukları - dil desteği için fonksiyon
+const getLiquidPresets = (t: (tr: string, en: string) => string) => [
+  { name: t('Benzin', 'Gasoline'), density: 750, color: '#fef3c7' },
+  { name: t('Su', 'Water'), density: 1000, color: '#bfdbfe' },
+  { name: t('Deniz Suyu', 'Seawater'), density: 1025, color: '#93c5fd' },
+  { name: t('Süt', 'Milk'), density: 1030, color: '#fecaca' },
+  { name: t('Gliserin', 'Glycerin'), density: 1260, color: '#fbbf24' },
+  { name: t('Cıva', 'Mercury'), density: 13600, color: '#d1d5db' },
 ] as const;
 
-// Hazır malzeme türleri ve yoğunlukları - memoized
-const materialPresets = [
-  { name: 'Vakum', density: 0, category: 'light' as const },
-  { name: 'Helyum', density: 0.18, category: 'light' as const },
-  { name: 'Hidrojen', density: 0.09, category: 'light' as const },
-  { name: 'Hava', density: 1.2, category: 'light' as const },
-  { name: 'Köpük', density: 50, category: 'light' as const },
-  { name: 'Mantar', density: 240, category: 'light' as const },
-  { name: 'Ahşap', density: 700, category: 'light' as const },
-  { name: 'Buz', density: 920, category: 'light' as const },
-  { name: 'Su', density: 1000, category: 'medium' as const },
-  { name: 'Beton', density: 2400, category: 'medium' as const },
-  { name: 'Cam', density: 2500, category: 'medium' as const },
-  { name: 'Alüminyum', density: 2700, category: 'medium' as const },
-  { name: 'Demir', density: 7800, category: 'heavy' as const },
-  { name: 'Bakır', density: 8960, category: 'heavy' as const },
-  { name: 'Kurşun', density: 11300, category: 'heavy' as const },
-  { name: 'Altın', density: 19300, category: 'heavy' as const },
+// Hazır malzeme türleri ve yoğunlukları - dil desteği için fonksiyon
+const getMaterialPresets = (t: (tr: string, en: string) => string) => [
+  { name: t('Vakum', 'Vacuum'), density: 0, category: 'light' as const },
+  { name: t('Helyum', 'Helium'), density: 0.18, category: 'light' as const },
+  { name: t('Hidrojen', 'Hydrogen'), density: 0.09, category: 'light' as const },
+  { name: t('Hava', 'Air'), density: 1.2, category: 'light' as const },
+  { name: t('Köpük', 'Foam'), density: 50, category: 'light' as const },
+  { name: t('Mantar', 'Cork'), density: 240, category: 'light' as const },
+  { name: t('Ahşap', 'Wood'), density: 700, category: 'light' as const },
+  { name: t('Buz', 'Ice'), density: 920, category: 'light' as const },
+  { name: t('Su', 'Water'), density: 1000, category: 'medium' as const },
+  { name: t('Beton', 'Concrete'), density: 2400, category: 'medium' as const },
+  { name: t('Cam', 'Glass'), density: 2500, category: 'medium' as const },
+  { name: t('Alüminyum', 'Aluminum'), density: 2700, category: 'medium' as const },
+  { name: t('Demir', 'Iron'), density: 7800, category: 'heavy' as const },
+  { name: t('Bakır', 'Copper'), density: 8960, category: 'heavy' as const },
+  { name: t('Kurşun', 'Lead'), density: 11300, category: 'heavy' as const },
+  { name: t('Altın', 'Gold'), density: 19300, category: 'heavy' as const },
 ] as const;
 
 // Optimized liquid preset component
 const LiquidPresetButton: React.FC<{
-  preset: (typeof liquidPresets)[number];
+  preset: { name: string; density: number; color: string };
   isSelected: boolean;
   onPress: () => void;
 }> = memo(({ preset, isSelected, onPress }) => {
@@ -108,11 +109,11 @@ const LiquidPresetButton: React.FC<{
 
 // Optimized material preset component
 const MaterialPresetButton: React.FC<{
-  preset: (typeof materialPresets)[number];
+  preset: { name: string; density: number; category: 'light' | 'medium' | 'heavy' };
   isSelected: boolean;
   onPress: () => void;
 }> = memo(({ preset, isSelected, onPress }) => {
-  const categoryColors = {
+  const categoryColors: Record<'light' | 'medium' | 'heavy', string> = {
     light: '#10b981',
     medium: '#f59e0b',
     heavy: '#ef4444',
@@ -158,6 +159,10 @@ const ObjectControl: React.FC<{
   onInputValueChange: (value: string) => void;
   onFocusChange: (focused: boolean) => void;
 }> = memo(({ obj, liquidDensity, onDensityChange, inputValue, onInputValueChange, onFocusChange }) => {
+  const { t } = useLanguage();
+  
+  // Get material presets with language support
+  const materialPresets = useMemo(() => getMaterialPresets(t), [t]);
   // Memoized shape icon
   const shapeIcon = useMemo(() => {
     const shapeStyle = {
@@ -199,10 +204,10 @@ const ObjectControl: React.FC<{
   // Buoyancy status calculation
   const buoyancyStatus = useMemo(() => {
     const ratio = obj.density / liquidDensity;
-    if (ratio < 0.95) return { text: 'Yüzer', color: '#10b981', icon: '↑' };
-    if (ratio > 1.05) return { text: 'Batar', color: '#ef4444', icon: '↓' };
-    return { text: 'Askıda', color: '#f59e0b', icon: '↔' };
-  }, [obj.density, liquidDensity]);
+    if (ratio < 0.95) return { text: t('Yüzer', 'Floats'), color: '#10b981', icon: '↑' };
+    if (ratio > 1.05) return { text: t('Batar', 'Sinks'), color: '#ef4444', icon: '↓' };
+    return { text: t('Askıda', 'Suspended'), color: '#f59e0b', icon: '↔' };
+  }, [obj.density, liquidDensity, t]);
 
   // Material suggestions based on current density
   const suggestions = useMemo(
@@ -254,7 +259,7 @@ const ObjectControl: React.FC<{
               color: obj.color,
             }}
           >
-            Cisim {obj.id}
+            {t('Cisim', 'Object')} {obj.id}
           </Text>
         </View>
         <View
@@ -286,10 +291,10 @@ const ObjectControl: React.FC<{
         }}
       >
         <Text style={{ fontSize: 14, color: '#64748b' }}>
-          Yoğunluk: {obj.density} kg/m³
+          {t('Yoğunluk', 'Density')}: {obj.density} kg/m³
         </Text>
         <Text style={{ fontSize: 12, color: '#94a3b8' }}>
-          Oran: {(obj.density / liquidDensity).toFixed(2)}x | 0-{SLIDER_CONFIG.OBJECT_MAX}
+          {t('Oran', 'Ratio')}: {(obj.density / liquidDensity).toFixed(2)}x | 0-{SLIDER_CONFIG.OBJECT_MAX}
         </Text>
       </View>
 
@@ -310,7 +315,7 @@ const ObjectControl: React.FC<{
       {/* Sayısal Input Alanı */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <Text style={{ fontSize: 14, color: '#64748b', minWidth: 80 }}>
-          Değer Girin:
+          {t('Değer Girin:', 'Enter Value:')}
         </Text>
         <TextInput
           style={{
@@ -378,7 +383,7 @@ const ObjectControl: React.FC<{
             marginBottom: 8,
           }}
         >
-          Yakın Malzemeler:
+          {t('Yakın Malzemeler:', 'Similar Materials:')}
         </Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {suggestions.map((preset) => (
@@ -403,6 +408,11 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
     onLiquidDensityChange,
     onObjectDensityChange,
   }) => {
+    const { t } = useLanguage();
+    
+    // Dil desteği ile presets'leri al
+    const liquidPresets = useMemo(() => getLiquidPresets(t), [t]);
+    const materialPresets = useMemo(() => getMaterialPresets(t), [t]);
     // Geçici input değerleri için state - memoized initial values
     const [liquidInputValue, setLiquidInputValue] = useState(() => liquidDensity.toString());
     const [objectInputValues, setObjectInputValues] = useState<Record<number, string>>(() => 
@@ -517,7 +527,7 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
               textAlign: 'center',
             }}
           >
-            🌊 Sıvı Yoğunluğu
+            🌊 {t('Sıvı Yoğunluğu', 'Liquid Density')}
           </Text>
 
           <View style={{ marginBottom: 16 }}>
@@ -529,7 +539,7 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
               }}
             >
               <Text style={{ fontSize: 14, color: '#64748b' }}>
-                Yoğunluk: {liquidDensity} kg/m³
+                {t('Yoğunluk', 'Density')}: {liquidDensity} kg/m³
               </Text>
               <Text style={{ fontSize: 12, color: '#94a3b8' }}>
                 {SLIDER_CONFIG.LIQUID_MIN} - {SLIDER_CONFIG.LIQUID_MAX}
@@ -553,7 +563,7 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
             {/* Sayısal Input Alanı */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Text style={{ fontSize: 14, color: '#64748b', minWidth: 80 }}>
-                Değer Girin:
+                {t('Değer Girin:', 'Enter Value:')}
               </Text>
               <TextInput
                 style={{
@@ -624,7 +634,7 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
                 textAlign: 'center',
               }}
             >
-              Hazır Sıvı Seçenekleri:
+              {t('Hazır Sıvı Seçenekleri:', 'Preset Liquid Options:')}
             </Text>
             <View
               style={{
@@ -650,7 +660,7 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
               textAlign: 'center',
             }}
           >
-            📦 Cisim Yoğunlukları
+            📦 {t('Cisim Yoğunlukları', 'Object Densities')}
           </Text>
           {objectControls}
         </View>

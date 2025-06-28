@@ -1,6 +1,7 @@
 import React, { useRef, useMemo, useCallback, memo } from 'react';
 import { View, Text, ViewStyle } from 'react-native';
 import { useIsMobile } from '../hooks/use-mobile';
+import { useLanguage } from '../../../../components/LanguageContext';
 import { cn } from '../lib/utils';
 
 interface ObjectProps {
@@ -103,6 +104,7 @@ const ObjectRenderer = memo<{
   liquidDensity: number;
   isMobile: boolean;
 }>(({ obj, liquidDensity, isMobile }) => {
+  const { t } = useLanguage();
   // Animasyon sınıfını hesapla - memoized
   const animationClass = useMemo(() => {
     const densityDiff = obj.density - liquidDensity;
@@ -210,6 +212,7 @@ const LiquidWaves = memo(() => {
 const BuoyancySimulation: React.FC<BuoyancySimulationProps> = memo(
   ({ objects, liquidColor, liquidDensity }) => {
     const isMobile = useIsMobile();
+    const { t } = useLanguage();
 
     // Liquid container styles - memoized
     const liquidContainerStyle = useMemo(
@@ -277,12 +280,12 @@ const BuoyancySimulation: React.FC<BuoyancySimulationProps> = memo(
 
     // Liquid type indicator
     const getLiquidType = useCallback((density: number): string => {
-      if (density < 900) return 'Yağ';
-      if (density < 1100) return 'Su';
-      if (density < 1300) return 'Gliserin';
-      if (density > 13000) return 'Cıva';
-      return 'Sıvı';
-    }, []);
+      if (density < 900) return t('Yağ', 'Oil');
+      if (density < 1100) return t('Su', 'Water');
+      if (density < 1300) return t('Gliserin', 'Glycerin');
+      if (density > 13000) return t('Cıva', 'Mercury');
+      return t('Sıvı', 'Liquid');
+    }, [t]);
 
     // Physics info overlay style
     const physicsInfoStyle = useMemo(
@@ -347,7 +350,7 @@ const BuoyancySimulation: React.FC<BuoyancySimulationProps> = memo(
                 fontWeight: '500',
               }}
             >
-              Arşimet Prensibi
+              {t('Arşimet Prensibi', 'Archimedes\' Principle')}
             </Text>
           </View>
         </View>

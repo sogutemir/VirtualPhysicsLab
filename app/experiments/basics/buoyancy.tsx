@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import BuoyancySimulation from './components/BuoyancySimulation';
 import DensityControls from './components/DensityControls';
+import { useLanguage } from '../../../components/LanguageContext';
 import { View, ScrollView, Dimensions } from 'react-native';
 import './styles/buoyancy.css';
 
@@ -15,17 +16,17 @@ const PHYSICS_CONSTANTS = {
   MIN_DENSITY: 100,
 } as const;
 
-// Sıvı türleri ve özellikleri
-const LIQUID_TYPES = {
-  WATER: { density: 1000, color: 'rgba(173, 216, 230, 0.8)', name: 'Su' },
-  OIL: { density: 800, color: 'rgba(255, 215, 0, 0.6)', name: 'Yağ' },
-  MERCURY: { density: 13534, color: 'rgba(192, 192, 192, 0.9)', name: 'Cıva' },
+// Sıvı türleri ve özellikleri - dil desteği için fonksiyon
+const getLiquidTypes = (t: (tr: string, en: string) => string) => ({
+  WATER: { density: 1000, color: 'rgba(173, 216, 230, 0.8)', name: t('Su', 'Water') },
+  OIL: { density: 800, color: 'rgba(255, 215, 0, 0.6)', name: t('Yağ', 'Oil') },
+  MERCURY: { density: 13534, color: 'rgba(192, 192, 192, 0.9)', name: t('Cıva', 'Mercury') },
   GLYCERIN: {
     density: 1260,
     color: 'rgba(255, 182, 193, 0.7)',
-    name: 'Gliserin',
+    name: t('Gliserin', 'Glycerin'),
   },
-} as const;
+} as const);
 
 // Önceden tanımlı malzeme yoğunlukları
 const MATERIAL_DENSITIES = {
@@ -55,6 +56,11 @@ interface ObjectState {
 }
 
 export default function BuoyancyExperiment() {
+  const { t } = useLanguage();
+  
+  // Dil desteği ile sıvı türlerini al
+  const LIQUID_TYPES = useMemo(() => getLiquidTypes(t), [t]);
+  
   const [isRunning, setIsRunning] = useState(false);
   const [liquidDensity, setLiquidDensity] = useState<number>(
     PHYSICS_CONSTANTS.WATER_DENSITY
@@ -67,7 +73,7 @@ export default function BuoyancyExperiment() {
   const animationFrameRef = useRef<number>(0);
   const lastUpdateTimeRef = useRef<number>(0);
 
-  // Başlangıç nesneleri - memoized
+  // Başlangıç nesneleri - memoized with language support
   const initialObjects = useMemo<ObjectState[]>(
     () => [
       {
@@ -78,7 +84,7 @@ export default function BuoyancyExperiment() {
         velocity: 0,
         size: 0.8,
         shape: 'circle',
-        label: 'Mantar (240 kg/m³)',
+        label: `${t('Mantar', 'Cork')} (240 kg/m³)`,
         mass: MATERIAL_DENSITIES.CORK * 0.001, // yoğunluk × hacim
         volume: 0.001,
       },
@@ -90,7 +96,7 @@ export default function BuoyancyExperiment() {
         velocity: 0,
         size: 1,
         shape: 'square',
-        label: 'Tahta (600 kg/m³)',
+        label: `${t('Tahta', 'Wood')} (600 kg/m³)`,
         mass: MATERIAL_DENSITIES.WOOD * 0.001, // yoğunluk × hacim
         volume: 0.001,
       },
@@ -102,12 +108,12 @@ export default function BuoyancyExperiment() {
         velocity: 0,
         size: 0.6,
         shape: 'triangle',
-        label: 'Demir (7874 kg/m³)',
+        label: `${t('Demir', 'Iron')} (7874 kg/m³)`,
         mass: MATERIAL_DENSITIES.IRON * 0.0008, // yoğunluk × hacim
         volume: 0.0008,
       },
     ],
-    []
+    [t]
   );
 
   const [objects, setObjects] = useState<ObjectState[]>(initialObjects);
@@ -288,22 +294,22 @@ export default function BuoyancyExperiment() {
     [isRunning]
   );
 
-  // Malzeme adını yoğunluğa göre belirle - memoized
+  // Malzeme adını yoğunluğa göre belirle - memoized with language support
   const getMaterialName = useMemo(
     () =>
       (density: number): string => {
-        if (density < 100) return 'Köpük';
-        if (density < 300) return 'Mantar';
-        if (density < 800) return 'Tahta';
-        if (density < 1000) return 'Buz';
-        if (density < 1500) return 'Plastik';
-        if (density < 3000) return 'Alüminyum';
-        if (density < 5000) return 'Cam';
-        if (density < 8000) return 'Demir';
-        if (density < 12000) return 'Kurşun';
-        return 'Altın';
+        if (density < 100) return t('Köpük', 'Foam');
+        if (density < 300) return t('Mantar', 'Cork');
+        if (density < 800) return t('Tahta', 'Wood');
+        if (density < 1000) return t('Buz', 'Ice');
+        if (density < 1500) return t('Plastik', 'Plastic');
+        if (density < 3000) return t('Alüminyum', 'Aluminum');
+        if (density < 5000) return t('Cam', 'Glass');
+        if (density < 8000) return t('Demir', 'Iron');
+        if (density < 12000) return t('Kurşun', 'Lead');
+        return t('Altın', 'Gold');
       },
-    []
+    [t]
   );
 
   // Nesne yoğunluğu değişikliğini işle - optimized
@@ -351,11 +357,32 @@ export default function BuoyancyExperiment() {
   
   return (
     <ExperimentLayout
-      title="Kaldırma Kuvveti Deneyi"
+      title={t('Kaldırma Kuvveti Deneyi', 'Buoyancy Experiment')}
       titleEn="Buoyancy Experiment"
-      difficulty="Orta Seviye"
+      difficulty={t('Orta Seviye', 'Intermediate')}
       difficultyEn="Intermediate"
-      description="Bu gelişmiş deneyde, Arşimet prensibini ve kaldırma kuvvetini gerçekçi fizik simülasyonu ile gözlemleyeceğiz. Farklı yoğunluktaki cisimlerin çeşitli sıvılar içerisindeki davranışlarını, gerçek zamanlı fizik hesaplamaları ile inceleyeceğiz. Hız, ivme ve denge pozisyonları hesaplanır."
+      description={`${t('Bu gelişmiş deneyde, Arşimet prensibini ve kaldırma kuvvetini gerçekçi fizik simülasyonu ile gözlemleyeceğiz', 'In this advanced experiment, we will observe Archimedes\' principle and buoyant force with realistic physics simulation')}. ${t('Farklı yoğunluktaki cisimlerin çeşitli sıvılar içerisindeki davranışlarını, gerçek zamanlı fizik hesaplamaları ile inceleyeceğiz', 'We will examine the behavior of objects with different densities in various liquids with real-time physics calculations')}. ${t('Hız, ivme ve denge pozisyonları hesaplanır', 'Velocity, acceleration and equilibrium positions are calculated')}.
+
+🎯 **${t('ARŞIMET PRENSİBİ', 'ARCHIMEDES\' PRINCIPLE')}**
+${t('Bir sıvıya daldırılan cismin aldığı kaldırma kuvveti, cismin yer değiştirdiği sıvının ağırlığına eşittir', 'The buoyant force acting on an object immersed in a fluid equals the weight of the fluid displaced by the object')}.
+
+📊 **${t('FİZİK HESAPLAMALARI', 'PHYSICS CALCULATIONS')}:**
+• **${t('Kaldırma Kuvveti', 'Buoyant Force')}**: F_b = ρ_sıvı × V_cisim × g
+• **${t('Ağırlık', 'Weight')}**: W = ρ_cisim × V_cisim × g  
+• **${t('Net Kuvvet', 'Net Force')}**: F_net = F_b - W
+• **${t('İvme', 'Acceleration')}**: a = F_net / m
+
+🔬 **${t('GÖZLEMLENECEK DURUMLAR', 'OBSERVABLE CASES')}:**
+• **${t('Yüzme', 'Floating')}**: ρ_cisim < ρ_sıvı → ${t('Cisim yüzer', 'Object floats')}
+• **${t('Batma', 'Sinking')}**: ρ_cisim > ρ_sıvı → ${t('Cisim batar', 'Object sinks')}  
+• **${t('Askıda Kalma', 'Neutral Buoyancy')}**: ρ_cisim = ρ_sıvı → ${t('Cisim askıda kalır', 'Object remains suspended')}
+
+🎮 **${t('İNTERAKTİF ÖZELLİKLER', 'INTERACTIVE FEATURES')}:**
+• ${t('3 farklı şekilde cisim (daire, kare, üçgen)', '3 different object shapes (circle, square, triangle)')}
+• ${t('6 farklı sıvı türü seçeneği', '6 different liquid type options')}
+• ${t('0-25000 kg/m³ yoğunluk aralığı', '0-25000 kg/m³ density range')}
+• ${t('Gerçek zamanlı fizik simülasyonu', 'Real-time physics simulation')}
+• ${t('Hassas sayısal kontroller', 'Precise numerical controls')}`}
       descriptionEn="In this advanced experiment, we will observe Archimedes' principle and buoyant force with realistic physics simulation. We will examine the behavior of objects with different densities in various liquids with real-time physics calculations including velocity, acceleration and equilibrium positions."
       isRunning={isRunning}
       onToggleSimulation={handleToggleSimulation}
