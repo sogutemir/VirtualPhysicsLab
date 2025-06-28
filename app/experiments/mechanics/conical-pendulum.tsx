@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Switch, Dimensions, ScrollVie
 import { CustomSlider } from '../../../components/ui/slider';
 import Svg, { Line, Circle, Rect, Path } from 'react-native-svg';
 import ExperimentLayout from '../../../components/ExperimentLayout';
+import { useLanguage } from '../../../components/LanguageContext';
 import { useConicalPendulum } from './components/conical-pendulum/useConicalPendulum';
 import {
   Point2D,
@@ -17,6 +18,7 @@ const PROJECTION_DISTANCE = 1000;
 const PROJECTION_RHO = 5.5;
 
 export default function ConicalPendulumExperiment() {
+  const { t } = useLanguage();
   const [viewDimensions, setViewDimensions] = useState({
     width: width - 30,
     height: 400,
@@ -389,7 +391,7 @@ Fvertical = T·cos(α) = mg
           <View style={styles.controlsContainer}>
             <View style={styles.controlGroup}>
               <View style={styles.labelRow}>
-                <Text style={styles.label}>İp Uzunluğu</Text>
+                <Text style={styles.label}>{t('İp Uzunluğu', 'String Length')}</Text>
                 <Text style={styles.value}>{state.length.toFixed(2)} m</Text>
               </View>
               <CustomSlider
@@ -407,7 +409,7 @@ Fvertical = T·cos(α) = mg
 
             <View style={styles.controlGroup}>
               <View style={styles.labelRow}>
-                <Text style={styles.label}>Açısal Hız</Text>
+                <Text style={styles.label}>{t('Açısal Hız', 'Angular Velocity')}</Text>
                 <Text style={styles.value}>{state.omega.toFixed(1)} rad/s</Text>
               </View>
               <CustomSlider
@@ -424,7 +426,7 @@ Fvertical = T·cos(α) = mg
             </View>
 
             <View style={styles.switchRow}>
-              <Text style={styles.label}>Kuvvetleri Göster</Text>
+              <Text style={styles.label}>{t('Kuvvetleri Göster', 'Show Forces')}</Text>
               <Switch
                 value={state.showForces}
                 onValueChange={toggleShowForces}
@@ -434,7 +436,7 @@ Fvertical = T·cos(α) = mg
             </View>
 
             <View style={styles.switchRow}>
-              <Text style={styles.label}>Yörüngeyi Göster</Text>
+              <Text style={styles.label}>{t('Yörüngeyi Göster', 'Show Trajectory')}</Text>
               <Switch
                 value={state.showTrajectory}
                 onValueChange={toggleShowTrajectory}
@@ -445,11 +447,11 @@ Fvertical = T·cos(α) = mg
 
             <View style={styles.measurementsContainer}>
               <View style={styles.measurementItem}>
-                <Text style={styles.measurementLabel}>Açı α:</Text>
+                <Text style={styles.measurementLabel}>{t('Açı α:', 'Angle α:')}</Text>
                 <Text style={styles.measurementValue}>{(state.alpha * 180 / Math.PI).toFixed(1)}°</Text>
               </View>
               <View style={styles.measurementItem}>
-                <Text style={styles.measurementLabel}>Görüş Açısı:</Text>
+                <Text style={styles.measurementLabel}>{t('Görüş Açısı:', 'View Angle:')}</Text>
                 <Text style={styles.measurementValue}>{state.viewAngle.toFixed(1)}°</Text>
               </View>
             </View>
