@@ -1498,21 +1498,119 @@ const AdvancedPendulumExperiment = memo(() => {
   const description = useMemo(
     () =>
       t(
-        `Gelişmiş sarkaç deneyi ile üç farklı sarkaç türünü inceleyebilirsiniz:
+        `🎯 Gelişmiş sarkaç deneyi, üç farklı sarkaç türünün kapsamlı analizi için geliştirilmiş multi-modal fizik deneyidir.
 
-      1. Basit Sarkaç: Klasik sarkaç hareketi ve harmonik salınım
-      2. Çift Sarkaç: Kaotik davranış gösteren karmaşık sistem
-      3. Fiziksel Sarkaç: Farklı şekillerde atalet momentinin etkisi
+📚 TEORİ VE FORMÜLLER:
 
-      Her modda parametreleri değiştirerek farklı fiziksel davranışları gözlemleyebilir, hareket izlerini görüntüleyebilir ve enerji değişimlerini takip edebilirsiniz.`,
+⚡ 1. BASİT SARKAÇ:
+• Diferansiyel denklem: θ̈ + (g/L)sin θ = 0
+• Küçük açılar için: θ̈ + (g/L)θ = 0
+• Açısal frekans: ω = √(g/L)
+• Periyot: T = 2π√(L/g)
+• Çözüm: θ(t) = θ₀ cos(ωt + φ)
 
-        `Advanced pendulum experiment allows you to study three different types of pendulums:
+🔄 2. ÇİFT SARKAÇ (Lagrangian Mekaniği):
+• L₁, m₁: İlk sarkaç uzunluğu ve kütlesi
+• L₂, m₂: İkinci sarkaç uzunluğu ve kütlesi
+• Lagrangian: L = T - V
+• Hareket denklemleri (Euler-Lagrange):
+  - (m₁ + m₂)L₁θ̈₁ + m₂L₂θ̈₂cos(θ₁-θ₂) + ... = 0
+  - m₂L₂θ̈₂ + m₂L₁θ̈₁cos(θ₁-θ₂) + ... = 0
 
-      1. Simple Pendulum: Classic pendulum motion and harmonic oscillation
-      2. Double Pendulum: Complex system exhibiting chaotic behavior  
-      3. Physical Pendulum: Effect of moment of inertia in different shapes
+⚖️ 3. FİZİKSEL SARKAÇ:
+• Moment denklemi: Iθ̈ + mgd sin θ = 0
+• Atalet momenti (I): Şekle bağlı
+  - Çubuk: I = (1/3)mL²
+  - Disk: I = (1/2)mR² + md²
+  - Halka: I = mR² + md²
+• Eşdeğer uzunluk: Leş = I/(md)
 
-      In each mode, you can observe different physical behaviors by changing parameters, view motion trails, and track energy changes.`
+🔋 Enerji Analizi:
+• Potansiyel enerji: V = mgh = mgL(1 - cos θ)
+• Kinetik enerji: T = ½Iω²
+• Toplam enerji: E = T + V = sabit
+• Çift sarkaçta: E = T₁ + T₂ + V₁ + V₂
+
+💡 Kaos Teorisi (Çift Sarkaç):
+• Başlangıç koşullarına hassas bağımlılık
+• Lyapunov üsü pozitif
+• Faz uzayında garip çekici
+• Deterministik ama öngörülemez hareket
+
+🎮 Parametre Aralıkları:
+- Basit Sarkaç: L = 0.5-2.5m, θ₀ = ±45°
+- Çift Sarkaç: L₁,L₂ = 0.5-2.0m, m₁,m₂ = 0.5-3.0kg
+- Fiziksel Sarkaç: L = 0.5-2.0m, m = 0.5-5.0kg
+
+🔬 Gözlemlenebilir Durumlar:
+• Harmonik salınım (küçük açılar)
+• Nonlineer salınım (büyük açılar)
+• Kaotik hareket (çift sarkaç)
+• Periyot-kütle bağımsızlığı
+• Atalet momentinin etkisi
+
+💻 Sayısal Çözüm:
+• Runge-Kutta 4. derece integrasyon
+• Gerçek zamanlı hareket analizi
+• İnteraktif parametre değişikliği
+• Hareket izi görselleştirmesi`,
+
+        `🎯 Advanced pendulum experiment is a multi-modal physics experiment for comprehensive analysis of three different pendulum types.
+
+📚 THEORY AND FORMULAS:
+
+⚡ 1. SIMPLE PENDULUM:
+• Differential equation: θ̈ + (g/L)sin θ = 0
+• Small angles: θ̈ + (g/L)θ = 0
+• Angular frequency: ω = √(g/L)
+• Period: T = 2π√(L/g)
+• Solution: θ(t) = θ₀ cos(ωt + φ)
+
+🔄 2. DOUBLE PENDULUM (Lagrangian Mechanics):
+• L₁, m₁: First pendulum length and mass
+• L₂, m₂: Second pendulum length and mass
+• Lagrangian: L = T - V
+• Equations of motion (Euler-Lagrange):
+  - (m₁ + m₂)L₁θ̈₁ + m₂L₂θ̈₂cos(θ₁-θ₂) + ... = 0
+  - m₂L₂θ̈₂ + m₂L₁θ̈₁cos(θ₁-θ₂) + ... = 0
+
+⚖️ 3. PHYSICAL PENDULUM:
+• Torque equation: Iθ̈ + mgd sin θ = 0
+• Moment of inertia (I): Shape dependent
+  - Rod: I = (1/3)mL²
+  - Disk: I = (1/2)mR² + md²
+  - Ring: I = mR² + md²
+• Equivalent length: Leq = I/(md)
+
+🔋 Energy Analysis:
+• Potential energy: V = mgh = mgL(1 - cos θ)
+• Kinetic energy: T = ½Iω²
+• Total energy: E = T + V = constant
+• Double pendulum: E = T₁ + T₂ + V₁ + V₂
+
+💡 Chaos Theory (Double Pendulum):
+• Sensitive dependence on initial conditions
+• Positive Lyapunov exponent
+• Strange attractor in phase space
+• Deterministic but unpredictable motion
+
+🎮 Parameter Ranges:
+- Simple Pendulum: L = 0.5-2.5m, θ₀ = ±45°
+- Double Pendulum: L₁,L₂ = 0.5-2.0m, m₁,m₂ = 0.5-3.0kg
+- Physical Pendulum: L = 0.5-2.0m, m = 0.5-5.0kg
+
+🔬 Observable Phenomena:
+• Harmonic oscillation (small angles)
+• Nonlinear oscillation (large angles)
+• Chaotic motion (double pendulum)
+• Period-mass independence
+• Effect of moment of inertia
+
+💻 Numerical Solution:
+• Runge-Kutta 4th order integration
+• Real-time motion analysis
+• Interactive parameter changes
+• Motion trail visualization`
       ),
     [t]
   );
