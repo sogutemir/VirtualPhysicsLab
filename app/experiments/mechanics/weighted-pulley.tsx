@@ -621,8 +621,74 @@ const WeightedPulleyExperiment = memo(() => {
         titleEn="Weighted Pulley"
         difficulty="Orta Seviye"
         difficultyEn="Intermediate"
-        description="Ağırlıklı makara sistemi, bir makaraya bağlı iki farklı kütlenin etkileşimini inceleyen bir fizik deneyidir. Bu deneyde, farklı kütle değerleri ve atalet momenti için sistemin davranışını gözlemleyebilirsiniz."
-        descriptionEn="The weighted pulley system is a physics experiment that studies the interaction of two different masses connected by a pulley. In this experiment, you can observe the system's behavior for different mass values and moment of inertia."
+        description={`🎯 Ağırlıklı makara sistemi, bir makaraya bağlı iki farklı kütlenin etkileşimini inceleyen fizik deneyidir.
+
+📚 TEORİ VE FORMÜLLER:
+
+⚡ Hareket Denklemi:
+d²φ/dt² = g(MR - mr sin φ) / I
+
+🔄 Atalet Momenti:
+I = Ip + mr² + MR²
+- Ip: Makaranın atalet momenti
+- m: Bağlı kütle, r: Bağlı kütle yarıçapı (0.4m)
+- M: Asılı kütle, R: Makara yarıçapı (0.8m)
+
+⚖️ Denge Şartı:
+φe = arcsin(MR/mr)
+- MR > mr ise denge mümkün değil
+
+🔋 Enerji Korunumu:
+Ep = mgr(1 - cos φ) - MgRφ
+Ek = ½I(dφ/dt)²
+Etoplam = Ep + Ek = sabit
+
+🎮 Parametre Aralıkları:
+- Atalet Momenti: 0.1 - 1.0 kg.m²
+- Asılı Kütle (M): 150 - 800 gram
+- Bağlı Kütle (m): 100 - 2500 gram
+- Başlangıç Açısı: 0° - 90°
+
+🔬 Gözlemlenebilir Durumlar:
+• Salınım hareketi (küçük açılar)
+• Sürekli dönme (büyük enerji)
+• Denge pozisyonu
+• Enerji dönüşümleri
+• Zemin çarpması (4.2m sınırı)`}
+        descriptionEn={`🎯 The weighted pulley system studies the interaction of two different masses connected by a pulley.
+
+📚 THEORY AND FORMULAS:
+
+⚡ Equation of Motion:
+d²φ/dt² = g(MR - mr sin φ) / I
+
+🔄 Moment of Inertia:
+I = Ip + mr² + MR²
+- Ip: Pulley's moment of inertia
+- m: Attached mass, r: Attached mass radius (0.4m)
+- M: Hanging mass, R: Pulley radius (0.8m)
+
+⚖️ Equilibrium Condition:
+φe = arcsin(MR/mr)
+- If MR > mr, equilibrium is impossible
+
+🔋 Energy Conservation:
+Ep = mgr(1 - cos φ) - MgRφ
+Ek = ½I(dφ/dt)²
+Etotal = Ep + Ek = constant
+
+🎮 Parameter Ranges:
+- Moment of Inertia: 0.1 - 1.0 kg.m²
+- Hanging Mass (M): 150 - 800 grams
+- Attached Mass (m): 100 - 2500 grams
+- Initial Angle: 0° - 90°
+
+🔬 Observable Phenomena:
+• Oscillatory motion (small angles)
+• Continuous rotation (high energy)
+• Equilibrium position
+• Energy transformations
+• Ground collision (4.2m limit)`}
         isRunning={state.isRunning}
         onToggleSimulation={handleStart}
         onReset={handleReset}

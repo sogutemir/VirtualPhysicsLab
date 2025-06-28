@@ -157,6 +157,8 @@ const WeightedPulleyControls: React.FC<WeightedPulleyControlsProps> = memo(
           />
         </View>
 
+
+
         <View style={styles.measurementsContainer}>
           <MeasurementItem
             label={t('Zaman:', 'Time:')}
