@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
-  Text,
+  Text as RNText,
   Pressable,
   StyleSheet,
   Dimensions,
@@ -18,6 +18,7 @@ import Svg, {
   Marker,
   Polygon,
   Rect,
+  Text,
 } from 'react-native-svg';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useLanguage } from '../../../components/LanguageContext';
@@ -129,6 +130,11 @@ const constrainPosition = (
 
 export default function InclinedPlaneExperiment() {
   const { t } = useLanguage();
+  
+  // Mobil optimizasyonu
+  const screenWidth = Dimensions.get('window').width;
+  const isMobile = screenWidth < 600;
+  
   const [state, setState] = useState<InclinedPlaneState>({
     angle: 30,
     mass: 1,
@@ -220,37 +226,111 @@ export default function InclinedPlaneExperiment() {
 
   const forces = calculateForces(state);
   const angleRad = (state.angle * Math.PI) / 180;
-  const planeEndX = CONSTANTS.PLANE_LENGTH * Math.cos(angleRad);
-  const planeEndY = CONSTANTS.PLANE_LENGTH * Math.sin(angleRad);
+  
+  // Mobil için daha büyük boyutlar - uzunlamasına (%30 daha uzun)
+  const svgWidth = isMobile ? screenWidth - 32 : 600;
+  const svgHeight = isMobile ? Math.min(screenWidth * 1.0, 650) : 650;
+  const scale = isMobile ? 0.65 : 1.0; // Mobilde %15 daha küçültme
+  
+  // Düzlemi küçültüp sola kaydırmak için
+  const planeScale = scale * 0.92;
+  const planeEndX = CONSTANTS.PLANE_LENGTH * Math.cos(angleRad) * planeScale;
+  const planeEndY = CONSTANTS.PLANE_LENGTH * Math.sin(angleRad) * planeScale;
 
   // Deney açıklamaları
-  const description = `
-    Eğik düzlem deneyi, bir cismin eğimli bir yüzey üzerindeki hareketini incelememizi sağlar.
-    Bu deneyde, açı, kütle, sürtünme katsayısı ve uygulanan kuvvet gibi parametreleri değiştirerek
-    cismin hareketini gözlemleyebilirsiniz.
+  const description = `🎯 Eğik düzlem deneyi, bir cismin eğimli yüzey üzerindeki hareketini inceleyen temel fizik deneyidir.
 
-    Eğik düzlem üzerindeki bir cisim, yerçekimi kuvvetinin eğik düzleme paralel bileşeni, sürtünme kuvveti
-    ve uygulanan kuvvetin etkisi altında hareket eder. Net kuvvet, cismin ivmesini belirler.
+📚 TEORİ VE FORMÜLLER:
 
-    Deneyde şunları gözlemleyebilirsiniz:
-    - Açı arttıkça yerçekiminin eğik düzleme paralel bileşeni artar
-    - Sürtünme kuvveti, normal kuvvet ve sürtünme katsayısına bağlıdır
-    - Cisim, net kuvvetin sıfır olduğu durumda sabit hızla hareket eder
-  `;
+⚡ Kuvvet Bileşenleri:
+• Paralel bileşen: Fg∥ = mg sin θ
+• Dik bileşen: Fg⊥ = mg cos θ
+• Normal kuvvet: N = mg cos θ + Fapplied cos α
 
-  const descriptionEn = `
-    The inclined plane experiment allows us to study the motion of an object on a sloped surface.
-    In this experiment, you can observe the motion of an object by changing parameters such as angle,
-    mass, friction coefficient, and applied force.
+🔄 Hareket Denklemleri:
+• Net kuvvet: Fnet = Fapplied + mg sin θ - Ffriction
+• Sürtünme kuvveti: Ff = μN = μmg cos θ
+• İvme: a = Fnet / m
+• Hız: v(t) = v₀ + at
+• Konum: x(t) = x₀ + v₀t + ½at²
 
-    An object on an inclined plane moves under the influence of the parallel component of gravity,
-    friction force, and applied force. The net force determines the acceleration of the object.
+⚖️ Denge Koşulları:
+• Statik denge: mg sin θ ≤ μs mg cos θ
+• Kinetik hareket: mg sin θ > μk mg cos θ
+• Kritik açı: θc = arctan(μs)
 
-    In this experiment, you can observe:
-    - As the angle increases, the parallel component of gravity increases
-    - The friction force depends on the normal force and the coefficient of friction
-    - The object moves at constant velocity when the net force is zero
-  `;
+🔋 Enerji Analizi:
+• Potansiyel enerji: Ep = mgh = mgx sin θ
+• Kinetik enerji: Ek = ½mv²
+• İş-enerji teoremi: W = ΔEk
+
+💡 Sürtünme Türleri:
+• Statik sürtünme: fs ≤ μsN
+• Kinetik sürtünme: fk = μkN
+• Genellikle μs > μk
+
+🎮 Parametre Aralıkları:
+- Eğim Açısı (θ): 0° - 90°
+- Kütle (m): 0.1 - 10.0 kg
+- Sürtünme Katsayısı (μ): 0.0 - 1.0
+- Uygulanan Kuvvet: -100 - +100 N
+
+🔬 Gözlemlenebilir Durumlar:
+• Statik denge (cisim hareketsiz)
+• Sabit hızla hareket (a = 0)
+• İvmeli hareket (a ≠ 0)
+• Açı artışının etkisi
+• Sürtünmenin hareket üzerindeki etkisi
+
+💻 Fiziksel İlkeler:
+Newton'un hareket yasaları ve sürtünme kuvvetlerinin eğik düzlemde uygulanması. Sistem, yerçekimi, normal kuvvet, sürtünme ve uygulanan kuvvetlerin dengesini gösterir.`;
+
+  const descriptionEn = `🎯 The inclined plane experiment studies the motion of an object on a sloped surface, a fundamental physics experiment.
+
+📚 THEORY AND FORMULAS:
+
+⚡ Force Components:
+• Parallel component: Fg∥ = mg sin θ
+• Perpendicular component: Fg⊥ = mg cos θ
+• Normal force: N = mg cos θ + Fapplied cos α
+
+🔄 Equations of Motion:
+• Net force: Fnet = Fapplied + mg sin θ - Ffriction
+• Friction force: Ff = μN = μmg cos θ
+• Acceleration: a = Fnet / m
+• Velocity: v(t) = v₀ + at
+• Position: x(t) = x₀ + v₀t + ½at²
+
+⚖️ Equilibrium Conditions:
+• Static equilibrium: mg sin θ ≤ μs mg cos θ
+• Kinetic motion: mg sin θ > μk mg cos θ
+• Critical angle: θc = arctan(μs)
+
+🔋 Energy Analysis:
+• Potential energy: Ep = mgh = mgx sin θ
+• Kinetic energy: Ek = ½mv²
+• Work-energy theorem: W = ΔEk
+
+💡 Types of Friction:
+• Static friction: fs ≤ μsN
+• Kinetic friction: fk = μkN
+• Generally μs > μk
+
+🎮 Parameter Ranges:
+- Incline Angle (θ): 0° - 90°
+- Mass (m): 0.1 - 10.0 kg
+- Friction Coefficient (μ): 0.0 - 1.0
+- Applied Force: -100 - +100 N
+
+🔬 Observable Phenomena:
+• Static equilibrium (object at rest)
+• Constant velocity motion (a = 0)
+• Accelerated motion (a ≠ 0)
+• Effect of angle increase
+• Friction's impact on motion
+
+💻 Physical Principles:
+Application of Newton's laws of motion and friction forces on an inclined plane. The system demonstrates the balance of gravity, normal force, friction, and applied forces.`;
 
   return (
     <ExperimentLayout
@@ -270,51 +350,109 @@ export default function InclinedPlaneExperiment() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.container}>
-          <View style={styles.simulation}>
+          <View style={[styles.simulation, isMobile && styles.mobileSimulation]}>
             <Svg
-              width="100%"
-              height="100%"
-              viewBox="0 0 500 300"
+              width={svgWidth}
+              height={svgHeight}
+              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
               preserveAspectRatio="xMidYMid meet"
             >
-              {/* Eğik düzlem */}
+              {/* Zemin çizgisi */}
+              <Line
+                x1={isMobile ? 30 : 40}
+                y1={svgHeight - (isMobile ? 100 : 120)}
+                x2={svgWidth - (isMobile ? 30 : 40)}
+                y2={svgHeight - (isMobile ? 100 : 120)}
+                stroke="#4a4a4a"
+                strokeWidth={3}
+              />
+              
+              {/* Eğik düzlem - küçültülmüş ve sola kaydırılmış */}
               <Path
-                d={`M 40,250
-        L ${40 + planeEndX * 0.6},${250 - planeEndY * 0.6}
-        L ${40 + planeEndX * 0.6},250 Z`}
+                d={`M ${isMobile ? 35 : 45},${svgHeight - (isMobile ? 100 : 120)}
+            L ${(isMobile ? 35 : 45) + planeEndX},${svgHeight - (isMobile ? 100 : 120) - planeEndY}
+            L ${(isMobile ? 35 : 45) + planeEndX},${svgHeight - (isMobile ? 100 : 120)} Z`}
                 fill="#90a4ae"
-                stroke="black"
+                stroke="#546e7a"
+                strokeWidth={2}
+              />
+
+              {/* Açı göstergesi */}
+              <Path
+                d={`M ${isMobile ? 35 : 45},${svgHeight - (isMobile ? 100 : 120)}
+            A 30,30 0 0,0 ${(isMobile ? 35 : 45) + 30 * Math.cos(angleRad)},${svgHeight - (isMobile ? 100 : 120) - 30 * Math.sin(angleRad)}
+            L ${isMobile ? 35 : 45},${svgHeight - (isMobile ? 100 : 120)}`}
+                fill="rgba(76, 175, 80, 0.3)"
+                stroke="#4caf50"
                 strokeWidth={1}
               />
+              
+              {/* Açı değeri */}
+              <Text
+                x={(isMobile ? 35 : 45) + 40}
+                y={svgHeight - (isMobile ? 70 : 90)}
+                fill="#4caf50"
+                fontSize={isMobile ? "12" : "14"}
+                fontWeight="bold"
+              >
+                {state.angle.toFixed(0)}°
+              </Text>
 
               {/* Kare cisim ve kuvvet vektörü */}
               <G
                 transform={`translate(${
-                  40 + state.position.x * Math.cos(angleRad) * 0.6
+                  (isMobile ? 35 : 45) + state.position.x * Math.cos(angleRad) * planeScale
                 },${
-                  250 - state.position.x * Math.sin(angleRad) * 0.6
+                  svgHeight - (isMobile ? 100 : 120) - state.position.x * Math.sin(angleRad) * planeScale
                 }) rotate(${-state.angle})`}
               >
-                {/* Küçültülmüş kare */}
+                {/* Kütle (kare) - boyut kütleye göre değişiyor */}
                 <Rect
-                  x={-15} // x konumu ayarlandı
-                  y={-30} // y konumu ayarlandı (yukarı kaldırıldı)
-                  width={30} // Genişlik azaltıldı
-                  height={30} // Yükseklik azaltıldı
+                  x={-15 - state.mass * 2}
+                  y={-30 - state.mass * 2}
+                  width={30 + state.mass * 4}
+                  height={30 + state.mass * 4}
                   fill="#f44336"
+                  stroke="#d32f2f"
+                  strokeWidth={2}
                 />
+                
+                {/* Kütle değeri */}
+                <Text
+                  x={0}
+                  y={-15}
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize={isMobile ? "10" : "12"}
+                  fontWeight="bold"
+                >
+                  {state.mass.toFixed(1)}kg
+                </Text>
 
                 {/* Uygulanan kuvvet vektörü */}
                 {state.appliedForce !== 0 && (
-                  <Line
-                    x1={0}
-                    y1={-30} // y1 konumu kare boyutuna göre ayarlandı
-                    x2={state.appliedForce > 0 ? 50 : -50} // Ok uzunluğu aynı kaldı
-                    y2={-30} // y2 konumu kare boyutuna göre ayarlandı
-                    stroke="#2196f3"
-                    strokeWidth={2}
-                    markerEnd="url(#arrowhead)"
-                  />
+                  <>
+                    <Line
+                      x1={0}
+                      y1={-15}
+                      x2={state.appliedForce > 0 ? Math.min(state.appliedForce * 2, 80) : Math.max(state.appliedForce * 2, -80)}
+                      y2={-15}
+                      stroke="#2196f3"
+                      strokeWidth={3}
+                      markerEnd="url(#arrowhead)"
+                    />
+                    {/* Kuvvet değeri */}
+                    <Text
+                      x={state.appliedForce > 0 ? 40 : -40}
+                      y={-35}
+                      textAnchor="middle"
+                      fill="#2196f3"
+                      fontSize={isMobile ? "10" : "12"}
+                      fontWeight="bold"
+                    >
+                      {Math.abs(state.appliedForce).toFixed(0)}N
+                    </Text>
+                  </>
                 )}
               </G>
 
@@ -322,13 +460,13 @@ export default function InclinedPlaneExperiment() {
               <Defs>
                 <Marker
                   id="arrowhead"
-                  markerWidth="6"
-                  markerHeight="4"
-                  refX="6"
-                  refY="2"
+                  markerWidth="10"
+                  markerHeight="8"
+                  refX="10"
+                  refY="4"
                   orient="auto"
                 >
-                  <Polygon points="0,0 6,2 0,4" fill="#2196f3" />
+                  <Polygon points="0,0 10,4 0,8" fill="#2196f3" />
                 </Marker>
               </Defs>
             </Svg>
@@ -338,10 +476,10 @@ export default function InclinedPlaneExperiment() {
             <View style={styles.sliders}>
               <View style={styles.sliderContainer}>
                 <View style={styles.sliderHeader}>
-                  <Text style={styles.sliderLabel}>{t('Açı', 'Angle')}</Text>
-                  <Text style={styles.sliderValue}>
+                  <RNText style={styles.sliderLabel}>{t('Açı', 'Angle')}</RNText>
+                  <RNText style={styles.sliderValue}>
                     {state.angle.toFixed(1)}°
-                  </Text>
+                  </RNText>
                 </View>
                 <CustomSlider
                   style={styles.slider}
@@ -359,10 +497,10 @@ export default function InclinedPlaneExperiment() {
 
               <View style={styles.sliderContainer}>
                 <View style={styles.sliderHeader}>
-                  <Text style={styles.sliderLabel}>{t('Kütle', 'Mass')}</Text>
-                  <Text style={styles.sliderValue}>
+                  <RNText style={styles.sliderLabel}>{t('Kütle', 'Mass')}</RNText>
+                  <RNText style={styles.sliderValue}>
                     {state.mass.toFixed(1)} kg
-                  </Text>
+                  </RNText>
                 </View>
                 <CustomSlider
                   style={styles.slider}
@@ -381,12 +519,12 @@ export default function InclinedPlaneExperiment() {
 
               <View style={styles.sliderContainer}>
                 <View style={styles.sliderHeader}>
-                  <Text style={styles.sliderLabel}>
+                  <RNText style={styles.sliderLabel}>
                     {t('Sürtünme Katsayısı', 'Friction Coefficient')}
-                  </Text>
-                  <Text style={styles.sliderValue}>
+                  </RNText>
+                  <RNText style={styles.sliderValue}>
                     {state.friction.toFixed(2)}
-                  </Text>
+                  </RNText>
                 </View>
                 <CustomSlider
                   style={styles.slider}
@@ -405,12 +543,12 @@ export default function InclinedPlaneExperiment() {
 
               <View style={styles.sliderContainer}>
                 <View style={styles.sliderHeader}>
-                  <Text style={styles.sliderLabel}>
+                  <RNText style={styles.sliderLabel}>
                     {t('Uygulanan Kuvvet', 'Applied Force')}
-                  </Text>
-                  <Text style={styles.sliderValue}>
+                  </RNText>
+                  <RNText style={styles.sliderValue}>
                     {state.appliedForce.toFixed(1)} N
-                  </Text>
+                  </RNText>
                 </View>
                 <CustomSlider
                   style={styles.slider}
@@ -428,53 +566,53 @@ export default function InclinedPlaneExperiment() {
             </View>
 
             <View style={styles.info}>
-              <Text style={styles.infoTitle}>
+              <RNText style={styles.infoTitle}>
                 {t('Ölçüm Değerleri', 'Measurement Values')}
-              </Text>
+              </RNText>
               <View style={styles.infoGrid}>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>{t('Hız', 'Velocity')}</Text>
-                  <Text style={styles.infoValue}>
+                  <RNText style={styles.infoLabel}>{t('Hız', 'Velocity')}</RNText>
+                  <RNText style={styles.infoValue}>
                     {state.velocity.toFixed(2)} m/s
-                  </Text>
+                  </RNText>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>
+                  <RNText style={styles.infoLabel}>
                     {t('İvme', 'Acceleration')}
-                  </Text>
-                  <Text style={styles.infoValue}>
+                  </RNText>
+                  <RNText style={styles.infoValue}>
                     {state.acceleration.toFixed(2)} m/s²
-                  </Text>
+                  </RNText>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>
+                  <RNText style={styles.infoLabel}>
                     {t('Net Kuvvet', 'Net Force')}
-                  </Text>
-                  <Text style={styles.infoValue}>
+                  </RNText>
+                  <RNText style={styles.infoValue}>
                     {forces.net.toFixed(2)} N
-                  </Text>
+                  </RNText>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>
+                  <RNText style={styles.infoLabel}>
                     {t('Normal Kuvvet', 'Normal Force')}
-                  </Text>
-                  <Text style={styles.infoValue}>
+                  </RNText>
+                  <RNText style={styles.infoValue}>
                     {forces.normal.toFixed(2)} N
-                  </Text>
+                  </RNText>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>
+                  <RNText style={styles.infoLabel}>
                     {t('Sürtünme Kuvveti', 'Friction Force')}
-                  </Text>
-                  <Text style={styles.infoValue}>
+                  </RNText>
+                  <RNText style={styles.infoValue}>
                     {forces.friction.toFixed(2)} N
-                  </Text>
+                  </RNText>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>{t('Ağırlık', 'Weight')}</Text>
-                  <Text style={styles.infoValue}>
+                  <RNText style={styles.infoLabel}>{t('Ağırlık', 'Weight')}</RNText>
+                  <RNText style={styles.infoValue}>
                     {forces.gravity.toFixed(2)} N
-                  </Text>
+                  </RNText>
                 </View>
               </View>
             </View>
@@ -496,18 +634,28 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 12,
+    padding: 16,
   },
   simulation: {
-    aspectRatio: 2,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 8,
-    backgroundColor: '#f5f5f5',
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: '#f8f9fa',
     width: '100%',
-    marginBottom: 12,
-    maxHeight: 400,
+    marginBottom: 20,
+    minHeight: 650,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  mobileSimulation: {
+    minHeight: 520,
+    padding: 12,
   },
   controls: {
     flex: 1,
@@ -516,7 +664,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sliderContainer: {
-    marginBottom: 12,
+    marginBottom: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   sliderHeader: {
     flexDirection: 'row',
@@ -525,13 +678,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sliderLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2c3e50',
   },
   sliderValue: {
-    fontSize: 14,
-    color: '#7f8c8d',
+    fontSize: 16,
+    color: '#3498db',
+    fontWeight: '600',
   },
   slider: {
     width: '100%',

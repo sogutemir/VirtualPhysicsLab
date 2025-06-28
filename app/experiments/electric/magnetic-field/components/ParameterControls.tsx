@@ -8,20 +8,15 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import {
-  ChevronDown,
-  ChevronUp,
-  Sliders,
-  Plus,
-  Minus,
-  RefreshCw,
-  Zap,
-  RotateCw,
-  Magnet,
-} from 'lucide-react-native';
+// React Native uyumlu icon helper
+const IconText = ({ children }: { children: string }) => (
+  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#6b7280' }}>
+    {children}
+  </Text>
+);
 import { CustomSlider } from '../../../../../components/ui/slider';
 import { useLanguage } from '../../../../../components/LanguageContext';
-import { FieldType, ParameterControlsProps } from './types';
+import { FieldType, ChargeType, ParameterControlsProps } from './types';
 
 const ParameterControls: React.FC<ParameterControlsProps> = ({
   title,
@@ -29,10 +24,16 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
   wireDistance,
   coilTurns,
   fieldType,
+  showCharges,
+  chargeType,
+  chargeSpeed,
   onCurrentIntensityChange,
   onWireDistanceChange,
   onCoilTurnsChange,
   onFieldTypeChange,
+  onToggleCharges,
+  onChargeTypeChange,
+  onChargeSpeedChange,
   onReset,
 }) => {
   const { language, t } = useLanguage();
@@ -93,7 +94,7 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
       >
         <View style={styles.headerContent}>
           <View style={styles.iconContainer}>
-            <Sliders size={16} color="#6b7280" />
+            <IconText>🎚️</IconText>
           </View>
           <Text style={styles.headerText}>{title}</Text>
         </View>
@@ -101,11 +102,7 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
           onPress={toggleExpanded}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          {isExpanded ? (
-            <ChevronUp size={20} color="#666" />
-          ) : (
-            <ChevronDown size={20} color="#666" />
-          )}
+          <IconText>{isExpanded ? '🔽' : '▶️'}</IconText>
         </TouchableOpacity>
       </TouchableOpacity>
 
@@ -142,7 +139,7 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
                     handleCoilTurnsChange(Math.max(1, coilTurns - 1))
                   }
                 >
-                  <Minus size={16} color="#666" />
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>−</Text>
                 </TouchableOpacity>
                 <Text style={styles.coilTurnsText}>{coilTurns}</Text>
                 <TouchableOpacity
@@ -151,7 +148,7 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
                     handleCoilTurnsChange(Math.min(20, coilTurns + 1))
                   }
                 >
-                  <Plus size={16} color="#666" />
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>+</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -174,6 +171,119 @@ const ParameterControls: React.FC<ParameterControlsProps> = ({
               />
               <Text style={styles.value}>{wireDistance} cm</Text>
             </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t('Yük Simülasyonu', 'Charge Simulation')}
+            </Text>
+
+            <View style={styles.switchContainer}>
+              <Text style={styles.label}>
+                {t('Yükleri Göster', 'Show Charges')}
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.switchButton,
+                  showCharges && styles.switchButtonActive,
+                ]}
+                onPress={onToggleCharges}
+              >
+                <Text
+                  style={[
+                    styles.switchText,
+                    showCharges && styles.switchTextActive,
+                  ]}
+                >
+                  {showCharges ? t('Açık', 'ON') : t('Kapalı', 'OFF')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {showCharges && (
+              <>
+                <View style={styles.section}>
+                  <Text style={styles.label}>
+                    {t('Yük Türü', 'Charge Type')}
+                  </Text>
+                  <View style={styles.chargeTypeContainer}>
+                    <TouchableOpacity
+                      style={[
+                        styles.chargeTypeButton,
+                        chargeType === 'positive' &&
+                          styles.chargeTypeButtonActive,
+                      ]}
+                      onPress={() => onChargeTypeChange('positive')}
+                    >
+                      <Text
+                        style={[
+                          styles.chargeTypeText,
+                          chargeType === 'positive' &&
+                            styles.chargeTypeTextActive,
+                        ]}
+                      >
+                        {t('Pozitif (+)', 'Positive (+)')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.chargeTypeButton,
+                        chargeType === 'negative' &&
+                          styles.chargeTypeButtonActive,
+                      ]}
+                      onPress={() => onChargeTypeChange('negative')}
+                    >
+                      <Text
+                        style={[
+                          styles.chargeTypeText,
+                          chargeType === 'negative' &&
+                            styles.chargeTypeTextActive,
+                        ]}
+                      >
+                        {t('Negatif (-)', 'Negative (-)')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.chargeTypeButton,
+                        chargeType === 'both' && styles.chargeTypeButtonActive,
+                      ]}
+                      onPress={() => onChargeTypeChange('both')}
+                    >
+                      <Text
+                        style={[
+                          styles.chargeTypeText,
+                          chargeType === 'both' && styles.chargeTypeTextActive,
+                        ]}
+                      >
+                        {t('Her İkisi', 'Both')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.section}>
+                  <Text style={styles.label}>
+                    {t('Yük Hızı', 'Charge Speed')}
+                  </Text>
+                  <View style={styles.sliderContainer}>
+                    <CustomSlider
+                      style={styles.slider}
+                      min={1}
+                      max={8}
+                      step={1}
+                      value={chargeSpeed}
+                      onValueChange={onChargeSpeedChange}
+                      minimumTrackTintColor="#6b7280"
+                      maximumTrackTintColor="#e5e7eb"
+                    />
+                    <Text style={styles.value}>{chargeSpeed}</Text>
+                  </View>
+                </View>
+              </>
+            )}
           </View>
 
           <TouchableOpacity style={styles.resetButton} onPress={onReset}>
@@ -278,6 +388,65 @@ const styles = StyleSheet.create({
     color: '#4b5563',
     fontSize: 14,
     fontWeight: '500',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginVertical: 16,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  switchButton: {
+    backgroundColor: '#e5e7eb',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  switchButtonActive: {
+    backgroundColor: '#3b82f6',
+  },
+  switchText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  switchTextActive: {
+    color: 'white',
+  },
+  chargeTypeContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  chargeTypeButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  chargeTypeButtonActive: {
+    backgroundColor: '#3b82f6',
+  },
+  chargeTypeText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  chargeTypeTextActive: {
+    color: 'white',
   },
 });
 

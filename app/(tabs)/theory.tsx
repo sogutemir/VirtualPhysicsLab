@@ -11,7 +11,7 @@ import { ArrowRight, BookOpen } from 'lucide-react-native';
 import { useLanguage } from '../../components/LanguageContext';
 
 // Define theory topic types
-type Category = 'mechanics' | 'waves' | 'electricity' | 'basics';
+type Category = 'mechanics' | 'waves' | 'electricity' | 'basics' | 'modern';
 
 interface TheoryTopic {
   id: string;
@@ -44,6 +44,15 @@ const theoryTopics: TheoryTopic[] = [
     route: '/theory/mechanics/momentum',
   },
   {
+    id: '3',
+    title: 'Fotoelektrik Olay',
+    titleEn: 'Photoelectric Effect',
+    category: 'modern',
+    description: 'Einstein\'ın kuantum teorisi ve fotoelektrik olay',
+    descriptionEn: 'Einstein\'s quantum theory and photoelectric effect',
+    route: '/theory/modern/photoelectric-effect',
+  },
+  {
     id: '4',
     title: 'Dalga Teorisi',
     titleEn: 'Wave Theory',
@@ -53,13 +62,76 @@ const theoryTopics: TheoryTopic[] = [
     route: '/theory/waves/wave-theory',
   },
   {
-    id: '6',
+    id: '5',
+    title: 'Dalga Teorisi',
+    titleEn: 'Wave Theory',
+    category: 'waves',
+    description: 'Dalga hareketi, frekans, dalga boyu ve dalga özellikleri',
+    descriptionEn: 'Wave motion, frequency, wavelength and wave properties',
+    route: '/theory/waves/wave-theory',
+  },
+  {
+    id: '7',
     title: 'Elektrik Alanlar',
     titleEn: 'Electric Fields',
     category: 'electricity',
-    description: 'Elektrik alan kavramı ve Gauss Yasası',
-    descriptionEn: "Concept of electric field and Gauss's Law",
+    description: 'Elektrik alan, potansiyel ve Gauss yasası',
+    descriptionEn: 'Electric field, potential and Gauss law',
     route: '/theory/electricity/electric-fields',
+  },
+  {
+    id: '10',
+    title: 'Ohm Yasası ve Direnç',
+    titleEn: 'Ohm\'s Law and Resistance',
+    category: 'electricity',
+    description: 'Elektrik akımı, gerilim, direnç ve güç hesaplamaları',
+    descriptionEn: 'Electric current, voltage, resistance and power calculations',
+    route: '/theory/electricity/ohm-law-resistance',
+  },
+  {
+    id: '16',
+    title: 'Kirchhoff Yasaları',
+    titleEn: 'Kirchhoff Laws',
+    category: 'electricity',
+    description: 'Akım ve gerilim yasaları, devre analizi teknikleri',
+    descriptionEn: 'Current and voltage laws, circuit analysis techniques',
+    route: '/theory/electricity/kirchhoff-laws',
+  },
+  {
+    id: '17',
+    title: 'Kapasitör ve Kapasitans',
+    titleEn: 'Capacitors and Capacitance',
+    category: 'electricity',
+    description: 'Elektrik yük depolama, dielektrik maddeler ve enerji',
+    descriptionEn: 'Electric charge storage, dielectric materials and energy',
+    route: '/theory/electricity/capacitors-capacitance',
+  },
+  {
+    id: '18',
+    title: 'Manyetik Alanlar',
+    titleEn: 'Magnetic Fields',
+    category: 'electricity',
+    description: 'Manyetik kuvvet, indüksiyon ve elektromanyetizma',
+    descriptionEn: 'Magnetic force, induction and electromagnetism',
+    route: '/theory/electricity/magnetic-fields',
+  },
+  {
+    id: '19',
+    title: 'RC Devreleri',
+    titleEn: 'RC Circuits',
+    category: 'electricity',
+    description: 'Kapasitör-direnç devreleri, şarj ve deşarj analizi',
+    descriptionEn: 'Resistor-capacitor circuits, charging and discharging analysis',
+    route: '/theory/electricity/rc-circuits',
+  },
+  {
+    id: '20',
+    title: 'Transformatörler',
+    titleEn: 'Transformers',
+    category: 'electricity',
+    description: 'Elektromanyetik indüksiyon, gerilim değişimi ve güç transferi',
+    descriptionEn: 'Electromagnetic induction, voltage transformation and power transfer',
+    route: '/theory/electricity/transformers',
   },
   {
     id: '8',
@@ -69,6 +141,60 @@ const theoryTopics: TheoryTopic[] = [
     description: 'Vektör ve skaler büyüklükler',
     descriptionEn: 'Vector and scalar quantities',
     route: '/theory/basics/vectors-scalars',
+  },
+  {
+    id: '9',
+    title: 'Serbest Düşüş ve Yerçekimi',
+    titleEn: 'Free Fall and Gravity',
+    category: 'mechanics',
+    description: 'Yerçekimi kuvveti ve serbest düşüş hareketi',
+    descriptionEn: 'Gravitational force and free fall motion',
+    route: '/theory/mechanics/free-fall-gravity',
+  },
+  {
+    id: '11',
+    title: 'Basit Harmonik Hareket',
+    titleEn: 'Simple Harmonic Motion',
+    category: 'mechanics',
+    description: 'Yay-kütle sistemi, sarkaç ve salınım hareketi',
+    descriptionEn: 'Spring-mass system, pendulum and oscillatory motion',
+    route: '/theory/mechanics/simple-harmonic-motion',
+  },
+  {
+    id: '12',
+    title: 'Enerji Korunumu',
+    titleEn: 'Energy Conservation',
+    category: 'mechanics',
+    description: 'Mekanik enerji, potansiyel enerji ve enerji korunumu yasası',
+    descriptionEn: 'Mechanical energy, potential energy and law of energy conservation',
+    route: '/theory/mechanics/energy-conservation',
+  },
+  {
+    id: '13',
+    title: 'Girişim ve Süperpozisyon',
+    titleEn: 'Interference and Superposition',
+    category: 'waves',
+    description: 'Dalga girişimi, yapıcı-yıkıcı girişim ve süperpozisyon prensibi',
+    descriptionEn: 'Wave interference, constructive-destructive interference and superposition principle',
+    route: '/theory/waves/interference-superposition',
+  },
+  {
+    id: '14',
+    title: 'Çift Yarık Deneyi',
+    titleEn: 'Double Slit Experiment',
+    category: 'waves',
+    description: 'Young deneyi, dalga-parçacık dualitesi ve kuantum mekaniği',
+    descriptionEn: 'Young experiment, wave-particle duality and quantum mechanics',
+    route: '/theory/waves/double-slit-experiment',
+  },
+  {
+    id: '15',
+    title: 'Doppler Etkisi',
+    titleEn: 'Doppler Effect',
+    category: 'waves',
+    description: 'Hareket eden kaynaktan gelen dalgalarda frekans değişimi',
+    descriptionEn: 'Frequency change in waves from moving sources',
+    route: '/theory/waves/doppler-effect',
   },
 ];
 
@@ -81,6 +207,7 @@ const categoryTranslations: Record<Category, { tr: string; en: string }> = {
     en: 'Electricity and Magnetism',
   },
   basics: { tr: 'Temel Kavramlar', en: 'Basic Concepts' },
+  modern: { tr: 'Modern Fizik', en: 'Modern Physics' },
 };
 
 export default function TheoryScreen() {
@@ -99,7 +226,8 @@ export default function TheoryScreen() {
       (categoryParam === 'mechanics' ||
         categoryParam === 'waves' ||
         categoryParam === 'electricity' ||
-        categoryParam === 'basics')
+        categoryParam === 'basics' ||
+        categoryParam === 'modern')
     ) {
       setSelectedCategory(categoryParam as Category);
     }

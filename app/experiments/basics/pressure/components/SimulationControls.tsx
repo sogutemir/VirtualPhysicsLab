@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Card } from '@/components/ui/card';
 import { CustomSlider as Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/components/LanguageContext';
 import { formatWithUnits } from '../utils/pressureCalculator';
 
 interface SimulationControlsProps {
@@ -36,6 +37,8 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
   setContainerHeight,
   resetToDefaults,
 }) => {
+  const { t } = useLanguage();
+  
   return (
     <Card style={{ padding: 16, backgroundColor: 'white' }}>
       <View
@@ -47,10 +50,10 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
         }}
       >
         <Text style={{ fontSize: 16, fontWeight: '500' }}>
-          Simülasyon Parametreleri
+          {t('Simülasyon Parametreleri', 'Simulation Parameters')}
         </Text>
         <Button onPress={resetToDefaults} variant="outline" size="sm">
-          Sıfırla
+          {t('Sıfırla', 'Reset')}
         </Button>
       </View>
 
@@ -64,7 +67,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
               marginBottom: 8,
             }}
           >
-            <Text style={{ fontSize: 12, color: '#666' }}>Nesne Yoğunluğu</Text>
+            <Text style={{ fontSize: 12, color: '#666' }}>{t('Nesne Yoğunluğu', 'Object Density')}</Text>
             <Text style={{ fontSize: 12, fontWeight: '500' }}>
               {formatWithUnits(objectDensity, 'kg/m³')}
             </Text>
@@ -88,7 +91,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
             }}
           >
             <Text style={{ fontSize: 12, color: '#666' }}>
-              Nesne Yüksekliği
+              {t('Nesne Yüksekliği', 'Object Height')}
             </Text>
             <Text style={{ fontSize: 12, fontWeight: '500' }}>
               {formatWithUnits(objectHeight, 'cm')}
@@ -111,7 +114,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
               marginBottom: 8,
             }}
           >
-            <Text style={{ fontSize: 12, color: '#666' }}>Nesne Genişliği</Text>
+            <Text style={{ fontSize: 12, color: '#666' }}>{t('Nesne Genişliği', 'Object Width')}</Text>
             <Text style={{ fontSize: 12, fontWeight: '500' }}>
               {formatWithUnits(objectWidth, 'cm')}
             </Text>
@@ -133,7 +136,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
               marginBottom: 8,
             }}
           >
-            <Text style={{ fontSize: 12, color: '#666' }}>Nesne Derinliği</Text>
+            <Text style={{ fontSize: 12, color: '#666' }}>{t('Nesne Derinliği', 'Object Depth')}</Text>
             <Text style={{ fontSize: 12, fontWeight: '500' }}>
               {formatWithUnits(objectDepth, 'cm')}
             </Text>
@@ -156,7 +159,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
               marginBottom: 8,
             }}
           >
-            <Text style={{ fontSize: 12, color: '#666' }}>Sıvı Yoğunluğu</Text>
+            <Text style={{ fontSize: 12, color: '#666' }}>{t('Sıvı Yoğunluğu', 'Fluid Density')}</Text>
             <Text style={{ fontSize: 12, fontWeight: '500' }}>
               {formatWithUnits(fluidDensity, 'kg/m³')}
             </Text>
@@ -170,37 +173,101 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
           />
         </View>
 
+        {/* Container Yüksekliği */}
+        <View>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginBottom: 8,
+            }}
+          >
+            <Text style={{ fontSize: 12, color: '#666' }}>{t('Container Yüksekliği', 'Container Height')}</Text>
+            <Text style={{ fontSize: 12, fontWeight: '500' }}>
+              {formatWithUnits(containerHeight, 'cm')}
+            </Text>
+          </View>
+          <Slider
+            value={containerHeight}
+            min={200}
+            max={500}
+            step={10}
+            onValueChange={setContainerHeight}
+          />
+        </View>
+
         {/* Hazır Sıvı Seçenekleri */}
         <View
           style={{ backgroundColor: '#f5f5f5', padding: 12, borderRadius: 8 }}
         >
           <Text style={{ fontSize: 14, fontWeight: '500', marginBottom: 8 }}>
-            Hazır Sıvı Seçenekleri
+            {t('Hazır Sıvı Seçenekleri', 'Preset Fluid Options')}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             <TouchableOpacity
               style={{ backgroundColor: 'white', padding: 8, borderRadius: 6 }}
               onPress={() => setFluidDensity(1000)}
             >
-              <Text style={{ fontSize: 12 }}>Tatlı Su</Text>
+              <Text style={{ fontSize: 12 }}>{t('Tatlı Su', 'Fresh Water')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={{ backgroundColor: 'white', padding: 8, borderRadius: 6 }}
               onPress={() => setFluidDensity(1025)}
             >
-              <Text style={{ fontSize: 12 }}>Tuzlu Su</Text>
+              <Text style={{ fontSize: 12 }}>{t('Tuzlu Su', 'Salt Water')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={{ backgroundColor: 'white', padding: 8, borderRadius: 6 }}
-              onPress={() => setFluidDensity(790)}
+              onPress={() => setFluidDensity(800)}
             >
-              <Text style={{ fontSize: 12 }}>Alkol</Text>
+              <Text style={{ fontSize: 12 }}>{t('Alkol', 'Alcohol')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={{ backgroundColor: 'white', padding: 8, borderRadius: 6 }}
               onPress={() => setFluidDensity(13600)}
             >
-              <Text style={{ fontSize: 12 }}>Cıva</Text>
+              <Text style={{ fontSize: 12 }}>{t('Cıva', 'Mercury')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Hazır Nesne Seçenekleri */}
+        <View
+          style={{ backgroundColor: '#f0f8f0', padding: 12, borderRadius: 8 }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '500', marginBottom: 8 }}>
+            {t('Hazır Nesne Seçenekleri', 'Preset Object Options')}
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            <TouchableOpacity
+              style={{ backgroundColor: 'white', padding: 8, borderRadius: 6 }}
+              onPress={() => setObjectDensity(240)}
+            >
+              <Text style={{ fontSize: 12 }}>{t('Mantar', 'Cork')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ backgroundColor: 'white', padding: 8, borderRadius: 6 }}
+              onPress={() => setObjectDensity(600)}
+            >
+              <Text style={{ fontSize: 12 }}>{t('Ahşap', 'Wood')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ backgroundColor: 'white', padding: 8, borderRadius: 6 }}
+              onPress={() => setObjectDensity(920)}
+            >
+              <Text style={{ fontSize: 12 }}>{t('Buzul', 'Ice')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ backgroundColor: 'white', padding: 8, borderRadius: 6 }}
+              onPress={() => setObjectDensity(2700)}
+            >
+              <Text style={{ fontSize: 12 }}>{t('Alüminyum', 'Aluminum')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ backgroundColor: 'white', padding: 8, borderRadius: 6 }}
+              onPress={() => setObjectDensity(7870)}
+            >
+              <Text style={{ fontSize: 12 }}>{t('Demir', 'Iron')}</Text>
             </TouchableOpacity>
           </View>
         </View>

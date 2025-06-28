@@ -1,11 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { useLanguage } from '../../../../../components/LanguageContext';
 
 interface ElectronCollectorProps {
   voltage: number;
   current: number;
 }
+
+// Mobil kontrol değişkeni
+const isMobile = Platform.OS !== 'web';
 
 const ElectronCollector: React.FC<ElectronCollectorProps> = ({
   voltage,
@@ -153,50 +156,50 @@ const ElectronCollector: React.FC<ElectronCollectorProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 256,
+    height: isMobile ? 120 : 256,
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   collector: {
-    width: 48,
-    height: 192,
-    borderRadius: 8,
-    borderWidth: 2,
+    width: isMobile ? 30 : 48,
+    height: isMobile ? 90 : 192,
+    borderRadius: isMobile ? 6 : 8,
+    borderWidth: isMobile ? 1 : 2,
     borderColor: '#ccc',
     shadowOffset: { width: 0, height: 0 },
     alignItems: 'center',
     justifyContent: 'center',
   },
   voltageText: {
-    fontSize: 12,
-    fontFamily: 'monospace',
+    fontSize: isMobile ? 8 : 12,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     color: 'white',
     opacity: 0.8,
   },
   currentIndicator: {
-    marginTop: 8,
+    marginTop: isMobile ? 4 : 8,
     backgroundColor: '#222',
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderRadius: 3,
+    paddingHorizontal: isMobile ? 4 : 8,
+    paddingVertical: isMobile ? 2 : 4,
   },
   currentText: {
-    fontSize: 12,
-    fontFamily: 'monospace',
+    fontSize: isMobile ? 8 : 12,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     color: 'white',
   },
   electronEffect: {
     position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: isMobile ? 40 : 80,
+    height: isMobile ? 40 : 80,
+    borderRadius: isMobile ? 20 : 40,
     backgroundColor: '#4d9fff',
     left: '50%',
     top: '50%',
-    marginLeft: -40,
-    marginTop: -40,
+    marginLeft: isMobile ? -20 : -40,
+    marginTop: isMobile ? -20 : -40,
     opacity: 0.3,
   },
 });

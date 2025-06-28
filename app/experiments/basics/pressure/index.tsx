@@ -6,14 +6,14 @@ import SimulationControls from './components/SimulationControls';
 import InfoPanel from './components/InfoPanel';
 
 const PressureExperiment = () => {
-  // Varsayılan değerler
+  // Varsayılan değerler - optimize edildi
   const defaultValues = {
     fluidDensity: 1000, // su (kg/m³)
-    objectDensity: 800, // tahta (kg/m³)
-    objectHeight: 60, // cm
-    objectWidth: 80, // cm
-    objectDepth: 20, // cm
-    containerHeight: 300, // cm
+    objectDensity: 600, // ahşap (kg/m³) - su üzerinde yüzecek
+    objectHeight: 40, // cm - daha küçük nesne
+    objectWidth: 60, // cm - daha küçük nesne
+    objectDepth: 15, // cm - daha küçük nesne
+    containerHeight: 400, // cm - daha büyük container
   };
 
   // Simülasyon parametreleri için state

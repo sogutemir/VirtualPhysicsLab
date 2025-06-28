@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Card } from '@/components/ui/card';
+import { useLanguage } from '@/components/LanguageContext';
 
 const InfoPanel: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<
     'pressure' | 'buoyancy' | 'formulas'
   >('pressure');
@@ -13,24 +15,28 @@ const InfoPanel: React.FC = () => {
         return (
           <View style={{ gap: 16 }}>
             <Text style={{ fontSize: 14 }}>
-              Sıvı basıncı, bir sıvının içine batırılmış bir nesneye, sıvının
-              ağırlığından dolayı uyguladığı kuvvettir.
+              {t(
+                'Sıvı basıncı, bir sıvının içine batırılmış bir nesneye, sıvının ağırlığından dolayı uyguladığı kuvvettir.',
+                'Fluid pressure is the force exerted by a fluid on an object immersed in it due to the weight of the fluid.'
+              )}
             </Text>
 
             <View style={{ gap: 8 }}>
               <Text style={{ fontSize: 14, fontWeight: '500' }}>
-                Temel İlkeler:
+                {t('Temel İlkeler:', 'Basic Principles:')}
               </Text>
               <View style={{ paddingLeft: 16 }}>
-                <Text style={{ fontSize: 14 }}>• Basınç derinlikle artar</Text>
                 <Text style={{ fontSize: 14 }}>
-                  • Basınç her yönde eşit etkir
+                  • {t('Basınç derinlikle artar', 'Pressure increases with depth')}
                 </Text>
                 <Text style={{ fontSize: 14 }}>
-                  • Basınç sıvı yoğunluğuna bağlıdır
+                  • {t('Basınç her yönde eşit etkir', 'Pressure acts equally in all directions')}
                 </Text>
                 <Text style={{ fontSize: 14 }}>
-                  • Basınç kabın şeklinden bağımsızdır
+                  • {t('Basınç sıvı yoğunluğuna bağlıdır', 'Pressure depends on fluid density')}
+                </Text>
+                <Text style={{ fontSize: 14 }}>
+                  • {t('Basınç kabın şeklinden bağımsızdır', 'Pressure is independent of container shape')}
                 </Text>
               </View>
             </View>
@@ -39,12 +45,13 @@ const InfoPanel: React.FC = () => {
               <Text
                 style={{ fontSize: 14, fontWeight: '500', marginBottom: 8 }}
               >
-                Uygulamalar:
+                {t('Uygulamalar:', 'Applications:')}
               </Text>
               <Text style={{ fontSize: 12, color: '#666' }}>
-                Sıvı basıncını anlamak; barajların, denizaltıların, dalış
-                ekipmanlarının, hidrolik sistemlerin tasarımında ve hatta insan
-                vücudundaki kan basıncını anlamada çok önemlidir.
+                {t(
+                  'Sıvı basıncını anlamak; barajların, denizaltıların, dalış ekipmanlarının, hidrolik sistemlerin tasarımında ve hatta insan vücudundaki kan basıncını anlamada çok önemlidir.',
+                  'Understanding fluid pressure is crucial in designing dams, submarines, diving equipment, hydraulic systems, and even understanding blood pressure in the human body.'
+                )}
               </Text>
             </View>
           </View>
@@ -54,13 +61,15 @@ const InfoPanel: React.FC = () => {
         return (
           <View style={{ gap: 16 }}>
             <Text style={{ fontSize: 14 }}>
-              Kaldırma kuvveti, bir sıvının içine batırılmış bir cisme, cismin
-              ağırlığına karşı uyguladığı yukarı yönlü kuvvettir.
+              {t(
+                'Kaldırma kuvveti, bir sıvının içine batırılmış bir cisme, cismin ağırlığına karşı uyguladığı yukarı yönlü kuvvettir.',
+                'Buoyant force is the upward force exerted by a fluid on an immersed object, opposing the weight of the object.'
+              )}
             </Text>
 
             <View style={{ gap: 8 }}>
               <Text style={{ fontSize: 14, fontWeight: '500' }}>
-                Arşimet Prensibi:
+                {t('Arşimet Prensibi:', 'Archimedes Principle:')}
               </Text>
               <View
                 style={{
@@ -70,26 +79,27 @@ const InfoPanel: React.FC = () => {
                 }}
               >
                 <Text style={{ fontSize: 14 }}>
-                  "Bir sıvıya tamamen veya kısmen batırılmış bir cisme, cismin
-                  yer değiştirdiği sıvının ağırlığına eşit büyüklükte yukarı
-                  yönlü bir kuvvet etki eder."
+                  {t(
+                    '"Bir sıvıya tamamen veya kısmen batırılmış bir cisme, cismin yer değiştirdiği sıvının ağırlığına eşit büyüklükte yukarı yönlü bir kuvvet etki eder."',
+                    '"An object immersed in a fluid experiences an upward force equal to the weight of the fluid displaced by the object."'
+                  )}
                 </Text>
               </View>
             </View>
 
             <View style={{ gap: 8 }}>
               <Text style={{ fontSize: 14, fontWeight: '500' }}>
-                Cisim Davranışı:
+                {t('Cisim Davranışı:', 'Object Behavior:')}
               </Text>
               <View style={{ paddingLeft: 16 }}>
                 <Text style={{ fontSize: 14 }}>
-                  • Yüzme: cisim yoğunluğu {'<'} sıvı yoğunluğu
+                  • {t('Yüzme: cisim yoğunluğu < sıvı yoğunluğu', 'Floating: object density < fluid density')}
                 </Text>
                 <Text style={{ fontSize: 14 }}>
-                  • Batma: cisim yoğunluğu {'>'} sıvı yoğunluğu
+                  • {t('Batma: cisim yoğunluğu > sıvı yoğunluğu', 'Sinking: object density > fluid density')}
                 </Text>
                 <Text style={{ fontSize: 14 }}>
-                  • Askıda kalma: yoğunluklar eşit
+                  • {t('Askıda kalma: yoğunluklar eşit', 'Neutral buoyancy: densities equal')}
                 </Text>
               </View>
             </View>
@@ -101,7 +111,7 @@ const InfoPanel: React.FC = () => {
           <View style={{ gap: 16 }}>
             <View style={{ gap: 8 }}>
               <Text style={{ fontSize: 14, fontWeight: '500' }}>
-                Derinlikteki Basınç:
+                {t('Derinlikteki Basınç:', 'Pressure at Depth:')}
               </Text>
               <View
                 style={{
@@ -116,14 +126,16 @@ const InfoPanel: React.FC = () => {
                 </Text>
               </View>
               <Text style={{ fontSize: 12, color: '#666' }}>
-                P: basınç (Pa), ρ: sıvı yoğunluğu (kg/m³), g: yerçekimi ivmesi
-                (9.8 m/s²), h: derinlik (m)
+                {t(
+                  'P: basınç (Pa), ρ: sıvı yoğunluğu (kg/m³), g: yerçekimi ivmesi (9.8 m/s²), h: derinlik (m)',
+                  'P: pressure (Pa), ρ: fluid density (kg/m³), g: gravitational acceleration (9.8 m/s²), h: depth (m)'
+                )}
               </Text>
             </View>
 
             <View style={{ gap: 8 }}>
               <Text style={{ fontSize: 14, fontWeight: '500' }}>
-                Kaldırma Kuvveti:
+                {t('Kaldırma Kuvveti:', 'Buoyant Force:')}
               </Text>
               <View
                 style={{
@@ -138,14 +150,16 @@ const InfoPanel: React.FC = () => {
                 </Text>
               </View>
               <Text style={{ fontSize: 12, color: '#666' }}>
-                F: kaldırma kuvveti (N), ρ: sıvı yoğunluğu (kg/m³), g: yerçekimi
-                ivmesi (9.8 m/s²), V: batan hacim (m³)
+                {t(
+                  'F: kaldırma kuvveti (N), ρ: sıvı yoğunluğu (kg/m³), g: yerçekimi ivmesi (9.8 m/s²), V: batan hacim (m³)',
+                  'F: buoyant force (N), ρ: fluid density (kg/m³), g: gravitational acceleration (9.8 m/s²), V: submerged volume (m³)'
+                )}
               </Text>
             </View>
 
             <View style={{ gap: 8 }}>
               <Text style={{ fontSize: 14, fontWeight: '500' }}>
-                Batan Kısım Yüzdesi:
+                {t('Batan Kısım Yüzdesi:', 'Submerged Percentage:')}
               </Text>
               <View
                 style={{
@@ -160,7 +174,10 @@ const InfoPanel: React.FC = () => {
                 </Text>
               </View>
               <Text style={{ fontSize: 12, color: '#666' }}>
-                Bu formül cisim yüzdüğünde geçerlidir (ρ1 {'<'} ρ2).
+                {t(
+                  'Bu formül cisim yüzdüğünde geçerlidir (ρ1 < ρ2).',
+                  'This formula applies when the object floats (ρ1 < ρ2).'
+                )}
               </Text>
             </View>
           </View>
@@ -171,7 +188,7 @@ const InfoPanel: React.FC = () => {
   return (
     <Card style={{ padding: 16, backgroundColor: 'white' }}>
       <Text style={{ fontSize: 16, fontWeight: '500', marginBottom: 16 }}>
-        Sıvı Basıncı Fiziği
+        {t('Sıvı Basıncı Fiziği', 'Fluid Pressure Physics')}
       </Text>
 
       <View style={{ flexDirection: 'row', marginBottom: 16 }}>
@@ -186,7 +203,7 @@ const InfoPanel: React.FC = () => {
           }}
           onPress={() => setActiveTab('pressure')}
         >
-          <Text>Basınç</Text>
+          <Text>{t('Basınç', 'Pressure')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={{
@@ -199,7 +216,7 @@ const InfoPanel: React.FC = () => {
           }}
           onPress={() => setActiveTab('buoyancy')}
         >
-          <Text>Kaldırma Kuvveti</Text>
+          <Text>{t('Kaldırma', 'Buoyancy')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={{
@@ -212,7 +229,7 @@ const InfoPanel: React.FC = () => {
           }}
           onPress={() => setActiveTab('formulas')}
         >
-          <Text>Formüller</Text>
+          <Text>{t('Formüller', 'Formulas')}</Text>
         </TouchableOpacity>
       </View>
 

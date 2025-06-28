@@ -79,9 +79,7 @@ const WaveInterferenceExperiment: React.FC = memo(() => {
   const [damping, setDamping] = useState(0.02);
   const [animationSpeed, setAnimationSpeed] = useState(1);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [viewMode, setViewMode] = useState<'heatmap' | 'contour' | 'vector'>(
-    'heatmap'
-  );
+
   const [currentScenario, setCurrentScenario] = useState<string | null>(
     'basic-interference'
   );
@@ -152,7 +150,6 @@ const WaveInterferenceExperiment: React.FC = memo(() => {
     }
     setIsPlaying(true);
     setAnimationSpeed(1);
-    setViewMode('heatmap');
   }, [applyScenario]);
 
   const handleWaveSpeedChange = useCallback((speed: number) => {
@@ -168,13 +165,6 @@ const WaveInterferenceExperiment: React.FC = memo(() => {
   const handleAnimationSpeedChange = useCallback((speed: number) => {
     setAnimationSpeed(speed);
   }, []);
-
-  const handleViewModeChange = useCallback(
-    (mode: 'heatmap' | 'contour' | 'vector') => {
-      setViewMode(mode);
-    },
-    []
-  );
 
   const handleTabChange = useCallback(
     (tab: 'controls' | 'scenarios' | 'info') => {
@@ -246,19 +236,8 @@ const WaveInterferenceExperiment: React.FC = memo(() => {
 
   // Memoized view mode text
   const viewModeText = useMemo(() => {
-    return t(
-      viewMode === 'heatmap'
-        ? 'Renk Haritası'
-        : viewMode === 'contour'
-        ? 'Kontur'
-        : 'Vektör',
-      viewMode === 'heatmap'
-        ? 'Heatmap'
-        : viewMode === 'contour'
-        ? 'Contour'
-        : 'Vector'
-    );
-  }, [viewMode, t]);
+    return t('Dairesel Dalga', 'Circular Waves');
+  }, [t]);
 
   const renderTabContent = useCallback(() => {
     switch (activeTab) {
@@ -270,14 +249,12 @@ const WaveInterferenceExperiment: React.FC = memo(() => {
             damping={damping}
             animationSpeed={animationSpeed}
             isPlaying={isPlaying}
-            viewMode={viewMode}
             onSourceChange={handleSourceChange}
             onWaveSpeedChange={handleWaveSpeedChange}
             onDampingChange={handleDampingChange}
             onAnimationSpeedChange={handleAnimationSpeedChange}
             onPlayPause={handlePlayPause}
             onReset={handleReset}
-            onViewModeChange={handleViewModeChange}
           />
         );
       case 'scenarios':
@@ -299,7 +276,6 @@ const WaveInterferenceExperiment: React.FC = memo(() => {
     damping,
     animationSpeed,
     isPlaying,
-    viewMode,
     currentScenario,
     handleSourceChange,
     handleWaveSpeedChange,
@@ -307,7 +283,6 @@ const WaveInterferenceExperiment: React.FC = memo(() => {
     handleAnimationSpeedChange,
     handlePlayPause,
     handleReset,
-    handleViewModeChange,
     applyScenario,
   ]);
 
@@ -381,16 +356,8 @@ const WaveInterferenceExperiment: React.FC = memo(() => {
                 </Text>
                 <Text style={styles.simulationSubtitle}>
                   {t(
-                    viewMode === 'heatmap'
-                      ? 'Renk Haritası Görünümü'
-                      : viewMode === 'contour'
-                      ? 'Kontur Çizgileri Görünümü'
-                      : 'Vektör Alanı Görünümü',
-                    viewMode === 'heatmap'
-                      ? 'Heatmap View'
-                      : viewMode === 'contour'
-                      ? 'Contour Lines View'
-                      : 'Vector Field View'
+                    'Güzel Dairesel Dalga Görünümü',
+                    'Beautiful Circular Wave View'
                   )}
                 </Text>
               </View>
@@ -403,7 +370,6 @@ const WaveInterferenceExperiment: React.FC = memo(() => {
               isPlaying={isPlaying}
               animationSpeed={animationSpeed}
               onSourceMove={handleSourceMove}
-              viewMode={viewMode}
             />
 
             <View style={styles.simulationHelp}>
@@ -434,14 +400,12 @@ const WaveInterferenceExperiment: React.FC = memo(() => {
                       damping={damping}
                       animationSpeed={animationSpeed}
                       isPlaying={isPlaying}
-                      viewMode={viewMode}
                       onSourceChange={handleSourceChange}
                       onWaveSpeedChange={handleWaveSpeedChange}
                       onDampingChange={handleDampingChange}
                       onAnimationSpeedChange={handleAnimationSpeedChange}
                       onPlayPause={handlePlayPause}
                       onReset={handleReset}
-                      onViewModeChange={handleViewModeChange}
                     />
                   </View>
 

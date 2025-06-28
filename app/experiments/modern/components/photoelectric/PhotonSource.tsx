@@ -9,6 +9,9 @@ interface PhotonSourceProps {
   isActive: boolean;
 }
 
+// Mobil kontrol değişkeni
+const isMobile = Platform.OS !== 'web';
+
 const PhotonSource: React.FC<PhotonSourceProps> = ({
   wavelength,
   intensity,
@@ -16,7 +19,6 @@ const PhotonSource: React.FC<PhotonSourceProps> = ({
 }) => {
   const { t } = useLanguage();
   const lightColor = wavelengthToColor(wavelength);
-  const isMobile = Platform.OS !== 'web';
 
   // Animasyon için Animated değerleri
   const photonAnimValues = useRef<Animated.Value[]>([]);
@@ -75,8 +77,8 @@ const PhotonSource: React.FC<PhotonSourceProps> = ({
 
   // Foton için translation hesaplama
   const getPhotonTranslation = (anim: Animated.Value) => {
-    // Metale kadar olan mesafe (60) - mobilde metal yüzey daha ince (40px) ama fotonlar metal yüzeyin başlangıcına kadar gitmeli
-    const distanceToMetal = isMobile ? 60 : 60;
+    // Metale kadar olan mesafe - mobilde daha kısa mesafe
+    const distanceToMetal = isMobile ? 40 : 60;
 
     return anim.interpolate({
       inputRange: [0, 1],
@@ -115,8 +117,8 @@ const PhotonSource: React.FC<PhotonSourceProps> = ({
               styles.photon,
               {
                 backgroundColor: lightColor,
-                top: (index - photonCount / 2) * 4 + 80,
-                width: isMobile ? 35 : 20, // Mobilde daha kısa fotonlar, metal yüzeyi geçmemesi için
+                top: (index - photonCount / 2) * 3 + (isMobile ? 60 : 80),
+                width: isMobile ? 20 : 20,
                 opacity: anim.interpolate({
                   inputRange: [0, 0.8, 1],
                   outputRange: [0.7, 0.9, 0], // Foton metal yüzeye yaklaştıkça kaybolur
@@ -142,47 +144,47 @@ const PhotonSource: React.FC<PhotonSourceProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 160,
-    width: 96,
+    height: isMobile ? 120 : 160,
+    width: isMobile ? 60 : 96,
     alignItems: 'center',
     justifyContent: 'flex-end',
     position: 'relative',
   },
   source: {
-    width: 64,
-    height: 96,
+    width: isMobile ? 40 : 64,
+    height: isMobile ? 60 : 96,
     backgroundColor: '#333',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
   },
   sourceInner: {
     position: 'absolute',
-    top: 8,
-    bottom: 8,
-    left: 8,
-    right: 8,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    top: isMobile ? 4 : 8,
+    bottom: isMobile ? 4 : 8,
+    left: isMobile ? 4 : 8,
+    right: isMobile ? 4 : 8,
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
     backgroundColor: '#444',
     alignItems: 'center',
     justifyContent: 'center',
   },
   lightBulb: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    shadowRadius: 10,
+    width: isMobile ? 20 : 32,
+    height: isMobile ? 20 : 32,
+    borderRadius: isMobile ? 10 : 16,
+    shadowRadius: isMobile ? 6 : 10,
     shadowOffset: { width: 0, height: 0 },
   },
   photon: {
     position: 'absolute',
-    height: 4,
-    width: 20,
-    borderRadius: 2,
-    left: 80,
+    height: isMobile ? 4 : 4,
+    width: isMobile ? 20 : 20,
+    borderRadius: isMobile ? 2 : 2,
+    left: isMobile ? 50 : 80,
   },
 });
 

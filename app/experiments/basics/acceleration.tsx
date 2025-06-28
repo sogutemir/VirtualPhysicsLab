@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet, Dimensions, Text, ScrollView } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -40,6 +40,10 @@ const AccelerationExperiment: React.FC = () => {
   const animatedPosition = useSharedValue(0);
   const startTime = useSharedValue(0);
   const lastFrameTime = useSharedValue(0);
+  const continuousPosition = useSharedValue(0); // Sürekli pozisyon takibi için
+  
+  // Interval referansı
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const calculatePosition = useCallback(
     (t: number) => {
@@ -87,7 +91,10 @@ const AccelerationExperiment: React.FC = () => {
       const newPosition = calculatePosition(elapsedTime);
       const newVelocity = calculateVelocity(elapsedTime);
 
-      // Pozisyonu normalize et (0-100m arası)
+      // Sürekli pozisyonu güncelle (tur kontrolü için)
+      continuousPosition.value = newPosition;
+
+      // Pozisyonu normalize et (0-100m arası) - animasyon için
       const normalizedPosition =
         ((newPosition % TRACK_LENGTH) + TRACK_LENGTH) % TRACK_LENGTH;
 
@@ -95,11 +102,8 @@ const AccelerationExperiment: React.FC = () => {
       const screenPosition =
         (normalizedPosition / TRACK_LENGTH) * (screenWidth - 60);
 
-      // Daha akıcı animasyon için config
-      animatedPosition.value = withTiming(screenPosition, {
-        duration: 16, // 60 FPS'e yakın
-        easing: Easing.linear,
-      });
+      // Anlık pozisyon güncellemesi - timing olmadan
+      animatedPosition.value = screenPosition;
 
       // Tur sayısını ve zamanını güncelle
       const currentLap = Math.floor(Math.abs(newPosition) / TRACK_LENGTH);
@@ -125,18 +129,23 @@ const AccelerationExperiment: React.FC = () => {
     lapCount,
     lastLapTime,
     showLapNotification,
+    screenWidth,
   ]);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
     if (isRunning) {
-      intervalId = setInterval(frameCallback, 16); // 60 FPS'e yakın
+      intervalRef.current = setInterval(frameCallback, 16) as any; // 60 FPS'e yakın
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     }
 
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, [isRunning, frameCallback]);
@@ -147,6 +156,7 @@ const AccelerationExperiment: React.FC = () => {
     } else {
       startTime.value = 0;
       lastFrameTime.value = 0;
+      continuousPosition.value = 0;
       setCurrentTime(0);
       setCurrentVelocity(initialVelocity);
       setCurrentPosition(0);
@@ -162,6 +172,7 @@ const AccelerationExperiment: React.FC = () => {
     setIsRunning(false);
     startTime.value = 0;
     lastFrameTime.value = 0;
+    continuousPosition.value = 0;
     setCurrentTime(0);
     setCurrentVelocity(initialVelocity);
     setCurrentPosition(0);
@@ -190,7 +201,9 @@ const AccelerationExperiment: React.FC = () => {
     >
       <ScrollView
         style={styles.container}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 40, flexGrow: 1 }}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
       >
         <View style={styles.header}>
           <Text style={styles.title}>

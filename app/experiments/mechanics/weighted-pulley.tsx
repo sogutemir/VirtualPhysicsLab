@@ -6,9 +6,40 @@ import React, {
   memo,
   useMemo,
 } from 'react';
-import { View, StyleSheet, Platform, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  ScrollView,
+  Dimensions,
+  Alert,
+} from 'react-native';
 import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
-import ExperimentLayout from '../../../components/ExperimentLayout';
+
+// 🔧 MOBILE SAFETY: Try-catch for imports
+let ExperimentLayout: any;
+let WeightedPulleyControls: any;
+let useLanguage: any;
+
+try {
+  ExperimentLayout = require('../../../components/ExperimentLayout').default;
+  WeightedPulleyControls =
+    require('./components/weighted-pulley/components/WeightedPulleyControls').default;
+  useLanguage = require('../../../components/LanguageContext').useLanguage;
+} catch (error) {
+  console.error('Import Error:', error);
+  // Fallback components
+  ExperimentLayout = ({ children, title }: any) => (
+    <View style={{ flex: 1, padding: 20 }}>
+      <Text style={{ fontSize: 18, marginBottom: 20 }}>{title}</Text>
+      {children}
+    </View>
+  );
+  WeightedPulleyControls = () => <Text>Kontroller yüklenemedi</Text>;
+  useLanguage = () => ({ t: (tr: string) => tr });
+}
+
 import {
   WeightedPulleyState,
   DEFAULT_STATE,
@@ -23,31 +54,59 @@ import {
   MASS_RADIUS,
   DT,
 } from './components/weighted-pulley/utils';
-import WeightedPulleyControls from './components/weighted-pulley/components/WeightedPulleyControls';
-import { useLanguage } from '../../../components/LanguageContext';
 
-// Memoized Grid Lines Component
+// 🔧 MOBILE OPTIMIZATION: Platform detection
+const isMobile = Platform.OS !== 'web';
+const MOBILE_FPS = 30; // Mobilde 30 FPS
+const WEB_FPS = 60; // Web'de 60 FPS
+const TARGET_FPS = isMobile ? MOBILE_FPS : WEB_FPS;
+const FRAME_TIME = 1000 / TARGET_FPS; // ms
+
+// 🔧 MOBILE OPTIMIZATION: Simplified GridLines - daha az çizgi
 const GridLines = memo<{
   svgWidth: number;
   svgHeight: number;
-}>(({ svgWidth, svgHeight }) => (
-  <>
-    {Array.from({ length: Math.ceil(svgHeight / 25) }, (_, i) => (
-      <Line
-        key={`h-${i}`}
-        x1={0}
-        y1={i * 25}
-        x2={svgWidth}
-        y2={i * 25}
-        stroke="#10b981"
-        strokeWidth={0.5}
-        opacity={0.1}
-      />
-    ))}
-  </>
-));
+}>(({ svgWidth, svgHeight }) => {
+  if (isMobile) {
+    // Mobilde daha az grid line
+    return (
+      <>
+        {Array.from({ length: Math.ceil(svgHeight / 50) }, (_, i) => (
+          <Line
+            key={`h-${i}`}
+            x1={0}
+            y1={i * 50}
+            x2={svgWidth}
+            y2={i * 50}
+            stroke="#10b981"
+            strokeWidth={0.5}
+            opacity={0.1}
+          />
+        ))}
+      </>
+    );
+  }
 
-// Memoized Angle Scale Component
+  // Web için normal grid
+  return (
+    <>
+      {Array.from({ length: Math.ceil(svgHeight / 25) }, (_, i) => (
+        <Line
+          key={`h-${i}`}
+          x1={0}
+          y1={i * 25}
+          x2={svgWidth}
+          y2={i * 25}
+          stroke="#10b981"
+          strokeWidth={0.5}
+          opacity={0.1}
+        />
+      ))}
+    </>
+  );
+});
+
+// 🔧 MOBILE OPTIMIZATION: Simplified AngleScale
 const AngleScale = memo<{
   centerX: number;
   centerY: number;
@@ -55,7 +114,7 @@ const AngleScale = memo<{
   equilibriumAngle: number | null;
 }>(({ centerX, centerY, R, equilibriumAngle }) => (
   <>
-    {/* Açı ölçeği - daha temiz */}
+    {/* Basit daire */}
     <Circle
       cx={centerX}
       cy={centerY}
@@ -67,9 +126,10 @@ const AngleScale = memo<{
       opacity={0.5}
     />
 
-    {/* Açı çizgileri */}
-    {Array.from({ length: 9 }, (_, i) => {
-      const angle = (-80 + i * 20) * RAD;
+    {/* Mobilde daha az açı çizgisi */}
+    {Array.from({ length: isMobile ? 5 : 9 }, (_, i) => {
+      const totalLines = isMobile ? 5 : 9;
+      const angle = (-80 + i * (160 / (totalLines - 1))) * RAD;
       const x1 = centerX + (R + 10) * Math.cos(angle);
       const y1 = centerY + (R + 10) * Math.sin(angle);
       const x2 = centerX + (R + 20) * Math.cos(angle);
@@ -134,7 +194,7 @@ const PulleySystem = memo<{
   </>
 ));
 
-// Memoized Info Panel Component
+// 🔧 MOBILE OPTIMIZATION: Simplified InfoPanel
 const InfoPanel = memo<{
   svgWidth: number;
   state: WeightedPulleyState;
@@ -156,20 +216,20 @@ const InfoPanel = memo<{
       y={35}
       textAnchor="middle"
       fill="#2c3e50"
-      fontSize={10}
+      fontSize={isMobile ? 8 : 10}
       fontWeight="bold"
     >
-      {t('t', 't')} = {state.time.toFixed(2)} s
+      {t('t', 't')} = {state.time.toFixed(1)} s
     </SvgText>
     <SvgText
       x={svgWidth - 80}
       y={50}
       textAnchor="middle"
       fill="#2c3e50"
-      fontSize={10}
+      fontSize={isMobile ? 8 : 10}
       fontWeight="bold"
     >
-      {t('φ', 'φ')} = {((state.phi / Math.PI) * 180 + 90).toFixed(1)}°
+      {t('φ', 'φ')} = {((state.phi / Math.PI) * 180 + 90).toFixed(0)}°
     </SvgText>
     {state.massM * PULLEY_RADIUS > state.massm * MASS_RADIUS ? (
       <SvgText
@@ -177,7 +237,7 @@ const InfoPanel = memo<{
         y={65}
         textAnchor="middle"
         fill="#ef4444"
-        fontSize={9}
+        fontSize={isMobile ? 7 : 9}
         fontWeight="bold"
       >
         {t('Denge mümkün değil', 'Equilibrium impossible')}
@@ -189,60 +249,140 @@ const InfoPanel = memo<{
           y={65}
           textAnchor="middle"
           fill="#2c3e50"
-          fontSize={10}
+          fontSize={isMobile ? 8 : 10}
           fontWeight="bold"
         >
-          {t('φe', 'φe')} = {((equilibriumAngle * 180) / Math.PI).toFixed(1)}°
+          {t('φe', 'φe')} = {((equilibriumAngle * 180) / Math.PI).toFixed(0)}°
         </SvgText>
       )
     )}
-    <SvgText
-      x={svgWidth - 80}
-      y={80}
-      textAnchor="middle"
-      fill="#10b981"
-      fontSize={9}
-      fontWeight="bold"
-    >
-      {t('Ep', 'Ep')} = {state.potentialEnergy.toFixed(4)} J
-    </SvgText>
-    <SvgText
-      x={svgWidth - 80}
-      y={95}
-      textAnchor="middle"
-      fill="#f59e0b"
-      fontSize={9}
-      fontWeight="bold"
-    >
-      {t('Ec', 'Ec')} = {state.kineticEnergy.toFixed(4)} J
-    </SvgText>
+
+    {/* Mobilde enerji gösterme - daha basit */}
+    {!isMobile && (
+      <>
+        <SvgText
+          x={svgWidth - 80}
+          y={80}
+          textAnchor="middle"
+          fill="#10b981"
+          fontSize={9}
+          fontWeight="bold"
+        >
+          {t('Ep', 'Ep')} = {state.potentialEnergy.toFixed(4)} J
+        </SvgText>
+        <SvgText
+          x={svgWidth - 80}
+          y={95}
+          textAnchor="middle"
+          fill="#f59e0b"
+          fontSize={9}
+          fontWeight="bold"
+        >
+          {t('Ec', 'Ec')} = {state.kineticEnergy.toFixed(4)} J
+        </SvgText>
+      </>
+    )}
   </>
 ));
 
 const WeightedPulleyExperiment = memo(() => {
   const [state, setState] = useState<WeightedPulleyState>(DEFAULT_STATE);
   const animationRef = useRef<number | null>(null);
+  const lastFrameTimeRef = useRef<number>(0); // 🔧 THROTTLE ANIMATION
   const isMountedRef = useRef(true);
-  const { t } = useLanguage();
+  const [hasError, setHasError] = useState(false); // 🔧 ERROR BOUNDARY
+  const [renderError, setRenderError] = useState<string | null>(null); // 🔧 RENDER ERROR
 
-  // Memoized SVG dimensions
-  const svgDimensions = useMemo(
-    () => ({
-      svgWidth: 500,
-      svgHeight: 400,
-      centerX: 500 / 2,
-      centerY: 400 / 3,
-      R: 60, // Makara yarıçapı (piksel)
-      r: 30, // Kütle yarıçapı (piksel)
-    }),
-    []
-  );
+  // 🔧 MOBILE SAFETY: Safe hook usage
+  let t: (tr: string, en?: string) => string;
+  try {
+    const { t: languageT } = useLanguage();
+    t = languageT;
+  } catch (error) {
+    console.error('Language Hook Error:', error);
+    t = (tr: string) => tr; // Fallback
+  }
+
+  // 🔧 MOBILE ERROR RECOVERY
+  useEffect(() => {
+    const errorHandler = (error: any) => {
+      console.error('WeightedPulley Error:', error);
+      setHasError(true);
+      // Cleanup on error
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+
+    // React Native'de window objesi yoktur, sadece web'de kullan
+    if (!isMobile && typeof window !== 'undefined') {
+      // Add error listeners for web only
+      window.addEventListener('error', errorHandler);
+      window.addEventListener('unhandledrejection', errorHandler);
+
+      return () => {
+        window.removeEventListener('error', errorHandler);
+        window.removeEventListener('unhandledrejection', errorHandler);
+      };
+    }
+  }, []);
+
+  // Show error message if something went wrong
+  if (hasError && isMobile) {
+    return (
+      <ExperimentLayout
+        title="Ağırlıklı Makara"
+        titleEn="Weighted Pulley"
+        difficulty="Orta Seviye"
+        difficultyEn="Intermediate"
+        description="Ağırlıklı makara sistemi şu anda mobil cihazınızda tam olarak çalışmıyor. Web versiyonunu deneyiniz."
+        descriptionEn="The weighted pulley system is currently not working properly on your mobile device. Please try the web version."
+        isRunning={false}
+        onToggleSimulation={() => {}}
+        onReset={() => setHasError(false)}
+      >
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Bu deney mobil cihazlarda performans sorunu yaşıyor. Lütfen daha
+            sonra tekrar deneyin.
+          </Text>
+        </View>
+      </ExperimentLayout>
+    );
+  }
+
+  // 🔧 MOBILE OPTIMIZATION: Safe dimensions without problematic hooks
+  const svgDimensions = useMemo(() => {
+    if (isMobile) {
+      // Mobilde makul boyutlar
+      return {
+        svgWidth: 350,
+        svgHeight: 500, // Yükseklik optimize edildi
+        centerX: 175,
+        centerY: 100, // Daha yukarıda konumlandırıldı
+        R: 45, // Daha küçük makara
+        r: 22, // Daha küçük kütle
+      };
+    } else {
+      // Web için optimize edilmiş boyut
+      return {
+        svgWidth: 500,
+        svgHeight: 500, // Makul yükseklik
+        centerX: 250,
+        centerY: 120, // Daha yukarıda konumlandırıldı
+        R: 60,
+        r: 30,
+      };
+    }
+  }, []);
 
   const { svgWidth, svgHeight, centerX, centerY, R, r } = svgDimensions;
 
   // Memoized position calculations
   const positions = useMemo(() => {
-    const L = 100 + 80 * PULLEY_RADIUS * state.phi;
+    // İp uzunluğu hesaplama - yeni zemin seviyesine uygun
+    const L = Math.min(120 + 60 * PULLEY_RADIUS * Math.abs(state.phi), 420);
     const Xf = centerX - R - 20; // Sol tarafa daha fazla kaydır
     const Xm = centerX + r * Math.sin(state.phi);
     const Ym = centerY + r * Math.cos(state.phi);
@@ -277,46 +417,126 @@ const WeightedPulleyExperiment = memo(() => {
     };
   }, []);
 
-  const animate = useCallback(() => {
-    if (!isMountedRef.current || !state.isRunning) return;
+  // 🔧 MOBILE OPTIMIZATION: Throttled Animation with simplified math
+  const animate = useCallback(
+    (currentTime: number) => {
+      if (!isMountedRef.current || !state.isRunning) return;
 
-    // RK4 integrasyonu
-    const { phi1, dphi1 } = calculateRK4(state.time, state.phi, state.dphi, {
-      inertia: state.inertia,
-      massM: state.massM / 1000,
-      massm: state.massm / 1000,
-    });
+      // 🔧 THROTTLE: Frame rate control
+      if (currentTime - lastFrameTimeRef.current < FRAME_TIME) {
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameTimeRef.current = currentTime;
 
-    // Enerjileri hesapla
-    const energies = calculateEnergies(phi1, dphi1, {
-      inertia: state.inertia,
-      massM: state.massM / 1000,
-      massm: state.massm / 1000,
-    });
+      if (isMobile) {
+        // 🔧 MOBILE: Simplified physics - Euler integration instead of RK4
+        const { inertia, massM, massm } = {
+          inertia: state.inertia,
+          massM: state.massM / 1000,
+          massm: state.massm / 1000,
+        };
 
-    // Periyot hesapla
-    const period = calculatePeriod({
-      inertia: state.inertia,
-      massM: state.massM / 1000,
-      massm: state.massm / 1000,
-    });
+        // Zemin çarpma kontrolü - mobil versiyonu
+        const stringLength = 1.2 + PULLEY_RADIUS * Math.abs(state.phi);
+        if (stringLength >= 4.2) {
+          // Kütle yere çarptı - simülasyonu ve zamanı durdur
+          setState((prev) => ({
+            ...prev,
+            isRunning: false,
+            dphi: 0,
+          }));
+          return; // Zaman artışını da durdurmak için erken çık
+        }
 
-    setState((prev) => ({
-      ...prev,
-      time: prev.time + DT,
-      phi: phi1,
-      dphi: dphi1,
-      ...energies,
-      period: period || 0,
-    }));
+        // Simplified acceleration calculation
+        const R = PULLEY_RADIUS;
+        const r = MASS_RADIUS;
+        const I = inertia + massm * r * r + massM * R * R;
+        const K = 9.81 / I;
+        const acceleration = K * (massM * R - massm * r * Math.sin(state.phi));
 
-    if (isMountedRef.current) {
-      animationRef.current = requestAnimationFrame(animate);
-    }
-  }, [state]);
+        // Simple Euler integration
+        const newDphi = state.dphi + acceleration * DT;
+        const newPhi = state.phi + newDphi * DT;
 
+        // Simplified energy calculation (less frequent)
+        const potentialEnergy =
+          9.81 * (massm * r * (1 - Math.cos(newPhi)) - massM * R * newPhi);
+        const kineticEnergy = 0.5 * I * newDphi * newDphi;
+
+        setState((prev) => ({
+          ...prev,
+          time: prev.time + DT,
+          phi: newPhi,
+          dphi: newDphi,
+          potentialEnergy,
+          kineticEnergy,
+          totalEnergy: potentialEnergy + kineticEnergy,
+          period: 0, // Skip period calculation on mobile
+        }));
+      } else {
+        // 🔧 WEB: Full RK4 integration
+        
+        // Zemin çarpma kontrolü - web versiyonu
+        const stringLength = 1.2 + PULLEY_RADIUS * Math.abs(state.phi);
+        if (stringLength >= 4.2) {
+          // Kütle yere çarptı - simülasyonu ve zamanı durdur
+          setState((prev) => ({
+            ...prev,
+            isRunning: false,
+            dphi: 0,
+          }));
+          return; // Zaman artışını da durdurmak için erken çık
+        }
+        
+        const { phi1, dphi1 } = calculateRK4(
+          state.time,
+          state.phi,
+          state.dphi,
+          {
+            inertia: state.inertia,
+            massM: state.massM / 1000,
+            massm: state.massm / 1000,
+          }
+        );
+
+        // Enerjileri hesapla
+        const energies = calculateEnergies(phi1, dphi1, {
+          inertia: state.inertia,
+          massM: state.massM / 1000,
+          massm: state.massm / 1000,
+        });
+
+        // Periyot hesapla
+        const period = calculatePeriod({
+          inertia: state.inertia,
+          massM: state.massM / 1000,
+          massm: state.massm / 1000,
+        });
+
+        setState((prev) => ({
+          ...prev,
+          time: prev.time + DT,
+          phi: phi1,
+          dphi: dphi1,
+          ...energies,
+          period: period || 0,
+        }));
+      }
+
+      if (isMountedRef.current) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    },
+    [state]
+  );
+
+  // 🔧 MOBILE OPTIMIZATION: Better animation lifecycle management
   useEffect(() => {
     if (state.isRunning && isMountedRef.current) {
+      // Reset frame time for consistent animation
+      lastFrameTimeRef.current = 0;
       animationRef.current = requestAnimationFrame(animate);
     } else if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
@@ -330,6 +550,17 @@ const WeightedPulleyExperiment = memo(() => {
       }
     };
   }, [state.isRunning, animate]);
+
+  // 🔧 MOBILE OPTIMIZATION: Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+  }, []);
 
   // Memoized event handlers
   const handleStart = useCallback(() => {
@@ -369,104 +600,202 @@ const WeightedPulleyExperiment = memo(() => {
     }));
   }, []);
 
-  return (
-    <ExperimentLayout
-      title="Ağırlıklı Makara"
-      titleEn="Weighted Pulley"
-      difficulty="Orta Seviye"
-      difficultyEn="Intermediate"
-      description="Ağırlıklı makara sistemi, bir makaraya bağlı iki farklı kütlenin etkileşimini inceleyen bir fizik deneyidir. Bu deneyde, farklı kütle değerleri ve atalet momenti için sistemin davranışını gözlemleyebilirsiniz."
-      descriptionEn="The weighted pulley system is a physics experiment that studies the interaction of two different masses connected by a pulley. In this experiment, you can observe the system's behavior for different mass values and moment of inertia."
-      isRunning={state.isRunning}
-      onToggleSimulation={handleStart}
-      onReset={handleReset}
-    >
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
-        showsVerticalScrollIndicator={false}
+  // 🔧 MOBILE SAFETY: Handle render errors
+  if (renderError) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>🚫 Mobil Cihaz Hatası</Text>
+        <Text style={styles.errorSubText}>
+          Bu deney mobil cihazınızda düzgün çalışmıyor. Web versiyonunu deneyin.
+        </Text>
+        <Text style={styles.errorDetail}>Hata: {renderError}</Text>
+      </View>
+    );
+  }
+
+  // 🔧 MOBILE SAFETY: Try-catch for entire render
+  try {
+    return (
+      <ExperimentLayout
+        title="Ağırlıklı Makara"
+        titleEn="Weighted Pulley"
+        difficulty="Orta Seviye"
+        difficultyEn="Intermediate"
+        description={`🎯 Ağırlıklı makara sistemi, bir makaraya bağlı iki farklı kütlenin etkileşimini inceleyen fizik deneyidir.
+
+📚 TEORİ VE FORMÜLLER:
+
+⚡ Hareket Denklemi:
+d²φ/dt² = g(MR - mr sin φ) / I
+
+🔄 Atalet Momenti:
+I = Ip + mr² + MR²
+- Ip: Makaranın atalet momenti
+- m: Bağlı kütle, r: Bağlı kütle yarıçapı (0.4m)
+- M: Asılı kütle, R: Makara yarıçapı (0.8m)
+
+⚖️ Denge Şartı:
+φe = arcsin(MR/mr)
+- MR > mr ise denge mümkün değil
+
+🔋 Enerji Korunumu:
+Ep = mgr(1 - cos φ) - MgRφ
+Ek = ½I(dφ/dt)²
+Etoplam = Ep + Ek = sabit
+
+🎮 Parametre Aralıkları:
+- Atalet Momenti: 0.1 - 1.0 kg.m²
+- Asılı Kütle (M): 150 - 800 gram
+- Bağlı Kütle (m): 100 - 2500 gram
+- Başlangıç Açısı: 0° - 90°
+
+🔬 Gözlemlenebilir Durumlar:
+• Salınım hareketi (küçük açılar)
+• Sürekli dönme (büyük enerji)
+• Denge pozisyonu
+• Enerji dönüşümleri
+• Zemin çarpması (4.2m sınırı)`}
+        descriptionEn={`🎯 The weighted pulley system studies the interaction of two different masses connected by a pulley.
+
+📚 THEORY AND FORMULAS:
+
+⚡ Equation of Motion:
+d²φ/dt² = g(MR - mr sin φ) / I
+
+🔄 Moment of Inertia:
+I = Ip + mr² + MR²
+- Ip: Pulley's moment of inertia
+- m: Attached mass, r: Attached mass radius (0.4m)
+- M: Hanging mass, R: Pulley radius (0.8m)
+
+⚖️ Equilibrium Condition:
+φe = arcsin(MR/mr)
+- If MR > mr, equilibrium is impossible
+
+🔋 Energy Conservation:
+Ep = mgr(1 - cos φ) - MgRφ
+Ek = ½I(dφ/dt)²
+Etotal = Ep + Ek = constant
+
+🎮 Parameter Ranges:
+- Moment of Inertia: 0.1 - 1.0 kg.m²
+- Hanging Mass (M): 150 - 800 grams
+- Attached Mass (m): 100 - 2500 grams
+- Initial Angle: 0° - 90°
+
+🔬 Observable Phenomena:
+• Oscillatory motion (small angles)
+• Continuous rotation (high energy)
+• Equilibrium position
+• Energy transformations
+• Ground collision (4.2m limit)`}
+        isRunning={state.isRunning}
+        onToggleSimulation={handleStart}
+        onReset={handleReset}
       >
-        <View style={styles.experimentArea}>
-          <View style={styles.canvasContainer}>
-            <Svg width={svgWidth} height={svgHeight} style={styles.svg}>
-              {/* Beyaz arka plan */}
-              <Circle cx={centerX} cy={centerY} r={svgWidth} fill="#ffffff" />
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.experimentArea}>
+            <View style={styles.canvasContainer}>
+              <Svg width={svgWidth} height={svgHeight} style={styles.svg}>
+                {/* Beyaz arka plan */}
+                <Circle cx={centerX} cy={centerY} r={svgWidth} fill="#ffffff" />
 
-              {/* Grid lines */}
-              <GridLines svgWidth={svgWidth} svgHeight={svgHeight} />
+                {/* Grid lines */}
+                <GridLines svgWidth={svgWidth} svgHeight={svgHeight} />
 
-              {/* Angle scale */}
-              <AngleScale
-                centerX={centerX}
-                centerY={centerY}
-                R={R}
-                equilibriumAngle={equilibriumAngle}
-              />
+                {/* Angle scale */}
+                <AngleScale
+                  centerX={centerX}
+                  centerY={centerY}
+                  R={R}
+                  equilibriumAngle={equilibriumAngle}
+                />
 
-              {/* Tavan */}
-              <Line
-                x1={0}
-                y1={20}
-                x2={svgWidth}
-                y2={20}
-                stroke="#6b7280"
-                strokeWidth={8}
-              />
+                {/* Tavan */}
+                <Line
+                  x1={0}
+                  y1={20}
+                  x2={svgWidth}
+                  y2={20}
+                  stroke="#6b7280"
+                  strokeWidth={8}
+                />
 
-              {/* Pulley system */}
-              <PulleySystem centerX={centerX} centerY={centerY} R={R} />
+                {/* Pulley system */}
+                <PulleySystem centerX={centerX} centerY={centerY} R={R} />
 
-              {/* İp */}
-              <Path
-                d={positions.stringPath}
-                stroke="#374151"
-                strokeWidth="2"
-                fill="none"
-              />
+                {/* İp */}
+                <Path
+                  d={positions.stringPath}
+                  stroke="#374151"
+                  strokeWidth="2"
+                  fill="none"
+                />
 
-              {/* Serbest kütle (mavi) - sol taraf */}
-              <Circle
-                cx={positions.Xf}
-                cy={centerY + positions.L}
-                r={12}
-                fill="#3b82f6"
-                stroke="#ffffff"
-                strokeWidth="2"
-              />
+                {/* Serbest kütle (mavi) - sol taraf */}
+                <Circle
+                  cx={positions.Xf}
+                  cy={centerY + positions.L}
+                  r={12}
+                  fill="#3b82f6"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                />
 
-              {/* Bağlı kütle (kırmızı) - sağ taraf */}
-              <Circle
-                cx={positions.Xm}
-                cy={positions.Ym}
-                r={8}
-                fill="#ef4444"
-                stroke="#ffffff"
-                strokeWidth="2"
-              />
+                {/* Bağlı kütle (kırmızı) - sağ taraf */}
+                <Circle
+                  cx={positions.Xm}
+                  cy={positions.Ym}
+                  r={8}
+                  fill="#ef4444"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                />
 
-              {/* Info panel */}
-              <InfoPanel
-                svgWidth={svgWidth}
+                {/* Info panel */}
+                <InfoPanel
+                  svgWidth={svgWidth}
+                  state={state}
+                  equilibriumAngle={equilibriumAngle}
+                  t={t}
+                />
+              </Svg>
+            </View>
+
+            <View style={styles.controlsContainer}>
+              <WeightedPulleyControls
                 state={state}
-                equilibriumAngle={equilibriumAngle}
-                t={t}
+                onInertiaChange={handleInertiaChange}
+                onMassMChange={handleMassMChange}
+                onMassmChange={handleMassmChange}
+                onAngleChange={handleAngleChange}
               />
-            </Svg>
+            </View>
           </View>
+        </ScrollView>
+      </ExperimentLayout>
+    );
+  } catch (error: any) {
+    // 🔧 MOBILE SAFETY: Handle any render errors
+    console.error('Render Error:', error);
+    setRenderError(error?.message || 'Bilinmeyen render hatası');
 
-          <View style={styles.controlsContainer}>
-            <WeightedPulleyControls
-              state={state}
-              onInertiaChange={handleInertiaChange}
-              onMassMChange={handleMassMChange}
-              onMassmChange={handleMassmChange}
-              onAngleChange={handleAngleChange}
-            />
-          </View>
-        </View>
-      </ScrollView>
-    </ExperimentLayout>
-  );
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>🚫 Mobil Render Hatası</Text>
+        <Text style={styles.errorSubText}>
+          Deney renderlanırken hata oluştu.
+        </Text>
+        <Text style={styles.errorDetail}>
+          {error?.message || 'Bilinmeyen hata'}
+        </Text>
+      </View>
+    );
+  }
 });
 
 const styles = StyleSheet.create({
@@ -476,7 +805,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingBottom: Platform.OS === 'web' ? 50 : 200,
+    paddingBottom: Platform.OS === 'web' ? 100 : 300, // Daha fazla padding
   },
   experimentArea: {
     flex: 1,
@@ -487,12 +816,12 @@ const styles = StyleSheet.create({
   canvasContainer: {
     width: '100%',
     maxWidth: 500,
-    height: 400,
+    minHeight: Platform.OS === 'web' ? 600 : 600, // Minimum yükseklik
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: 'visible', // Taşma görünür olsun
     marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.2)',
@@ -507,4 +836,38 @@ const styles = StyleSheet.create({
     padding: 16,
     alignSelf: 'center',
   },
+  // 🔧 MOBILE ERROR STYLES
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    margin: 16,
+  },
+  errorText: {
+    fontSize: 18,
+    color: '#ef4444',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  errorSubText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 10,
+  },
+  errorDetail: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    lineHeight: 16,
+    fontFamily: 'monospace',
+  },
 });
+
+export default WeightedPulleyExperiment;

@@ -145,46 +145,86 @@ export default function AtwoodMachineExperiment() {
   // Memoize descriptions to avoid recreation
   const descriptions = useMemo(
     () => ({
-      description: `
-      Atwood Makinesi: Newton'un ikinci yasasını (F = ma) göstermek için kullanılan klasik bir fizik deneyi.
-      
-      🔧 Özellikler:
-      • Gerçek zamanlı fizik simülasyonu
-      • İnteraktif kütle ve yerçekimi ayarları
-      • Newton'un hareket yasaları demonstrasyonu
-      • İp gerginliği ve ivme hesaplamaları
-      
-      📊 Parametreler:
-      • Kütle 1 (m₁): Sol taraftaki kütle
-      • Kütle 2 (m₂): Sağ taraftaki kütle  
-      • Yerçekimi (g): Gravitasyonel ivme
-      
-      🎯 Fizik Formülleri:
-      • İvme: a = (m₁ - m₂)g / (m₁ + m₂)
-      • Gerginlik: T = 2m₁m₂g / (m₁ + m₂)
-      • Hız: v = at
-      • Konum: x = ½at²
-    `,
-      descriptionEn: `
-      Atwood Machine: A classic physics experiment to demonstrate Newton's second law (F = ma).
-      
-      🔧 Features:
-      • Real-time physics simulation
-      • Interactive mass and gravity controls
-      • Newton's laws of motion demonstration
-      • Rope tension and acceleration calculations
-      
-      📊 Parameters:
-      • Mass 1 (m₁): Left side mass
-      • Mass 2 (m₂): Right side mass
-      • Gravity (g): Gravitational acceleration
-      
-      🎯 Physics Formulas:
-      • Acceleration: a = (m₁ - m₂)g / (m₁ + m₂)
-      • Tension: T = 2m₁m₂g / (m₁ + m₂)
-      • Velocity: v = at
-      • Position: x = ½at²
-    `,
+      description: `🎯 Atwood Makinesi: Newton'un ikinci yasasını (F = ma) göstermek için kullanılan klasik fizik deneyidir.
+
+📚 TEORİ VE FORMÜLLER:
+
+⚡ Kuvvet Analizi:
+• Kütle 1 için: m₁g - T = m₁a
+• Kütle 2 için: T - m₂g = m₂a
+• İp uzunluğu sabit: x₁ + x₂ = sabit
+
+🔄 Hareket Denklemleri:
+• İvme: a = (m₁ - m₂)g / (m₁ + m₂)
+• Gerginlik: T = 2m₁m₂g / (m₁ + m₂)
+• Hız: v(t) = v₀ + at
+• Konum: x(t) = x₀ + v₀t + ½at²
+
+⚖️ Özel Durumlar:
+• m₁ = m₂ ⟹ a = 0 (denge)
+• m₁ >> m₂ ⟹ a ≈ g (serbest düşme)
+• m₂ = 0 ⟹ a = g (tek kütle)
+
+🔋 Enerji Analizi:
+• Potansiyel Enerji: ΔEp = (m₁ - m₂)gΔx
+• Kinetik Enerji: Ek = ½(m₁ + m₂)v²
+• Mekanik Enerji: E = Ek + Ep = sabit
+
+🎮 Parametre Aralıkları:
+- Kütle 1 (m₁): 0.5 - 5.0 kg
+- Kütle 2 (m₂): 0.5 - 5.0 kg
+- Yerçekimi (g): 1.0 - 15.0 m/s²
+- İp Uzunluğu: 2.0 m (sabit)
+
+🔬 Gözlemlenebilir Durumlar:
+• Sabit ivmeli hareket
+• Kütle oranının ivmeye etkisi
+• İp gerginliği değişimi
+• Enerji dönüşümü
+• Newton'un 2. yasası doğrulaması
+
+💻 Fiziksel Prensip:
+Newton'un ikinci yasası (F = ma) ile kütlelerin birbirine bağlı hareketinin analizi. Sistem, ağır kütle tarafından çekilen hafif kütleyle birlikte sabit ivmeli hareket yapar.`,
+      descriptionEn: `🎯 Atwood Machine: A classic physics experiment demonstrating Newton's second law (F = ma).
+
+📚 THEORY AND FORMULAS:
+
+⚡ Force Analysis:
+• For mass 1: m₁g - T = m₁a
+• For mass 2: T - m₂g = m₂a
+• Rope constraint: x₁ + x₂ = constant
+
+🔄 Equations of Motion:
+• Acceleration: a = (m₁ - m₂)g / (m₁ + m₂)
+• Tension: T = 2m₁m₂g / (m₁ + m₂)
+• Velocity: v(t) = v₀ + at
+• Position: x(t) = x₀ + v₀t + ½at²
+
+⚖️ Special Cases:
+• m₁ = m₂ ⟹ a = 0 (equilibrium)
+• m₁ >> m₂ ⟹ a ≈ g (free fall)
+• m₂ = 0 ⟹ a = g (single mass)
+
+🔋 Energy Analysis:
+• Potential Energy: ΔEp = (m₁ - m₂)gΔx
+• Kinetic Energy: Ek = ½(m₁ + m₂)v²
+• Mechanical Energy: E = Ek + Ep = constant
+
+🎮 Parameter Ranges:
+- Mass 1 (m₁): 0.5 - 5.0 kg
+- Mass 2 (m₂): 0.5 - 5.0 kg
+- Gravity (g): 1.0 - 15.0 m/s²
+- Rope Length: 2.0 m (constant)
+
+🔬 Observable Phenomena:
+• Constant acceleration motion
+• Effect of mass ratio on acceleration
+• Rope tension variation
+• Energy transformation
+• Newton's 2nd law verification
+
+💻 Physical Principle:
+Analysis of coupled motion using Newton's second law (F = ma). The system undergoes constant acceleration driven by the heavier mass pulling the lighter mass.`,
     }),
     []
   );

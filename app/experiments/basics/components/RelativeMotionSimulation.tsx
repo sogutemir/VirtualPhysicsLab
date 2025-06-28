@@ -28,7 +28,7 @@ interface RelativeMotionSimulationProps {
 const { width: screenWidth } = Dimensions.get('window');
 const CANVAS_WIDTH = Math.min(screenWidth - 40, 400);
 const CANVAS_HEIGHT = 300;
-const SCALE = 8; // pixels per meter
+const SCALE = 12; // pixels per meter (increased for better visibility with halved speeds)
 const TRAIN_LENGTH = 80;
 const TRAIN_HEIGHT = 40;
 
@@ -141,9 +141,9 @@ export const RelativeMotionSimulation: React.FC<RelativeMotionSimulationProps> =
                 y: CANVAS_HEIGHT - 30 - ballPosition.y * SCALE,
               };
 
-          // Adjust for camera following in ground view
-          if (isGroundView && trainPosition > 20) {
-            const offset = (trainPosition - 20) * SCALE;
+          // Adjust for camera following in ground view - optimized for halved speeds
+          if (isGroundView && trainPosition > 15) {
+            const offset = (trainPosition - 15) * SCALE;
             displayTrainPos -= offset;
             displayBallPos.x -= offset;
           }
@@ -155,8 +155,8 @@ export const RelativeMotionSimulation: React.FC<RelativeMotionSimulationProps> =
               : (point.x - trainPosition) * SCALE + CANVAS_WIDTH / 2;
             let y = CANVAS_HEIGHT - 30 - point.y * SCALE;
 
-            if (isGroundView && trainPosition > 20) {
-              x -= (trainPosition - 20) * SCALE;
+            if (isGroundView && trainPosition > 15) {
+              x -= (trainPosition - 15) * SCALE;
             }
 
             return { x, y };

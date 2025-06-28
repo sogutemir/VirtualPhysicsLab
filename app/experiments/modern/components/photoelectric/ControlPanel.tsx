@@ -15,6 +15,7 @@ import {
   METAL_NAMES_EN,
   frequencyToWavelength,
   wavelengthToFrequency,
+  calculateStoppingPotential,
 } from '../../utils/photoelectric';
 
 interface ControlPanelProps {
@@ -34,6 +35,9 @@ interface ControlPanelProps {
 
 const MIN_FREQUENCY = 1e14; // 100 THz
 const MAX_FREQUENCY = 2e15; // 2000 THz
+
+// Mobil kontrol değişkeni
+const isMobile = Platform.OS !== 'web';
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
   frequency,
@@ -62,6 +66,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
   // Frekans ve dalga boyu dönüşümleri
   const wavelength = frequencyToWavelength(frequency);
+  
+  // Teorik durdurucu potansiyeli hesapla
+  const theoreticalStoppingPotential = calculateStoppingPotential(frequency, metalType);
+  
+  // Maksimum durdurucu potansiyel değeri (teorik değerin 1.5 katı)
+  const maxStoppingVoltage = Math.max(5, theoreticalStoppingPotential * 1.5);
 
   // Işığı otomatik olarak açık tut
   useEffect(() => {
@@ -204,8 +214,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           </Animated.Text>
         </View>
         <CustomSlider
-          min={-1}
-          max={5}
+          min={0}
+          max={maxStoppingVoltage}
           step={0.1}
           value={stoppingVoltage}
           onValueChange={(value) => {
@@ -216,6 +226,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           maximumTrackTintColor="#bdc3c7"
           thumbTintColor="#3498db"
         />
+        <View style={styles.stoppingPotentialInfo}>
+          <Text style={styles.infoText}>
+            {t('Teorik V₀:', 'Theoretical V₀:')} {theoreticalStoppingPotential.toFixed(2)} V
+          </Text>
+          {stoppingVoltage >= theoreticalStoppingPotential ? (
+            <Text style={[styles.infoText, styles.stoppedText]}>
+              {t('⚡ Elektronlar durdu', '⚡ Electrons stopped')}
+            </Text>
+          ) : (
+            <Text style={[styles.infoText, styles.flowingText]}>
+              {t('⚡ Akım akıyor', '⚡ Current flowing')}
+            </Text>
+          )}
+        </View>
       </View>
 
       {/* Sıcaklık kontrolü */}
@@ -244,6 +268,14 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           maximumTrackTintColor="#bdc3c7"
           thumbTintColor="#3498db"
         />
+        <View style={styles.sliderLabels}>
+          <Text style={styles.sliderLabel}>
+            {t('Soğuk (100K)', 'Cold (100K)')}
+          </Text>
+          <Text style={styles.sliderLabel}>
+            {t('Sıcak (500K)', 'Hot (500K)')}
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -251,19 +283,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: isMobile ? 8 : 16,
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 2,
+    marginBottom: isMobile ? 8 : 16,
   },
   title: {
-    fontSize: 18,
+    fontSize: isMobile ? 14 : 18,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: isMobile ? 8 : 16,
     color: '#2c3e50',
   },
   controlRow: {
@@ -273,22 +306,27 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   control: {
-    marginBottom: 16,
+    marginBottom: isMobile ? 8 : 16,
   },
   controlHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: isMobile ? 4 : 8,
   },
   label: {
-    fontSize: 14,
+    fontSize: isMobile ? 13 : 14,
     fontWeight: '500',
     color: '#34495e',
+    flex: 1,
   },
   value: {
-    fontSize: 14,
+    fontSize: isMobile ? 13 : 14,
     color: '#7f8c8d',
+    fontWeight: '600',
+    marginLeft: 8,
+    minWidth: isMobile ? 60 : 'auto',
+    textAlign: 'right',
   },
   sliderLabels: {
     flexDirection: 'row',
@@ -296,12 +334,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sliderLabel: {
-    fontSize: 12,
+    fontSize: isMobile ? 11 : 12,
     color: '#95a5a6',
   },
   button: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: isMobile ? 12 : 16,
+    paddingVertical: isMobile ? 6 : 8,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
@@ -315,32 +353,57 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontWeight: '500',
+    fontSize: isMobile ? 13 : 14,
   },
   metalTypeSelector: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 8,
-    gap: 8,
+    marginTop: isMobile ? 4 : 8,
+    gap: isMobile ? 4 : 8,
   },
   metalTypeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: isMobile ? 8 : 12,
+    paddingVertical: isMobile ? 4 : 8,
     borderRadius: 4,
     borderWidth: 1,
     borderColor: '#ddd',
     backgroundColor: 'white',
+    minWidth: isMobile ? 60 : 'auto',
+    alignItems: 'center',
   },
   metalTypeButtonActive: {
     backgroundColor: '#3498db',
     borderColor: '#3498db',
   },
   metalTypeButtonText: {
-    fontSize: 14,
+    fontSize: isMobile ? 12 : 14,
     color: '#34495e',
+    textAlign: 'center',
   },
   metalTypeButtonTextActive: {
     color: 'white',
     fontWeight: '500',
+  },
+  stoppingPotentialInfo: {
+    marginTop: isMobile ? 4 : 8,
+    padding: isMobile ? 4 : 8,
+    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+    borderRadius: 4,
+    borderLeftWidth: isMobile ? 2 : 3,
+    borderLeftColor: '#3498db',
+  },
+  infoText: {
+    fontSize: isMobile ? 10 : 12,
+    color: '#34495e',
+    marginBottom: isMobile ? 1 : 2,
+  },
+  stoppedText: {
+    color: '#e74c3c',
+    fontWeight: 'bold',
+  },
+  flowingText: {
+    color: '#27ae60',
+    fontWeight: 'bold',
   },
 });
 

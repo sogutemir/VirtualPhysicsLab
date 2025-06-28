@@ -1,5 +1,5 @@
-import React, { memo, useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { memo, useMemo, useCallback, useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { cn } from '../lib/utils';
 import { CustomSlider } from '../../../../components/ui/slider';
 
@@ -28,9 +28,9 @@ const SLIDER_CONFIG = {
   LIQUID_MIN: 500,
   LIQUID_MAX: 14000,
   LIQUID_STEP: 25,
-  OBJECT_MIN: 100,
-  OBJECT_MAX: 20000,
-  OBJECT_STEP: 50,
+  OBJECT_MIN: 0, // Minimum 0 kg/m³ - tamamen esnek!
+  OBJECT_MAX: 25000, // Yüksek maksimum
+  OBJECT_STEP: 1, // Hassas kontrol
 } as const;
 
 // Hazır sıvı türleri ve yoğunlukları - memoized
@@ -45,11 +45,15 @@ const liquidPresets = [
 
 // Hazır malzeme türleri ve yoğunlukları - memoized
 const materialPresets = [
-  { name: 'Köpük', density: 100, category: 'light' as const },
+  { name: 'Vakum', density: 0, category: 'light' as const },
+  { name: 'Helyum', density: 0.18, category: 'light' as const },
+  { name: 'Hidrojen', density: 0.09, category: 'light' as const },
+  { name: 'Hava', density: 1.2, category: 'light' as const },
+  { name: 'Köpük', density: 50, category: 'light' as const },
   { name: 'Mantar', density: 240, category: 'light' as const },
+  { name: 'Ahşap', density: 700, category: 'light' as const },
   { name: 'Buz', density: 920, category: 'light' as const },
   { name: 'Su', density: 1000, category: 'medium' as const },
-  { name: 'Ahşap', density: 700, category: 'light' as const },
   { name: 'Beton', density: 2400, category: 'medium' as const },
   { name: 'Cam', density: 2500, category: 'medium' as const },
   { name: 'Alüminyum', density: 2700, category: 'medium' as const },
@@ -150,7 +154,10 @@ const ObjectControl: React.FC<{
   obj: ObjectProps;
   liquidDensity: number;
   onDensityChange: (value: number) => void;
-}> = memo(({ obj, liquidDensity, onDensityChange }) => {
+  inputValue: string;
+  onInputValueChange: (value: string) => void;
+  onFocusChange: (focused: boolean) => void;
+}> = memo(({ obj, liquidDensity, onDensityChange, inputValue, onInputValueChange, onFocusChange }) => {
   // Memoized shape icon
   const shapeIcon = useMemo(() => {
     const shapeStyle = {
@@ -282,22 +289,85 @@ const ObjectControl: React.FC<{
           Yoğunluk: {obj.density} kg/m³
         </Text>
         <Text style={{ fontSize: 12, color: '#94a3b8' }}>
-          Oran: {(obj.density / liquidDensity).toFixed(2)}x
+          Oran: {(obj.density / liquidDensity).toFixed(2)}x | 0-{SLIDER_CONFIG.OBJECT_MAX}
         </Text>
       </View>
 
       {/* Slider */}
-      <CustomSlider
-        min={SLIDER_CONFIG.OBJECT_MIN}
-        max={SLIDER_CONFIG.OBJECT_MAX}
-        step={SLIDER_CONFIG.OBJECT_STEP}
-        value={obj.density}
-        onValueChange={onDensityChange}
-        minimumTrackTintColor={obj.color}
-        maximumTrackTintColor="#e2e8f0"
-        thumbTintColor={obj.color}
-        style={{ marginBottom: 12 }}
-      />
+      <View style={{ marginBottom: 12 }}>
+        <CustomSlider
+          min={0}
+          max={SLIDER_CONFIG.OBJECT_MAX}
+          step={SLIDER_CONFIG.OBJECT_STEP}
+          value={obj.density}
+          onValueChange={onDensityChange}
+          minimumTrackTintColor={obj.color}
+          maximumTrackTintColor="#e2e8f0"
+          thumbTintColor={obj.color}
+        />
+      </View>
+      
+      {/* Sayısal Input Alanı */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <Text style={{ fontSize: 14, color: '#64748b', minWidth: 80 }}>
+          Değer Girin:
+        </Text>
+        <TextInput
+          style={{
+            flex: 1,
+            borderWidth: 1.5,
+            borderColor: obj.color,
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            fontSize: 14,
+            backgroundColor: 'white',
+            color: '#1f2937',
+            fontWeight: '500',
+          }}
+          value={inputValue}
+          onFocus={() => onFocusChange(true)}
+          onChangeText={(text) => {
+            // Sadece sayısal karakterlere izin ver (nokta da dahil)
+            const numericText = text.replace(/[^0-9.]/g, '');
+            onInputValueChange(numericText);
+            
+            // Input yazarken simülasyonu güncelleme - daha smooth editing deneyimi
+            // Simülasyon sadece onBlur'da güncellenecek
+          }}
+          onBlur={() => {
+            onFocusChange(false);
+            
+            // Eğer input tamamen boşsa - boş bırak, simülasyonda eski değeri kullan
+            if (inputValue.trim() === '') {
+              // Input boş kalabilir - simülasyon için değişiklik yapma
+              return;
+            }
+            
+            // Focus kaybında minimal validasyon
+            const value = parseFloat(inputValue);
+            
+            if (isNaN(value) || value < 0) {
+              // Geçersiz değer girildiyse input'u temizle
+              onInputValueChange('');
+            } else if (value > SLIDER_CONFIG.OBJECT_MAX) {
+              // Maksimum değeri aştıysa max değere getir
+              onInputValueChange(SLIDER_CONFIG.OBJECT_MAX.toString());
+              onDensityChange(SLIDER_CONFIG.OBJECT_MAX);
+            } else {
+              // Geçerli değeri uygula (0 dahil!)
+              onDensityChange(value);
+            }
+          }}
+          keyboardType="numeric"
+          placeholder={`0-${SLIDER_CONFIG.OBJECT_MAX} kg/m³`}
+          placeholderTextColor="#9ca3af"
+          selectTextOnFocus={true}
+        />
+        <Text style={{ fontSize: 12, color: '#94a3b8', minWidth: 40 }}>
+          kg/m³
+        </Text>
+      </View>
 
       {/* Material Suggestions */}
       <View>
@@ -333,6 +403,20 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
     onLiquidDensityChange,
     onObjectDensityChange,
   }) => {
+    // Geçici input değerleri için state - memoized initial values
+    const [liquidInputValue, setLiquidInputValue] = useState(() => liquidDensity.toString());
+    const [objectInputValues, setObjectInputValues] = useState<Record<number, string>>(() => 
+      objects.reduce((acc, obj) => ({ ...acc, [obj.id]: obj.density.toString() }), {})
+    );
+    
+    // Focus durumlarını takip et - editing sırasında otomatik güncelleme yapma
+    const [liquidInputFocused, setLiquidInputFocused] = useState(false);
+    const [objectInputsFocused, setObjectInputsFocused] = useState<Record<number, boolean>>({});
+
+    // HİÇBİR OTOMATIK GÜNCELLEME YAPMA - Input'lar tamamen manuel kontrol
+    // Object IDs memoized
+    const objectIds = useMemo(() => objects.map(obj => obj.id), [objects.length]);
+
     // Liquid preset handlers - memoized
     const handleLiquidPresetPress = useCallback(
       (density: number) => {
@@ -341,15 +425,34 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
       [onLiquidDensityChange]
     );
 
-    // Object density change handlers - memoized
-    const objectHandlers = useMemo(
-      () =>
-        objects.reduce((acc, obj) => {
-          acc[obj.id] = (value: number) => onObjectDensityChange(obj.id, value);
-          return acc;
-        }, {} as Record<number, (value: number) => void>),
-      [objects, onObjectDensityChange]
-    );
+    // Object density change handlers - memoized with stable references
+    const objectHandlers = useMemo(() => {
+      const handlers: Record<number, (value: number) => void> = {};
+      objectIds.forEach(id => {
+        handlers[id] = (value: number) => onObjectDensityChange(id, value);
+      });
+      return handlers;
+    }, [objectIds, onObjectDensityChange]);
+
+    // Object input handlers - stable handlers per object ID
+    const objectInputHandlers = useMemo(() => {
+      const handlers: Record<number, (value: string) => void> = {};
+      objectIds.forEach(id => {
+        handlers[id] = (value: string) => 
+          setObjectInputValues(prev => ({ ...prev, [id]: value }));
+      });
+      return handlers;
+    }, [objectIds]);
+
+    // Object focus handlers - stable handlers per object ID
+    const objectFocusHandlers = useMemo(() => {
+      const handlers: Record<number, (focused: boolean) => void> = {};
+      objectIds.forEach(id => {
+        handlers[id] = (focused: boolean) => 
+          setObjectInputsFocused(prev => ({ ...prev, [id]: focused }));
+      });
+      return handlers;
+    }, [objectIds]);
 
     // Rendered liquid presets - memoized
     const liquidPresetButtons = useMemo(
@@ -374,17 +477,22 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
             obj={obj}
             liquidDensity={liquidDensity}
             onDensityChange={objectHandlers[obj.id]}
+            inputValue={objectInputValues[obj.id] !== undefined ? objectInputValues[obj.id] : obj.density.toString()}
+            onInputValueChange={objectInputHandlers[obj.id]}
+            onFocusChange={objectFocusHandlers[obj.id]}
           />
         )),
-      [objects, liquidDensity, objectHandlers]
+      [objects, liquidDensity, objectHandlers, objectInputValues, objectInputHandlers, objectFocusHandlers]
     );
 
     return (
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
+        nestedScrollEnabled={true}
+        scrollEventThrottle={16}
       >
         {/* Sıvı Yoğunluğu Kontrolleri */}
         <View
@@ -427,16 +535,78 @@ const DensityControls: React.FC<DensityControlsProps> = memo(
                 {SLIDER_CONFIG.LIQUID_MIN} - {SLIDER_CONFIG.LIQUID_MAX}
               </Text>
             </View>
-            <CustomSlider
-              min={SLIDER_CONFIG.LIQUID_MIN}
-              max={SLIDER_CONFIG.LIQUID_MAX}
-              step={SLIDER_CONFIG.LIQUID_STEP}
-              value={liquidDensity}
-              onValueChange={onLiquidDensityChange}
-              minimumTrackTintColor="#3b82f6"
-              maximumTrackTintColor="#e2e8f0"
-              thumbTintColor="#3b82f6"
-            />
+            
+            {/* Slider ve Input Alanı */}
+            <View style={{ marginBottom: 12 }}>
+              <CustomSlider
+                min={SLIDER_CONFIG.LIQUID_MIN}
+                max={SLIDER_CONFIG.LIQUID_MAX}
+                step={SLIDER_CONFIG.LIQUID_STEP}
+                value={liquidDensity}
+                onValueChange={onLiquidDensityChange}
+                minimumTrackTintColor="#3b82f6"
+                maximumTrackTintColor="#e2e8f0"
+                thumbTintColor="#3b82f6"
+              />
+            </View>
+            
+            {/* Sayısal Input Alanı */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={{ fontSize: 14, color: '#64748b', minWidth: 80 }}>
+                Değer Girin:
+              </Text>
+              <TextInput
+                style={{
+                  flex: 1,
+                  borderWidth: 1.5,
+                  borderColor: liquidInputFocused ? '#2563eb' : '#3b82f6',
+                  borderRadius: 8,
+                  paddingHorizontal: 12,
+                  paddingVertical: 10,
+                  fontSize: 14,
+                  backgroundColor: 'white',
+                  color: '#1f2937',
+                  fontWeight: '500',
+                }}
+                value={liquidInputValue}
+                onFocus={() => setLiquidInputFocused(true)}
+                onChangeText={(text) => {
+                  // Sadece sayısal karakterlere izin ver
+                  const numericText = text.replace(/[^0-9.]/g, '');
+                  setLiquidInputValue(numericText);
+                  
+                  // Input yazarken simülasyonu güncelleme - daha smooth editing deneyimi
+                  // Simülasyon sadece onBlur'da güncellenecek
+                }}
+                onBlur={() => {
+                  setLiquidInputFocused(false);
+                  
+                  // Eğer input tamamen boşsa - boş bırak, simülasyonda eski değeri kullan
+                  if (liquidInputValue.trim() === '') {
+                    // Input boş kalabilir - simülasyon için değişiklik yapma
+                    return;
+                  }
+                  
+                  // Focus kaybında validasyon
+                  const value = parseFloat(liquidInputValue);
+                  
+                  if (isNaN(value) || value < SLIDER_CONFIG.LIQUID_MIN || value > SLIDER_CONFIG.LIQUID_MAX) {
+                    // Geçersiz değer girildiyse input'u temizle
+                    setLiquidInputValue('');
+                  } else {
+                    // Geçerli değeri uygula
+                    onLiquidDensityChange(value);
+                  }
+                }}
+                keyboardType="numeric"
+                placeholder={`${SLIDER_CONFIG.LIQUID_MIN}-${SLIDER_CONFIG.LIQUID_MAX}`}
+                placeholderTextColor="#9ca3af"
+                selectTextOnFocus={true}
+              />
+              <Text style={{ fontSize: 12, color: '#94a3b8', minWidth: 40 }}>
+                kg/m³
+              </Text>
+            </View>
           </View>
 
           <View

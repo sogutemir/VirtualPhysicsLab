@@ -24,7 +24,6 @@ type ExperimentRoute =
   | '/experiments/mechanics/weighted-pulley'
   | '/experiments/mechanics/collisions'
   | '/experiments/mechanics/atwood'
-  | '/experiments/mechanics/friction'
   | '/experiments/mechanics/accelerated-motion'
   | '/experiments/mechanics/free-fall'
   | '/experiments/mechanics/vector-addition'
@@ -127,17 +126,6 @@ export const experiments: Experiment[] = [
     description: 'Atwood makinesi ve ivmeli hareket',
     descriptionEn: 'Atwood machine and accelerated motion',
     route: '/experiments/mechanics/atwood' as any,
-  },
-  {
-    id: '7',
-    title: 'Dinamik Sürtünme',
-    titleEn: 'Dynamic Friction',
-    category: 'mechanics',
-    difficulty: 'Başlangıç',
-    difficultyEn: 'Beginner',
-    description: 'Sürtünme kuvveti ve hareket analizi',
-    descriptionEn: 'Friction force and motion analysis',
-    route: '/experiments/mechanics/friction' as any,
   },
   {
     id: '8',
@@ -463,6 +451,19 @@ export default function ExperimentsScreen() {
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
 
+  // 🔧 ROUTE FIX: Handle experiment navigation with router.push
+  const handleExperimentPress = (experiment: Experiment) => {
+    try {
+      console.log('Navigating to:', experiment.route);
+      router.push(experiment.route as any);
+    } catch (error) {
+      console.error('Navigation Error:', error);
+      // Fallback navigation
+      const routePath = experiment.route.toString();
+      router.push(routePath as any);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -573,38 +574,40 @@ export default function ExperimentsScreen() {
       <View style={styles.experimentsContainer}>
         {filteredExperiments.length > 0 ? (
           filteredExperiments.map((experiment) => (
-            <Link key={experiment.id} href={experiment.route as any} asChild>
-              <TouchableOpacity style={styles.experimentCard}>
-                <View style={styles.experimentInfo}>
-                  <Text style={styles.experimentTitle}>{experiment.title}</Text>
-                  <Text style={styles.experimentCategory}>
-                    {categoryTranslations[experiment.category]}
+            <TouchableOpacity
+              key={experiment.id}
+              style={styles.experimentCard}
+              onPress={() => handleExperimentPress(experiment)}
+            >
+              <View style={styles.experimentInfo}>
+                <Text style={styles.experimentTitle}>{experiment.title}</Text>
+                <Text style={styles.experimentCategory}>
+                  {categoryTranslations[experiment.category]}
+                </Text>
+                <Text style={styles.experimentDescription}>
+                  {experiment.description}
+                </Text>
+                <View style={styles.experimentFooter}>
+                  <Text
+                    style={[
+                      styles.experimentDifficulty,
+                      experiment.difficulty === 'Başlangıç' &&
+                        styles.beginnerDifficulty,
+                      experiment.difficulty === 'Orta Seviye' &&
+                        styles.intermediateDifficulty,
+                      experiment.difficulty === 'İleri Seviye' &&
+                        styles.advancedDifficulty,
+                    ]}
+                  >
+                    {experiment.difficulty}
                   </Text>
-                  <Text style={styles.experimentDescription}>
-                    {experiment.description}
-                  </Text>
-                  <View style={styles.experimentFooter}>
-                    <Text
-                      style={[
-                        styles.experimentDifficulty,
-                        experiment.difficulty === 'Başlangıç' &&
-                          styles.beginnerDifficulty,
-                        experiment.difficulty === 'Orta Seviye' &&
-                          styles.intermediateDifficulty,
-                        experiment.difficulty === 'İleri Seviye' &&
-                          styles.advancedDifficulty,
-                      ]}
-                    >
-                      {experiment.difficulty}
-                    </Text>
-                    <View style={styles.startButton}>
-                      <Text style={styles.startButtonText}>Deneyi Başlat</Text>
-                      <ArrowRight size={16} color="#3498db" />
-                    </View>
+                  <View style={styles.startButton}>
+                    <Text style={styles.startButtonText}>Deneyi Başlat</Text>
+                    <ArrowRight size={16} color="#3498db" />
                   </View>
                 </View>
-              </TouchableOpacity>
-            </Link>
+              </View>
+            </TouchableOpacity>
           ))
         ) : (
           <View style={styles.noResultsContainer}>

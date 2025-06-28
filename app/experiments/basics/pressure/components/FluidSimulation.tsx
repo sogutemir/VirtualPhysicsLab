@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Dimensions } from 'react-native';
 import { Card } from '@/components/ui/card';
+import { useLanguage } from '@/components/LanguageContext';
 import {
   calculatePressure,
   calculateBuoyantForce,
@@ -32,6 +33,7 @@ const FluidSimulation: React.FC<FluidSimulationProps> = ({
   objectDepth,
   containerHeight,
 }) => {
+  const { t } = useLanguage();
   const [pressurePoints, setPressurePoints] = useState<
     Array<{ depth: number; pressure: number }>
   >([]);
@@ -39,7 +41,7 @@ const FluidSimulation: React.FC<FluidSimulationProps> = ({
 
   const objectVolume = (objectWidth * objectHeight * objectDepth) / 1000000; // cm³ to m³
   const objectMass = objectDensity * objectVolume;
-  const objectWeight = objectMass * 9.81; // N
+  const objectWeight = objectMass * 9.8; // N - standart g değeri
   const buoyantForce = calculateBuoyantForce(fluidDensity, objectVolume);
   const floatStatus = determineFloatStatus(objectDensity, fluidDensity);
   const submergedPercentage = calculateSubmergedPercentage(
@@ -60,15 +62,23 @@ const FluidSimulation: React.FC<FluidSimulationProps> = ({
     setPressurePoints(points);
   }, [fluidDensity, containerHeight]);
 
-  // Nesnenin konumunu hesapla
+  // Nesnenin konumunu hesapla - FİZİK HATASINI DÜZELTİLDİ
   const calculateObjectPosition = () => {
     if (floatStatus === 'float') {
+      // Yüzen cisim: Sadece belirli bir kısmı suda, yukarıda konumlanır
       const submergedHeight = (submergedPercentage / 100) * objectHeight;
-      return containerHeight - submergedHeight;
+      // Su yüzeyi containerHeight'ın %90'ında olsun, cisim ona göre konumlansın
+      const waterSurfaceY = containerHeight * 0.1; // Üstten %10 boşluk
+      return waterSurfaceY - (objectHeight - submergedHeight); // Yüzen kısmı su yüzeyinin üstünde
     } else if (floatStatus === 'neutral') {
-      return (containerHeight - objectHeight) / 2;
+      // Askıda kalan cisim: Su ortasında
+      const waterSurfaceY = containerHeight * 0.1;
+      const waterDepth = containerHeight * 0.8; // Su derinliği %80
+      return waterSurfaceY + waterDepth / 2 - objectHeight / 2; // Ortada konumlan
     } else {
-      return containerHeight - objectHeight;
+      // Batan cisim: En altta
+      const waterBottomY = containerHeight * 0.9; // Alt %10 boşluk
+      return waterBottomY - objectHeight; // Dipte konumlan
     }
   };
 
@@ -116,14 +126,14 @@ const FluidSimulation: React.FC<FluidSimulationProps> = ({
         }}
       >
         <Text style={{ fontSize: 16, fontWeight: '500' }}>
-          Sıvı Basıncı Simülasyonu
+          {t('Sıvı Basıncı Simülasyonu', 'Fluid Pressure Simulation')}
         </Text>
         <View style={{ alignItems: 'flex-end' }}>
           <Text style={{ fontSize: 14, color: '#666' }}>
-            Sıvı Yoğunluğu: {formatWithUnits(fluidDensity, 'kg/m³')}
+            {t('Sıvı Yoğunluğu', 'Fluid Density')}: {formatWithUnits(fluidDensity, 'kg/m³')}
           </Text>
           <Text style={{ fontSize: 14, color: '#666' }}>
-            Cisim Yoğunluğu: {formatWithUnits(objectDensity, 'kg/m³')}
+            {t('Cisim Yoğunluğu', 'Object Density')}: {formatWithUnits(objectDensity, 'kg/m³')}
           </Text>
         </View>
       </View>
@@ -137,17 +147,41 @@ const FluidSimulation: React.FC<FluidSimulationProps> = ({
           overflow: 'hidden',
         }}
       >
-        {/* Sıvı konteyneri */}
+        {/* Container - hava ve su ayrı görselleştirildi */}
         <View
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
-            bottom: 0,
-            backgroundColor: '#61dafb',
+            height: containerHeight * 0.1, // Üst %10 hava
+            backgroundColor: '#e0f2fe', // Açık mavi - hava
+          }}
+        />
+        
+        {/* Su konteyneri - sadece su olan kısım */}
+        <View
+          style={{
+            position: 'absolute',
+            top: containerHeight * 0.1, // Su yüzeyi %10'dan başlar
+            left: 0,
+            right: 0,
+            bottom: containerHeight * 0.1, // Alt %10 boşluk
+            backgroundColor: '#0891b2', // Koyu mavi - su
           }}
         >
+          {/* Su yüzeyi çizgisi */}
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 2,
+              backgroundColor: 'rgba(255,255,255,0.8)',
+            }}
+          />
+          
           {/* Sıvı dalgaları */}
           <Animated.View
             style={[
@@ -166,7 +200,7 @@ const FluidSimulation: React.FC<FluidSimulationProps> = ({
             style={[
               {
                 position: 'absolute',
-                top: 10,
+                top: 5,
                 left: 0,
                 right: 0,
                 height: 2,
@@ -199,43 +233,52 @@ const FluidSimulation: React.FC<FluidSimulationProps> = ({
           ]}
         />
 
-        {/* Basınç göstergeleri */}
+        {/* Basınç göstergeleri - Sadece su içindeki kısım */}
         <View
           style={{
             position: 'absolute',
             right: 0,
-            top: 0,
-            bottom: 0,
+            top: containerHeight * 0.1, // Su yüzeyinden başla
+            bottom: containerHeight * 0.1, // Su dibine kadar
             width: 20,
             justifyContent: 'space-between',
           }}
         >
-          {pressurePoints.map((point, index) => (
-            <View
-              key={index}
-              style={{ position: 'absolute', right: 0, top: point.depth }}
-            >
+          {pressurePoints.filter((_, index) => index >= 1 && index <= 8).map((point, index) => {
+            // Sadece su içindeki noktalari göster (1-8 arası)
+            const waterDepth = (index + 1) * (containerHeight * 0.8) / 8; // Su derinliği
+            return (
               <View
-                style={{
-                  width: 8,
-                  height: 1,
-                  backgroundColor: 'rgba(0,0,0,0.3)',
+                key={point.depth}
+                style={{ 
+                  position: 'absolute', 
+                  right: 0, 
+                  top: waterDepth 
                 }}
-              />
-              {index % 2 === 0 && (
-                <Text
+              >
+                <View
                   style={{
-                    position: 'absolute',
-                    right: 12,
-                    fontSize: 10,
-                    color: 'rgba(0,0,0,0.5)',
+                    width: 8,
+                    height: 1,
+                    backgroundColor: 'rgba(255,255,255,0.7)',
                   }}
-                >
-                  {(containerHeight - point.depth).toFixed(0)}
-                </Text>
-              )}
-            </View>
-          ))}
+                />
+                {index % 2 === 0 && (
+                  <Text
+                    style={{
+                      position: 'absolute',
+                      right: 12,
+                      fontSize: 10,
+                      color: 'rgba(255,255,255,0.8)',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {(waterDepth).toFixed(0)} cm
+                  </Text>
+                )}
+              </View>
+            );
+          })}
         </View>
       </View>
 
@@ -258,16 +301,16 @@ const FluidSimulation: React.FC<FluidSimulationProps> = ({
                 marginBottom: 8,
               }}
             >
-              Kuvvetler
+              {t('Kuvvetler', 'Forces')}
             </Text>
             <Text style={{ fontSize: 12, color: '#64748b' }}>
-              Ağırlık: {formatWithUnits(objectWeight, 'N')}
+              {t('Ağırlık', 'Weight')}: {formatWithUnits(objectWeight, 'N')}
             </Text>
             <Text style={{ fontSize: 12, color: '#64748b' }}>
-              Kaldırma Kuvveti: {formatWithUnits(buoyantForce, 'N')}
+              {t('Kaldırma Kuvveti', 'Buoyant Force')}: {formatWithUnits(buoyantForce, 'N')}
             </Text>
             <Text style={{ fontSize: 12, color: '#64748b' }}>
-              Net Kuvvet: {formatWithUnits(objectWeight - buoyantForce, 'N')}
+              {t('Net Kuvvet', 'Net Force')}: {formatWithUnits(objectWeight - buoyantForce, 'N')}
             </Text>
           </View>
           <View style={{ flex: 1 }}>
@@ -279,21 +322,24 @@ const FluidSimulation: React.FC<FluidSimulationProps> = ({
                 marginBottom: 8,
               }}
             >
-              Basınç Değerleri
+              {t('Basınç Değerleri', 'Pressure Values')}
             </Text>
             <Text style={{ fontSize: 12, color: '#64748b' }}>
-              Yüzeyde: {formatPressure(calculatePressure(fluidDensity, 0))}
+              {t('Yüzeyde', 'At Surface')}: {formatPressure(calculatePressure(fluidDensity, 0))}
             </Text>
             <Text style={{ fontSize: 12, color: '#64748b' }}>
-              Dipte:{' '}
+              {t('Dipte', 'At Bottom')}:{' '}
               {formatPressure(
                 calculatePressure(fluidDensity, containerHeight / 100)
               )}
             </Text>
             <Text style={{ fontSize: 12, color: '#64748b' }}>
-              Cisim Seviyesinde:{' '}
+              {t('Cisim Seviyesinde', 'At Object Level')}:{' '}
               {formatPressure(
-                calculatePressure(fluidDensity, objectPositionY / 100)
+                calculatePressure(fluidDensity, 
+                  // Cismin alt kısmındaki su derinliği
+                  Math.max(0, (objectPositionY + objectHeight - containerHeight * 0.1) / 100)
+                )
               )}
             </Text>
           </View>
@@ -307,14 +353,14 @@ const FluidSimulation: React.FC<FluidSimulationProps> = ({
           }}
         >
           <Text style={{ fontSize: 12, color: '#64748b', textAlign: 'center' }}>
-            Durum:{' '}
+            {t('Durum', 'Status')}:{' '}
             {floatStatus === 'float'
-              ? 'Cisim Yüzüyor'
+              ? t('Cisim Yüzüyor', 'Object Floats')
               : floatStatus === 'sink'
-              ? 'Cisim Batıyor'
-              : 'Cisim Askıda'}
+              ? t('Cisim Batıyor', 'Object Sinks')
+              : t('Cisim Askıda', 'Object Suspended')}
             {floatStatus === 'float' &&
-              ` (${submergedPercentage.toFixed(1)}% batık)`}
+              ` (${submergedPercentage.toFixed(1)}% ${t('batık', 'submerged')})`}
           </Text>
         </View>
       </View>

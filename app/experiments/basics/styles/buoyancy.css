@@ -52,6 +52,7 @@
   transform: translateZ(0);
   will-change: transform;
   animation: enhanced-wave 6s ease-in-out infinite;
+  bottom: 62%; /* Su yüzeyinde dalgalar - çok güvenli pozisyon */
 }
 
 .liquid-wave:nth-child(2) {
@@ -59,6 +60,7 @@
   opacity: 0.5;
   height: calc(var(--wave-height) * 0.8);
   animation-duration: 7s;
+  bottom: 60%; /* Su yüzeyi altında */
 }
 
 .liquid-wave:nth-child(3) {
@@ -66,6 +68,7 @@
   opacity: 0.3;
   height: calc(var(--wave-height) * 0.6);
   animation-duration: 8s;
+  bottom: 61%; /* Su yüzeyi seviyesinde */
 }
 
 .liquid-wave:nth-child(4) {
@@ -73,6 +76,7 @@
   opacity: 0.2;
   height: calc(var(--wave-height) * 0.4);
   animation-duration: 9s;
+  bottom: 63%; /* Su yüzeyi üzerinde */
 }
 
 /* Gelişmiş dalga animasyonu - Gerçekçi fizik */
@@ -370,4 +374,38 @@ input[type='range']::-webkit-slider-thumb:active {
       rgba(50, 80, 120, 0.6) 100%
     );
   }
+}
+
+/* Dalga katmanları için güncellenmiş pozisyonlar */
+.water-layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 33%; /* 38%'den 33%'e - su yüzeyi 67%'de */
+  height: 8px;
+  background: linear-gradient(90deg, 
+    rgba(29, 78, 216, 0.6) 0%, 
+    rgba(59, 130, 246, 0.4) 50%, 
+    rgba(29, 78, 216, 0.6) 100%
+  );
+  border-radius: 4px;
+  animation: wave 3s ease-in-out infinite;
+}
+
+.water-layer:nth-child(1) {
+  bottom: 33%; /* Su yüzeyi ana dalga */
+  animation-delay: 0s;
+  opacity: 0.8;
+}
+
+.water-layer:nth-child(2) {
+  bottom: 32%; /* Alt dalga */
+  animation-delay: -0.7s;
+  opacity: 0.6;
+}
+
+.water-layer:nth-child(3) {
+  bottom: 34%; /* Üst dalga */
+  animation-delay: -1.4s;
+  opacity: 0.4;
 }

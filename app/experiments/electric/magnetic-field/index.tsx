@@ -101,6 +101,18 @@ export default function MagneticFieldPage() {
                 '5. Observe how the magnetic field strength changes.'
               )}
             </Text>
+            <Text style={styles.listItem}>
+              {t(
+                '6. "Yükleri Göster" seçeneğini aktifleştirin ve animasyon başlattığınızda Lorentz kuvvetinin etkisini izleyin.',
+                '6. Enable "Show Charges" option and watch the Lorentz force effect when animation starts.'
+              )}
+            </Text>
+            <Text style={styles.listItem}>
+              {t(
+                '7. Pozitif ve negatif yüklerin manyetik alanda nasıl ters yönlerde hareket ettiğini gözlemleyin.',
+                '7. Observe how positive and negative charges move in opposite directions in the magnetic field.'
+              )}
+            </Text>
           </View>
 
           <View style={styles.formulaSection}>
@@ -132,6 +144,16 @@ export default function MagneticFieldPage() {
               {t(
                 'Mıknatıstan uzaklaştıkça alan şiddeti küp oranında azalır.',
                 'The field strength decreases as the cube of distance from the magnet.'
+              )}
+            </Text>
+
+            <Text style={styles.formula}>
+              {t('Lorentz Kuvveti:', 'Lorentz Force:')} F = q(v × B)
+            </Text>
+            <Text style={styles.formulaDescription}>
+              {t(
+                'Manyetik alanda hareket eden yüklere etki eden kuvvet. q yük miktarı, v hız vektörü, B manyetik alan vektörüdür.',
+                'Force acting on charges moving in a magnetic field. q is charge amount, v is velocity vector, B is magnetic field vector.'
               )}
             </Text>
           </View>

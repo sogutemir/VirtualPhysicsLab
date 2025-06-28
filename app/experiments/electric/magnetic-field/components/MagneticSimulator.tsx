@@ -21,18 +21,16 @@ import Svg, {
   Defs,
 } from 'react-native-svg';
 import { useLanguage } from '../../../../../components/LanguageContext';
-import {
-  ArrowDown,
-  RotateCcw,
-  Grid,
-  Zap,
-  Magnet,
-  Eye,
-  EyeOff,
-  Plus,
-  Minus,
-} from 'lucide-react-native';
-import { FieldType, MagneticSimulatorProps } from './types';
+// Icons için React Native ile uyumlu import
+import { Platform } from 'react-native';
+
+// React Native'de Lucide ikonları bazen sorun çıkarabilir, basit metinlerle değiştirebiliriz
+const IconText = ({ children }: { children: string }) => (
+  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>
+    {children}
+  </Text>
+);
+import { FieldType, MagneticSimulatorProps, ChargeParticle } from './types';
 
 const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
   currentIntensity,
@@ -41,37 +39,89 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
   fieldType,
   showFieldLines,
   animateField,
+  showCharges,
+  chargeType,
+  chargeSpeed,
   onChangeFieldType,
   onToggleAnimation,
   onToggleFieldLines,
+  onToggleCharges,
   onCoilTurnsChange,
+  onChargeTypeChange,
+  onChargeSpeedChange,
 }) => {
   const { language, t } = useLanguage();
-  const [screenWidth, setScreenWidth] = useState(
-    Dimensions.get('window').width
-  );
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const isMobile = screenWidth < 600;
   const animatedValue = useRef(new Animated.Value(0)).current;
-  const svgWidth = screenWidth > 600 ? 500 : screenWidth - 40;
-  const svgHeight = 400;
+  
+  // Mobil için daha büyük simülasyon alanı
+  const svgWidth = isMobile ? screenWidth - 32 : 500;
+  const svgHeight = isMobile ? Math.min(screenHeight * 0.4, 350) : 400;
+  
   const [animationPhase, setAnimationPhase] = useState(0);
+  const [charges, setCharges] = useState<ChargeParticle[]>([]);
+  const [chargePaths, setChargePaths] = useState<{
+    [key: string]: { x: number; y: number }[];
+  }>({});
+
+  // PERFORMANS: Mobil için daha az yük parçacığı
+  const chargeCount = isMobile ? 3 : 6;
+  const maxTrailLength = isMobile ? 15 : 50;
+
+  // PERFORMANS: Mobil için optimize edilmiş parametreler
+  const BASE_MAGNETIC_STRENGTH = isMobile ? 0.0002 : 0.0001; // Mobilde daha güçlü etki
+  const CHARGE_FORCE_FACTOR = isMobile ? 0.015 : 0.02; // Mobilde daha düşük hesaplama
+  const DAMPING = isMobile ? 0.995 : 0.998; // Mobilde daha hızlı stabilizasyon
+  const MAX_SPEED_FACTOR = isMobile ? 10 : 15; // Mobilde daha düşük maksimum hız
+
+  // Artık Dimensions.get kullandığımız için bu effect'e gerek yok
+
+  // Yük parçacıklarını başlat
+  useEffect(() => {
+    if (showCharges) {
+      const newCharges: ChargeParticle[] = [];
+
+      for (let i = 0; i < chargeCount; i++) {
+        const angle = (i * 2 * Math.PI) / chargeCount;
+        const radius = Math.min(svgWidth, svgHeight) * 0.25; // Daha küçük radius
+        const centerX = svgWidth / 2;
+        const centerY = svgHeight / 2;
+
+        let charge = 0;
+        if (chargeType === 'positive') charge = 1;
+        else if (chargeType === 'negative') charge = -1;
+        else charge = i % 2 === 0 ? 1 : -1; // 'both' için alternatif
+
+        // Başlangıç hızları - radyal yönde küçük hızlar
+        const initialSpeed = chargeSpeed * 2; // Daha küçük başlangıç hızı
+
+        newCharges.push({
+          id: `charge-${i}`,
+          x: centerX + Math.cos(angle) * radius,
+          y: centerY + Math.sin(angle) * radius,
+          vx: Math.cos(angle + Math.PI / 2) * initialSpeed,
+          vy: Math.sin(angle + Math.PI / 2) * initialSpeed,
+          charge,
+          mass: 1, // Basitleştirilmiş kütle
+        });
+      }
+      setCharges(newCharges);
+
+      // Path'leri sıfırla
+      const initialPaths: { [key: string]: { x: number; y: number }[] } = {};
+      newCharges.forEach((charge) => {
+        initialPaths[charge.id] = [{ x: charge.x, y: charge.y }];
+      });
+      setChargePaths(initialPaths);
+    } else {
+      setCharges([]);
+      setChargePaths({});
+    }
+  }, [showCharges, chargeType, svgWidth, svgHeight, chargeSpeed]);
 
   useEffect(() => {
-    const updateLayout = () => {
-      setScreenWidth(Dimensions.get('window').width);
-    };
-
-    Dimensions.addEventListener('change', updateLayout);
-    return () => {
-      const dimensionsHandler = Dimensions.addEventListener(
-        'change',
-        updateLayout
-      );
-      dimensionsHandler.remove();
-    };
-  }, []);
-
-  useEffect(() => {
-    let animationInterval: NodeJS.Timeout;
+    let animationInterval: any;
 
     if (animateField) {
       const animation = Animated.loop(
@@ -85,7 +135,148 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
 
       animationInterval = setInterval(() => {
         setAnimationPhase((prev) => (prev + 0.02) % 1);
-      }, 50);
+
+        // Yük parçacıklarını güncelle - VEKTÖREL ALAN İLE DOĞRU FİZİK
+        if (showCharges) {
+          setCharges((prevCharges) =>
+            prevCharges.map((charge) => {
+              const newCharge = { ...charge };
+
+              // Vektörel manyetik alan hesapla
+              const fieldComponents = calculateMagneticFieldComponents(
+                charge.x,
+                charge.y,
+                currentIntensity,
+                fieldType,
+                coilTurns,
+                svgWidth,
+                svgHeight
+              );
+
+              // Debug log kaldırıldı (mobil performans için)
+
+              let forceX = 0;
+              let forceY = 0;
+
+              if (fieldType === 'straight') {
+                // Düz tel: Dairesel yörünge (v ⊥ B)
+                // Manyetik alan Z yönünde, Lorentz kuvveti düzlemde
+                const fieldMagnitude = Math.abs(fieldComponents.z);
+                forceX =
+                  charge.charge *
+                  charge.vy *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+                forceY =
+                  charge.charge *
+                  -charge.vx *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+              } else if (fieldType === 'coil') {
+                // Bobin: Z ekseni boyunca alan
+                const fieldMagnitude = Math.abs(fieldComponents.z);
+                forceX =
+                  charge.charge *
+                  charge.vy *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+                forceY =
+                  charge.charge *
+                  -charge.vx *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+              } else if (fieldType === 'bar') {
+                // Çubuk mıknatıs: DOĞRU FİZİK - Sadece manyetik alan etkisi
+                // Mıknatıslar elektrik yüklerini çekmez/itmez!
+                // Sadece hareket halindeki yüklere Lorentz kuvveti: F = q(v × B)
+                const fieldMagnitude = Math.sqrt(
+                  fieldComponents.x ** 2 +
+                    fieldComponents.y ** 2 +
+                    fieldComponents.z ** 2
+                );
+
+                // Manyetik alan vektörü (normalize edilmiş)
+                const Bx = fieldComponents.x / (fieldMagnitude + 1e-10);
+                const By = fieldComponents.y / (fieldMagnitude + 1e-10);
+                const Bz = fieldComponents.z / (fieldMagnitude + 1e-10);
+
+                // Lorentz kuvveti: F = q(v × B)
+                // v × B = (vy*Bz - vz*By, vz*Bx - vx*Bz, vx*By - vy*Bx)
+                // vz = 0 olduğu için (2D düzlem)
+                forceX =
+                  charge.charge *
+                  (charge.vy * Bz) *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+                forceY =
+                  charge.charge *
+                  (-charge.vx * Bz + charge.vx * By) *
+                  fieldMagnitude *
+                  CHARGE_FORCE_FACTOR;
+              }
+
+              // Hızı doğrudan güncelle (basitleştirilmiş)
+              newCharge.vx += forceX;
+              newCharge.vy += forceY;
+
+              // Hafif damping
+              newCharge.vx *= DAMPING;
+              newCharge.vy *= DAMPING;
+
+              // Hız sınırı
+              const speed = Math.sqrt(newCharge.vx ** 2 + newCharge.vy ** 2);
+              const maxSpeed = chargeSpeed * MAX_SPEED_FACTOR;
+              if (speed > maxSpeed) {
+                newCharge.vx = (newCharge.vx / speed) * maxSpeed;
+                newCharge.vy = (newCharge.vy / speed) * maxSpeed;
+              }
+
+              // Pozisyonu güncelle
+              newCharge.x += newCharge.vx;
+              newCharge.y += newCharge.vy;
+
+              // Elastik çarpışma sınırlarda
+              const margin = 15;
+              if (newCharge.x < margin) {
+                newCharge.x = margin;
+                newCharge.vx = -newCharge.vx * 0.8; // Enerji kaybı
+              }
+              if (newCharge.x > svgWidth - margin) {
+                newCharge.x = svgWidth - margin;
+                newCharge.vx = -newCharge.vx * 0.8;
+              }
+              if (newCharge.y < margin) {
+                newCharge.y = margin;
+                newCharge.vy = -newCharge.vy * 0.8;
+              }
+              if (newCharge.y > svgHeight - margin) {
+                newCharge.y = svgHeight - margin;
+                newCharge.vy = -newCharge.vy * 0.8;
+              }
+
+              return newCharge;
+            })
+          );
+
+          // Yük yollarını güncelle (iz bırakma)
+          setChargePaths((prevPaths) => {
+            const newPaths = { ...prevPaths };
+            charges.forEach((charge) => {
+              if (!newPaths[charge.id]) {
+                newPaths[charge.id] = [];
+              }
+
+              // PERFORMANS: Mobilde daha az trail point
+              if (newPaths[charge.id].length > maxTrailLength) {
+                newPaths[charge.id].shift();
+              }
+
+              newPaths[charge.id].push({ x: charge.x, y: charge.y });
+            });
+            return newPaths;
+          });
+        }
+              }, isMobile ? 33 : 16); // Mobilde 30 FPS, web'de 60 FPS
 
       return () => {
         animation.stop();
@@ -95,7 +286,206 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
       animatedValue.setValue(0);
       setAnimationPhase(0);
     }
-  }, [animateField, animatedValue]);
+  }, [
+    animateField,
+    animatedValue,
+    showCharges,
+    currentIntensity,
+    fieldType,
+    coilTurns,
+    chargeSpeed,
+    svgWidth,
+    svgHeight,
+  ]);
+
+  // Doğru manyetik alan hesaplama - vektörel alan ile
+  const calculateMagneticFieldComponents = (
+    x: number,
+    y: number,
+    current: number,
+    type: FieldType,
+    turns: number,
+    width: number,
+    height: number
+  ) => {
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const distance = Math.max(Math.sqrt(dx ** 2 + dy ** 2), 10);
+
+    let fieldX = 0;
+    let fieldY = 0;
+    let fieldZ = 0; // Ekrana dik bileşen
+
+    switch (type) {
+      case 'straight':
+        // Düz tel: Dairesel manyetik alan (sağ el kuralı)
+        // B ~ I/r, yön: teğetsel (ekrana dik)
+        const fieldMagnitude =
+          (current * BASE_MAGNETIC_STRENGTH * 800) / distance;
+        fieldZ = fieldMagnitude; // Sadece Z bileşeni (ekrana dik)
+        break;
+
+      case 'coil':
+        // Bobin: Merkez ekseni boyunca uniform alan
+        const distanceFromCenter = distance / (width * 0.2);
+        const baseMagnitude = current * turns * BASE_MAGNETIC_STRENGTH * 1200;
+
+        if (distanceFromCenter < 1) {
+          // Bobin içinde - uniform alan
+          fieldZ = baseMagnitude;
+        } else {
+          // Bobin dışında - zayıflayan alan
+          fieldZ = baseMagnitude / distanceFromCenter ** 2;
+        }
+        break;
+
+      case 'bar':
+        // Çubuk mıknatıs: N ve S kutup ayrı ayrı hesaplama
+        const magnetLength = width * 0.3;
+        const northX = centerX + magnetLength / 2;
+        const northY = centerY;
+        const southX = centerX - magnetLength / 2;
+        const southY = centerY;
+
+        // N kutbundan uzaklık
+        const dxN = x - northX;
+        const dyN = y - northY;
+        const distanceN = Math.max(Math.sqrt(dxN ** 2 + dyN ** 2), 5);
+
+        // S kutbundan uzaklık
+        const dxS = x - southX;
+        const dyS = y - southY;
+        const distanceS = Math.max(Math.sqrt(dxS ** 2 + dyS ** 2), 5);
+
+        // Dipol alan hesaplama
+        const strength = current * BASE_MAGNETIC_STRENGTH * 1500;
+
+        // N kutbu etkisi (pozitif)
+        const fieldNX = (strength * dxN) / distanceN ** 3;
+        const fieldNY = (strength * dyN) / distanceN ** 3;
+
+        // S kutbu etkisi (negatif)
+        const fieldSX = -(strength * dxS) / distanceS ** 3;
+        const fieldSY = -(strength * dyS) / distanceS ** 3;
+
+        // Toplam alan
+        fieldX = fieldNX + fieldSX;
+        fieldY = fieldNY + fieldSY;
+        fieldZ = Math.sqrt(fieldX ** 2 + fieldY ** 2) * 0.1; // Z bileşeni
+        break;
+    }
+
+    return { x: fieldX, y: fieldY, z: fieldZ };
+  };
+
+  // PERFORMANS: Memoized yük parçacığı render
+  const renderChargeParticles = React.useMemo(() => {
+    if (!showCharges) return null;
+
+    return (
+      <G>
+        {/* PERFORMANS: Mobilde yük yollarını basitleştir */}
+        {!isMobile && Object.entries(chargePaths).map(([chargeId, path]) => {
+          if (path.length < 2) return null;
+
+          const charge = charges.find((c) => c.id === chargeId);
+          if (!charge) return null;
+
+          const pathString = path.reduce((acc, point, index) => {
+            if (index === 0) return `M ${point.x} ${point.y}`;
+            return `${acc} L ${point.x} ${point.y}`;
+          }, '');
+
+          return (
+            <Path
+              key={`path-${chargeId}`}
+              d={pathString}
+              stroke={
+                charge.charge > 0
+                  ? 'rgba(239, 68, 68, 0.4)'
+                  : 'rgba(59, 130, 246, 0.4)'
+              }
+              strokeWidth={2}
+              fill="none"
+              strokeDasharray="2,2"
+            />
+          );
+        })}
+
+        {/* Yük parçacıkları */}
+        {charges.map((charge) => (
+          <G key={charge.id}>
+            {/* PERFORMANS: Mobilde gölge yok */}
+            {!isMobile && (
+              <Circle
+                cx={charge.x + 1}
+                cy={charge.y + 1}
+                r={8}
+                fill="rgba(0,0,0,0.2)"
+              />
+            )}
+
+            {/* Yük parçacığı */}
+            <Circle
+              cx={charge.x}
+              cy={charge.y}
+              r={isMobile ? 6 : 8} // Mobilde daha küçük
+              fill={charge.charge > 0 ? '#ef4444' : '#3b82f6'}
+              stroke={charge.charge > 0 ? '#dc2626' : '#2563eb'}
+              strokeWidth={isMobile ? 1 : 2}
+            />
+
+            {/* Yük işareti */}
+            <SvgText
+              x={charge.x}
+              y={charge.y + 3}
+              textAnchor="middle"
+              fill="white"
+              fontSize={isMobile ? "10" : "12"}
+              fontWeight="bold"
+            >
+              {charge.charge > 0 ? '+' : '-'}
+            </SvgText>
+
+            {/* PERFORMANS: Mobilde hız vektörü ve kuvvet göstergesi yok */}
+            {!isMobile && animateField && (
+              <G>
+                <Line
+                  x1={charge.x}
+                  y1={charge.y}
+                  x2={charge.x + charge.vx * 0.05}
+                  y2={charge.y + charge.vy * 0.05}
+                  stroke={charge.charge > 0 ? '#fca5a5' : '#93c5fd'}
+                  strokeWidth={3}
+                />
+                <Circle
+                  cx={charge.x + charge.vx * 0.05}
+                  cy={charge.y + charge.vy * 0.05}
+                  r={2}
+                  fill={charge.charge > 0 ? '#fca5a5' : '#93c5fd'}
+                />
+                <Circle
+                  cx={charge.x}
+                  cy={charge.y}
+                  r={12}
+                  fill="none"
+                  stroke={
+                    charge.charge > 0
+                      ? 'rgba(239, 68, 68, 0.3)'
+                      : 'rgba(59, 130, 246, 0.3)'
+                  }
+                  strokeWidth={1}
+                  opacity={Math.abs(charge.vx + charge.vy) / 50}
+                />
+              </G>
+            )}
+          </G>
+        ))}
+      </G>
+    );
+  }, [showCharges, charges, chargePaths, animateField, isMobile]);
 
   const renderStraightWireMagneticField = () => {
     const centerX = svgWidth / 2;
@@ -330,7 +720,7 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
           fill="url(#magnetGradient)"
         />
 
-        {/* Kutup etiketleri */}
+        {/* Kutup etiketleri - SOL TARAF N, SAĞ TARAF S */}
         <SvgText
           x={magnetX + magnetWidth / 4}
           y={centerY + 5}
@@ -446,19 +836,21 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.tabContainer}>
+    <View style={[styles.container, isMobile && styles.mobileContainer]}>
+      <View style={[styles.tabContainer, isMobile && styles.mobileTabContainer]}>
         <TouchableOpacity
-          style={[styles.tab, fieldType === 'straight' && styles.activeTab]}
+          style={[
+            styles.tab, 
+            isMobile && styles.mobileTab,
+            fieldType === 'straight' && styles.activeTab
+          ]}
           onPress={() => onChangeFieldType('straight')}
         >
-          <Zap
-            size={16}
-            color={fieldType === 'straight' ? '#374151' : '#666'}
-          />
+          <IconText>⚡</IconText>
           <Text
             style={[
               styles.tabText,
+              isMobile && styles.mobileTabText,
               fieldType === 'straight' && styles.activeTabText,
             ]}
           >
@@ -466,13 +858,18 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, fieldType === 'coil' && styles.activeTab]}
+          style={[
+            styles.tab, 
+            isMobile && styles.mobileTab,
+            fieldType === 'coil' && styles.activeTab
+          ]}
           onPress={() => onChangeFieldType('coil')}
         >
-          <Grid size={16} color={fieldType === 'coil' ? '#374151' : '#666'} />
+          <IconText>🔄</IconText>
           <Text
             style={[
               styles.tabText,
+              isMobile && styles.mobileTabText,
               fieldType === 'coil' && styles.activeTabText,
             ]}
           >
@@ -480,13 +877,18 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, fieldType === 'bar' && styles.activeTab]}
+          style={[
+            styles.tab, 
+            isMobile && styles.mobileTab,
+            fieldType === 'bar' && styles.activeTab
+          ]}
           onPress={() => onChangeFieldType('bar')}
         >
-          <Magnet size={16} color={fieldType === 'bar' ? '#374151' : '#666'} />
+          <IconText>🧲</IconText>
           <Text
             style={[
               styles.tabText,
+              isMobile && styles.mobileTabText,
               fieldType === 'bar' && styles.activeTabText,
             ]}
           >
@@ -495,41 +897,65 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
         </TouchableOpacity>
       </View>
 
-      <View style={styles.svgContainer}>
+      <View style={[styles.svgContainer, isMobile && styles.mobileSvgContainer]}>
         <Svg width={svgWidth} height={svgHeight}>
+          <Defs>
+            <LinearGradient id="fieldGradient" x1="0" y1="0" x2="1" y2="0">
+              <Stop offset="0" stopColor="rgba(147, 112, 219, 0.3)" />
+              <Stop offset="1" stopColor="rgba(147, 112, 219, 0.7)" />
+            </LinearGradient>
+          </Defs>
+
           {fieldType === 'straight' && renderStraightWireMagneticField()}
           {fieldType === 'coil' && renderCoilMagneticField()}
           {fieldType === 'bar' && renderBarMagnetField()}
+
+          {/* Yük parçacıklarını en üstte render et */}
+          {renderChargeParticles}
         </Svg>
       </View>
 
-      <View style={styles.controlsContainer}>
+      <View style={[styles.controlsContainer, isMobile && styles.mobileControlsContainer]}>
         <TouchableOpacity
-          style={styles.controlButton}
+          style={[styles.controlButton, isMobile && styles.mobileControlButton]}
           onPress={onToggleAnimation}
         >
-          <RotateCcw size={20} color={animateField ? '#374151' : '#666'} />
-          <Text style={styles.controlButtonText}>
-            {animateField
-              ? t('Animasyonu Durdur', 'Stop Animation')
-              : t('Alanı Canlandır', 'Animate Field')}
-          </Text>
+          <IconText>{animateField ? '⏸️' : '▶️'}</IconText>
+          {!isMobile && (
+            <Text style={styles.controlButtonText}>
+              {animateField
+                ? t('Animasyonu Durdur', 'Stop Animation')
+                : t('Alanı Canlandır', 'Animate Field')}
+            </Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.controlButton}
+          style={[styles.controlButton, isMobile && styles.mobileControlButton]}
           onPress={onToggleFieldLines}
         >
-          {showFieldLines ? (
-            <Eye size={20} color="#374151" />
-          ) : (
-            <EyeOff size={20} color="#666" />
+          <IconText>{showFieldLines ? '👁️' : '🙈'}</IconText>
+          {!isMobile && (
+            <Text style={styles.controlButtonText}>
+              {showFieldLines
+                ? t('Alan Çizgilerini Gizle', 'Hide Field Lines')
+                : t('Alan Çizgilerini Göster', 'Show Field Lines')}
+            </Text>
           )}
-          <Text style={styles.controlButtonText}>
-            {showFieldLines
-              ? t('Alan Çizgilerini Gizle', 'Hide Field Lines')
-              : t('Alan Çizgilerini Göster', 'Show Field Lines')}
-          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.controlButton, isMobile && styles.mobileControlButton]}
+          onPress={onToggleCharges}
+        >
+          <IconText>{showCharges ? '⚡' : '💤'}</IconText>
+          {!isMobile && (
+            <Text style={styles.controlButtonText}>
+              {showCharges
+                ? t('Yükleri Gizle', 'Hide Charges')
+                : t('Yükleri Göster', 'Show Charges')}
+            </Text>
+          )}
         </TouchableOpacity>
 
         {fieldType === 'coil' && (
@@ -538,14 +964,14 @@ const MagneticSimulator: React.FC<MagneticSimulatorProps> = ({
               style={styles.coilButton}
               onPress={() => onCoilTurnsChange(Math.max(1, coilTurns - 1))}
             >
-              <Minus size={16} color="#666" />
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>−</Text>
             </TouchableOpacity>
             <Text style={styles.coilTurnsText}>{coilTurns}</Text>
             <TouchableOpacity
               style={styles.coilButton}
               onPress={() => onCoilTurnsChange(Math.min(20, coilTurns + 1))}
             >
-              <Plus size={16} color="#666" />
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>+</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -566,10 +992,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  mobileContainer: {
+    marginVertical: 8,
+    borderRadius: 8,
+  },
   tabContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderColor: '#e5e7eb',
+  },
+  mobileTabContainer: {
+    paddingHorizontal: 4,
   },
   tab: {
     flexDirection: 'row',
@@ -579,6 +1012,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     flex: 1,
   },
+  mobileTab: {
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    minHeight: 50,
+  },
   activeTab: {
     borderBottomWidth: 2,
     borderColor: '#6b7280',
@@ -587,6 +1025,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginLeft: 8,
+  },
+  mobileTabText: {
+    fontSize: 12,
+    marginLeft: 4,
+    textAlign: 'center',
   },
   activeTabText: {
     color: '#374151',
@@ -598,11 +1041,23 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f9fafb',
   },
+  mobileSvgContainer: {
+    padding: 8,
+    backgroundColor: '#f9fafb',
+  },
   controlsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     padding: 16,
+    borderTopWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  mobileControlsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: 12,
     borderTopWidth: 1,
     borderColor: '#e5e7eb',
   },
@@ -612,6 +1067,15 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     backgroundColor: '#f3f4f6',
+  },
+  mobileControlButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    minWidth: 50,
+    minHeight: 50,
   },
   controlButtonText: {
     marginLeft: 8,

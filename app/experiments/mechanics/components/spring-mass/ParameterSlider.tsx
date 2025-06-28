@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import React, { memo } from 'react';
+import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
 import { CustomSlider } from '../../../../../components/ui/slider';
 
 interface ParameterSliderProps {
@@ -14,7 +14,7 @@ interface ParameterSliderProps {
   color?: string;
 }
 
-// Web için basit slider component
+// Web için HTML slider komponenti
 const WebSlider: React.FC<{
   value: number;
   min: number;
@@ -22,8 +22,11 @@ const WebSlider: React.FC<{
   step: number;
   onChange: (value: number) => void;
   color: string;
-}> = ({ value, min, max, step, onChange, color }) => {
+  isMobile: boolean;
+}> = ({ value, min, max, step, onChange, color, isMobile }) => {
   if (Platform.OS !== 'web') return null;
+
+  const progressPercent = ((value - min) / (max - min)) * 100;
 
   return (
     <input
@@ -35,20 +38,22 @@ const WebSlider: React.FC<{
       onChange={(e) => onChange(parseFloat(e.target.value))}
       style={{
         width: '100%',
-        height: '40px',
-        background: `linear-gradient(to right, ${color} 0%, ${color} ${
-          ((value - min) / (max - min)) * 100
-        }%, #bdc3c7 ${((value - min) / (max - min)) * 100}%, #bdc3c7 100%)`,
+        height: isMobile ? '35px' : '40px',
+        background: `linear-gradient(to right, ${color} 0%, ${color} ${progressPercent}%, #e5e7eb ${progressPercent}%, #e5e7eb 100%)`,
         outline: 'none',
         cursor: 'pointer',
         appearance: 'none',
-        borderRadius: '10px',
+        borderRadius: '8px',
+        WebkitAppearance: 'none',
+        border: 'none',
+        marginTop: isMobile ? '6px' : '8px',
+        marginBottom: isMobile ? '6px' : '8px',
       }}
     />
   );
 };
 
-export const ParameterSlider: React.FC<ParameterSliderProps> = ({
+export const ParameterSlider: React.FC<ParameterSliderProps> = memo(({
   label,
   value,
   min,
@@ -57,15 +62,21 @@ export const ParameterSlider: React.FC<ParameterSliderProps> = ({
   unit,
   onChange,
   description,
-  color = '#3498db',
+  color = '#3b82f6',
 }) => {
+  // Mobil optimizasyonu
+  const screenWidth = Dimensions.get('window').width;
+  const isMobile = screenWidth < 600;
+
   return (
-    <View style={styles.sliderContainer}>
-      <View style={styles.labelRow}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={styles.value}>
-          {value.toFixed(step < 1 ? 1 : 0)} {unit}
-        </Text>
+    <View style={[styles.container, isMobile && styles.mobileContainer]}>
+      <View style={styles.header}>
+        <Text style={[styles.label, isMobile && styles.mobileLabel]}>{label}</Text>
+        <View style={[styles.valueContainer, { backgroundColor: color + '20' }]}>
+          <Text style={[styles.value, { color }, isMobile && styles.mobileValue]}>
+            {value.toFixed(step < 1 ? 1 : 0)} {unit}
+          </Text>
+        </View>
       </View>
 
       {Platform.OS === 'web' ? (
@@ -76,64 +87,105 @@ export const ParameterSlider: React.FC<ParameterSliderProps> = ({
           step={step}
           onChange={onChange}
           color={color}
+          isMobile={isMobile}
         />
       ) : (
         <CustomSlider
-          style={styles.slider}
+          style={[styles.slider, isMobile && styles.mobileSlider]}
           min={min}
           max={max}
-          step={step}
           value={value}
+          step={step}
           onValueChange={onChange}
           minimumTrackTintColor={color}
-          maximumTrackTintColor="#bdc3c7"
+          maximumTrackTintColor="rgba(0, 0, 0, 0.1)"
           thumbTintColor={color}
         />
       )}
 
-      {description && (
-        <View style={styles.infoContainer}>
-          <Text style={styles.description}>{description}</Text>
-        </View>
+      <View style={styles.range}>
+        <Text style={[styles.rangeText, isMobile && styles.mobileRangeText]}>
+          {min} {unit}
+        </Text>
+        <Text style={[styles.rangeText, isMobile && styles.mobileRangeText]}>
+          {max} {unit}
+        </Text>
+      </View>
+
+      {description && !isMobile && (
+        <Text style={styles.description}>{description}</Text>
       )}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
-  sliderContainer: {
-    marginBottom: 15,
+  container: {
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  labelRow: {
+  mobileContainer: {
+    marginBottom: 16,
+    padding: 12,
+  },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 12,
   },
   label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#334155',
+    flex: 1,
+  },
+  mobileLabel: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+  },
+  valueContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    minWidth: 80,
+    alignItems: 'center',
   },
   value: {
-    fontSize: 14,
-    color: '#7f8c8d',
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  mobileValue: {
+    fontSize: 13,
   },
   slider: {
-    width: '100%',
     height: 40,
+    marginVertical: 8,
   },
-  infoContainer: {
-    backgroundColor: '#f8f9fa',
-    padding: 8,
-    borderRadius: 5,
-    marginTop: 5,
+  mobileSlider: {
+    height: 35,
+    marginVertical: 6,
+  },
+  range: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  rangeText: {
+    fontSize: 12,
+    color: '#64748b',
+  },
+  mobileRangeText: {
+    fontSize: 11,
   },
   description: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    textAlign: 'center',
+    fontSize: 13,
+    color: '#64748b',
+    marginTop: 8,
+    lineHeight: 18,
     fontStyle: 'italic',
   },
 });

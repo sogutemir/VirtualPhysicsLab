@@ -9,9 +9,9 @@ export const DT = 0.015;  // Zaman adımı (s)
 export const PULLEY_RADIUS = 0.80;  // Makara yarıçapı R = 80 cm
 export const MASS_RADIUS = 0.40;    // Bağlı kütle yarıçapı r = 40 cm
 
-// Hareket sınırları
-export const MAX_ANGLE = Math.PI;  // Maksimum açı (180 derece)
-export const MIN_ANGLE = -Math.PI; // Minimum açı (-180 derece)
+// Hareket sınırları - Görsel alan sınırları dahilinde
+export const MAX_ANGLE = 2.5 * Math.PI;  // Maksimum açı (2.5 tur - makul mesafe)
+export const MIN_ANGLE = -2.5 * Math.PI; // Minimum açı (-2.5 tur)
 
 // RK4 integrasyon için sonuç tipi
 interface RK4Result {
@@ -43,6 +43,15 @@ function calculateAcceleration(
   return K * (massM * R - massm * r * Math.sin(phi));
 }
 
+// Zemin çarpma kontrolü - asılı kütle yere ulaştı mı?
+function checkGroundCollision(phi: number): boolean {
+  // Asılı kütlenin ip uzunluğu (başlangıç + açısal uzama)
+  const stringLength = 1.2 + PULLEY_RADIUS * Math.abs(phi); // metre cinsinden
+  const maxAllowedLength = 4.2; // 4.2 metre maksimum (zemin mesafesi - %20 daha aşağı)
+  
+  return stringLength >= maxAllowedLength;
+}
+
 // Runge-Kutta 4. derece integrasyon
 export function calculateRK4(
   t: number,
@@ -54,7 +63,12 @@ export function calculateRK4(
     massm: number;
   }
 ): RK4Result {
-  // Açı sınırlarını kontrol et
+  // Zemin çarpma kontrolü - kütle yere ulaştı mı?
+  if (checkGroundCollision(phi0)) {
+    return { phi1: phi0, dphi1: 0 }; // Simülasyonu durdur
+  }
+  
+  // Basit açı sınırı kontrolü - orijinal fizik modelini koru
   if (phi0 > MAX_ANGLE) {
     return { phi1: MAX_ANGLE, dphi1: 0 };
   }

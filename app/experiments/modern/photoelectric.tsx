@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Platform } from 'react-native';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import PhotoelectricSimulator from './components/photoelectric/PhotoelectricSimulator';
+
+const isMobile = Platform.OS !== 'web';
 
 const PhotoelectricExperiment: React.FC = () => {
   // Deney parametreleri için state'ler
@@ -24,19 +26,11 @@ const PhotoelectricExperiment: React.FC = () => {
     >
       <ScrollView
         style={styles.container}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
       >
-        <View style={styles.content}>
-          {/* Simülasyon */}
-          <PhotoelectricSimulator />
-
-          {/* İçerik Bölümü */}
-          <View style={styles.infoSection}>
-            <ScrollView>
-              {/* Bilgi içeriği PhotoelectricSimulator içinde */}
-            </ScrollView>
-          </View>
-        </View>
+        <PhotoelectricSimulator />
       </ScrollView>
     </ExperimentLayout>
   );
@@ -47,11 +41,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  content: {
-    padding: 16,
-  },
-  infoSection: {
-    marginTop: 16,
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: isMobile ? 60 : 40,
   },
 });
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
+import { CustomSlider } from '../../../../components/ui/slider';
 
 interface ValueSliderProps {
   value: number;
@@ -45,6 +46,10 @@ const ValueSlider: React.FC<ValueSliderProps> = ({
     onChange([newValue]);
   };
 
+  const handleMobileChange = (newValue: number) => {
+    onChange([newValue]);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.labelContainer}>
@@ -79,28 +84,18 @@ const ValueSlider: React.FC<ValueSliderProps> = ({
           }}
         />
       ) : (
-        <View
-          style={[styles.slider, { backgroundColor: 'rgba(0, 0, 0, 0.1)' }]}
-        >
-          <View
-            style={[
-              styles.sliderTrack,
-              {
-                width: `${((value - min) / (max - min)) * 100}%`,
-                backgroundColor: color,
-              },
-            ]}
-          />
-          <View
-            style={[
-              styles.sliderThumb,
-              {
-                left: `${((value - min) / (max - min)) * 100}%`,
-                backgroundColor: color,
-              },
-            ]}
-          />
-        </View>
+        <CustomSlider
+          value={value}
+          min={min}
+          max={max}
+          step={step}
+          onValueChange={handleMobileChange}
+          disabled={disabled}
+          minimumTrackTintColor={color}
+          maximumTrackTintColor="rgba(0,0,0,0.1)"
+          thumbTintColor={color}
+          style={styles.mobileSlider}
+        />
       )}
     </View>
   );
@@ -124,32 +119,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  slider: {
+  mobileSlider: {
     width: '100%',
-    height: 8,
-    borderRadius: 4,
-    position: 'relative',
-    marginVertical: 16,
-  },
-  sliderTrack: {
-    height: '100%',
-    borderRadius: 4,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
-  sliderThumb: {
-    position: 'absolute',
-    top: -6,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    marginLeft: -10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    height: 40,
+    marginVertical: 8,
   },
 });
 

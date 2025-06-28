@@ -15,16 +15,19 @@ import ControlPanel from './ControlPanel';
 import {
   MetalType,
   calculateCurrent,
-  calculateKineticEnergy,
+  calculateMaxKineticEnergy,
+  calculateStoppingPotential,
   calculateThresholdFrequency,
   generateIVCurveData,
   generateEnergyFrequencyData,
   frequencyToWavelength,
 } from '../../utils/photoelectric';
 
+// Mobil kontrol değişkeni
+const isMobile = Platform.OS !== 'web';
+
 const PhotoelectricSimulator: React.FC = () => {
   const { language, t } = useLanguage();
-  const isMobile = Platform.OS !== 'web';
 
   // Durum değişkenleri
   const [frequency, setFrequency] = useState(6e14); // 600 THz (yaklaşık 500 nm)
@@ -36,7 +39,8 @@ const PhotoelectricSimulator: React.FC = () => {
 
   // Hesaplanmış değerler
   const [current, setCurrent] = useState(0);
-  const [kineticEnergy, setKineticEnergy] = useState(0);
+  const [maxKineticEnergy, setMaxKineticEnergy] = useState(0);
+  const [theoreticalStoppingPotential, setTheoreticalStoppingPotential] = useState(0);
   const [ivCurveData, setIVCurveData] = useState<any[]>([]);
   const [efCurveData, setEFCurveData] = useState<any[]>([]);
 
@@ -51,7 +55,7 @@ const PhotoelectricSimulator: React.FC = () => {
 
   // Elektron emisyonu oluyor mu?
   const isEmittingElectrons =
-    isLightOn && frequency >= thresholdFrequency && kineticEnergy > 0;
+    isLightOn && frequency >= thresholdFrequency && maxKineticEnergy > 0;
 
   // Emisyon durumu değiştiğinde animasyon
   useEffect(() => {
@@ -115,11 +119,8 @@ const PhotoelectricSimulator: React.FC = () => {
   // Değerler değiştiğinde hesaplamaları güncelle
   useEffect(() => {
     if (isLightOn) {
-      const newKineticEnergy = calculateKineticEnergy(
-        frequency,
-        metalType,
-        stoppingVoltage
-      );
+      const newMaxKineticEnergy = calculateMaxKineticEnergy(frequency, metalType);
+      const newTheoreticalStoppingPotential = calculateStoppingPotential(frequency, metalType);
       const newCurrent = calculateCurrent(
         frequency,
         intensity,
@@ -128,7 +129,8 @@ const PhotoelectricSimulator: React.FC = () => {
         temperature
       );
 
-      setKineticEnergy(newKineticEnergy);
+      setMaxKineticEnergy(newMaxKineticEnergy);
+      setTheoreticalStoppingPotential(newTheoreticalStoppingPotential);
       setCurrent(newCurrent);
 
       // I-V eğrisi verilerini güncelle
@@ -141,7 +143,8 @@ const PhotoelectricSimulator: React.FC = () => {
       const maxFreq = 2e15;
       setEFCurveData(generateEnergyFrequencyData(minFreq, maxFreq, metalType));
     } else {
-      setKineticEnergy(0);
+      setMaxKineticEnergy(0);
+      setTheoreticalStoppingPotential(0);
       setCurrent(0);
     }
   }, [
@@ -196,155 +199,159 @@ const PhotoelectricSimulator: React.FC = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.experimentContainer}>
-        {/* Deney Aparatı */}
-        <Animated.View
+    <View style={styles.container}>
+      {/* Deney Aparatı */}
+      <Animated.View
+        style={[
+          styles.experimentSetup,
+          {
+            opacity: isLightOn ? 1 : 0.7,
+            transform: getSafeTransform([
+              {
+                scale:
+                  isLightOn && emissionAnimation
+                    ? getInterpolatedValue(
+                        emissionAnimation,
+                        [0, 1],
+                        [1, 1.02]
+                      )
+                    : 1,
+              },
+            ]),
+          },
+        ]}
+      >
+        <View
           style={[
-            styles.experimentSetup,
-            {
-              opacity: isLightOn ? 1 : 0.7,
-              transform: getSafeTransform([
-                {
-                  scale:
-                    isLightOn && emissionAnimation
-                      ? getInterpolatedValue(
-                          emissionAnimation,
-                          [0, 1],
-                          [1, 1.02]
-                        )
-                      : 1,
-                },
-              ]),
-            },
+            styles.apparatusContainer,
+            isMobile && styles.apparatusMobile,
           ]}
         >
-          <View
+          <PhotonSource
+            wavelength={frequencyToWavelength(frequency)}
+            intensity={intensity}
+            isActive={isLightOn}
+          />
+          <MetalSurface
+            metalType={metalType}
+            emittingElectrons={isEmittingElectrons}
+            intensity={intensity}
+          />
+          <ElectronCollector voltage={stoppingVoltage} current={current} />
+        </View>
+      </Animated.View>
+
+      {/* Kontrol Paneli */}
+      <ControlPanel
+        frequency={frequency}
+        setFrequency={setFrequency}
+        intensity={intensity}
+        setIntensity={setIntensity}
+        metalType={metalType}
+        setMetalType={setMetalType}
+        stoppingVoltage={stoppingVoltage}
+        setStoppingVoltage={setStoppingVoltage}
+        temperature={temperature}
+        setTemperature={setTemperature}
+        isLightOn={isLightOn}
+        setIsLightOn={setIsLightOn}
+      />
+
+      {/* Deney Sonuçları */}
+      <View style={styles.resultsContainer}>
+        <Text style={styles.resultsTitle}>
+          {t('Deney Sonuçları', 'Experiment Results')}
+        </Text>
+        <View style={styles.resultsRow}>
+          <Text style={styles.resultsLabel}>
+            {t('Dalga Boyu:', 'Wavelength:')}
+          </Text>
+          <Text style={styles.resultsValue}>
+            {frequencyToWavelength(frequency).toFixed(0)} nm
+          </Text>
+        </View>
+        <View style={styles.resultsRow}>
+          <Text style={styles.resultsLabel}>
+            {t('Frekans:', 'Frequency:')}
+          </Text>
+          <Text style={styles.resultsValue}>
+            {(frequency / 1e12).toFixed(2)} THz
+          </Text>
+        </View>
+        <View style={styles.resultsRow}>
+          <Text style={styles.resultsLabel}>
+            {t('Eşik Frekansı:', 'Threshold Frequency:')}
+          </Text>
+          <Animated.View
             style={[
-              styles.apparatusContainer,
-              isMobile && styles.apparatusMobile,
+              styles.resultIndicator,
+              frequency >= thresholdFrequency
+                ? styles.resultIndicatorSuccess
+                : styles.resultIndicatorWarning,
+              {
+                opacity: emissionAnimation
+                  ? getInterpolatedValue(
+                      emissionAnimation,
+                      [0, 1],
+                      [0.3, 1]
+                    )
+                  : 0.3,
+              },
+            ]}
+          />
+          <Text style={styles.resultsValue}>
+            {(thresholdFrequency / 1e12).toFixed(2)} THz
+          </Text>
+        </View>
+        <View style={styles.resultsRow}>
+          <Text style={styles.resultsLabel}>
+            {t('Maks. Kinetik Enerji:', 'Max. Kinetic Energy:')}
+          </Text>
+          <Animated.View
+            style={[
+              styles.resultIndicator,
+              maxKineticEnergy > 0
+                ? styles.resultIndicatorSuccess
+                : styles.resultIndicatorWarning,
+              { opacity: emissionAnimation },
+            ]}
+          />
+          <Text
+            style={[
+              styles.resultsValue,
+              maxKineticEnergy > 0 ? styles.resultPositive : null,
             ]}
           >
-            <PhotonSource
-              wavelength={frequencyToWavelength(frequency)}
-              intensity={intensity}
-              isActive={isLightOn}
-            />
-            <MetalSurface
-              metalType={metalType}
-              emittingElectrons={isEmittingElectrons}
-              intensity={intensity}
-            />
-            <ElectronCollector voltage={stoppingVoltage} current={current} />
-          </View>
-        </Animated.View>
-
-        {/* Kontrol Paneli ve Sonuçlar */}
-        <View style={styles.controlsAndResults}>
-          <ControlPanel
-            frequency={frequency}
-            setFrequency={setFrequency}
-            intensity={intensity}
-            setIntensity={setIntensity}
-            metalType={metalType}
-            setMetalType={setMetalType}
-            stoppingVoltage={stoppingVoltage}
-            setStoppingVoltage={setStoppingVoltage}
-            temperature={temperature}
-            setTemperature={setTemperature}
-            isLightOn={isLightOn}
-            setIsLightOn={setIsLightOn}
+            {maxKineticEnergy.toFixed(2)} eV
+          </Text>
+        </View>
+        <View style={styles.resultsRow}>
+          <Text style={styles.resultsLabel}>
+            {t('Teorik Durdurucu Potansiyel:', 'Theoretical Stopping Potential:')}
+          </Text>
+          <Text style={styles.resultsValue}>
+            {theoreticalStoppingPotential.toFixed(2)} V
+          </Text>
+        </View>
+        <View style={styles.resultsRow}>
+          <Text style={styles.resultsLabel}>{t('Akım:', 'Current:')}</Text>
+          <Animated.View
+            style={[
+              styles.resultIndicator,
+              current > 0
+                ? styles.resultIndicatorSuccess
+                : styles.resultIndicatorWarning,
+              { opacity: collectAnimation },
+            ]}
           />
-
-          {/* Deney Sonuçları */}
-          <View style={styles.resultsContainer}>
-            <Text style={styles.resultsTitle}>
-              {t('Deney Sonuçları', 'Experiment Results')}
-            </Text>
-            <View style={styles.resultsRow}>
-              <Text style={styles.resultsLabel}>
-                {t('Dalga Boyu:', 'Wavelength:')}
-              </Text>
-              <Text style={styles.resultsValue}>
-                {frequencyToWavelength(frequency).toFixed(0)} nm
-              </Text>
-            </View>
-            <View style={styles.resultsRow}>
-              <Text style={styles.resultsLabel}>
-                {t('Frekans:', 'Frequency:')}
-              </Text>
-              <Text style={styles.resultsValue}>
-                {(frequency / 1e12).toFixed(2)} THz
-              </Text>
-            </View>
-            <View style={styles.resultsRow}>
-              <Text style={styles.resultsLabel}>
-                {t('Eşik Frekansı:', 'Threshold Frequency:')}
-              </Text>
-              <Animated.View
-                style={[
-                  styles.resultIndicator,
-                  frequency >= thresholdFrequency
-                    ? styles.resultIndicatorSuccess
-                    : styles.resultIndicatorWarning,
-                  {
-                    opacity: emissionAnimation
-                      ? getInterpolatedValue(
-                          emissionAnimation,
-                          [0, 1],
-                          [0.3, 1]
-                        )
-                      : 0.3,
-                  },
-                ]}
-              />
-              <Text style={styles.resultsValue}>
-                {(thresholdFrequency / 1e12).toFixed(2)} THz
-              </Text>
-            </View>
-            <View style={styles.resultsRow}>
-              <Text style={styles.resultsLabel}>
-                {t('Kinetik Enerji:', 'Kinetic Energy:')}
-              </Text>
-              <Animated.View
-                style={[
-                  styles.resultIndicator,
-                  kineticEnergy > 0
-                    ? styles.resultIndicatorSuccess
-                    : styles.resultIndicatorWarning,
-                  { opacity: emissionAnimation },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.resultsValue,
-                  kineticEnergy > 0 ? styles.resultPositive : null,
-                ]}
-              >
-                {kineticEnergy.toFixed(2)} eV
-              </Text>
-            </View>
-            <View style={styles.resultsRow}>
-              <Text style={styles.resultsLabel}>{t('Akım:', 'Current:')}</Text>
-              <Animated.View
-                style={[
-                  styles.resultIndicator,
-                  current > 0
-                    ? styles.resultIndicatorSuccess
-                    : styles.resultIndicatorWarning,
-                  { opacity: collectAnimation },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.resultsValue,
-                  current > 0 ? styles.resultPositive : null,
-                ]}
-              >
-                {current.toFixed(2)} μA
-              </Text>
-            </View>
-          </View>
+          <Text
+            style={[
+              styles.resultsValue,
+              current > 0 ? styles.resultPositive : null,
+            ]}
+          >
+            {current.toFixed(2)} μA
+          </Text>
         </View>
       </View>
 
@@ -361,45 +368,51 @@ const PhotoelectricSimulator: React.FC = () => {
         </Text>
         <Text style={styles.infoText}>
           {t(
-            "Einstein'ın açıklamasına göre, ışık foton adı verilen enerji paketlerinden oluşur ve her fotonun enerjisi E = hf formülüyle hesaplanır (h: Planck sabiti, f: frekans). Bir foton, enerjisi metalin iş fonksiyonundan (Φ) büyükse elektron koparabilir: E = hf - Φ",
-            "According to Einstein's explanation, light consists of energy packets called photons, and the energy of each photon is calculated by the formula E = hf (h: Planck's constant, f: frequency). A photon can eject an electron if its energy is greater than the metal's work function (Φ): E = hf - Φ"
+            "Einstein'ın açıklamasına göre, ışık foton adı verilen enerji paketlerinden oluşur ve her fotonun enerjisi E = hf formülüyle hesaplanır (h: Planck sabiti, f: frekans). Bir foton, enerjisi metalin iş fonksiyonundan (Φ) büyükse elektron koparabilir: E_max = hf - Φ",
+            "According to Einstein's explanation, light consists of energy packets called photons, and the energy of each photon is calculated by the formula E = hf (h: Planck's constant, f: frequency). A photon can eject an electron if its energy is greater than the metal's work function (Φ): E_max = hf - Φ"
+          )}
+        </Text>
+        <Text style={styles.infoText}>
+          {t(
+            "Önemli fiziksel kurallar: 1) Eşik frekansının altında hiç elektron koparılmaz, 2) Akım sadece ışık şiddetine bağlıdır, frekansa bağlı değildir, 3) Elektronların maksimum kinetik enerjisi sadece frekansa bağlıdır, şiddete bağlı değildir, 4) Durdurucu potansiyel elektronları durdurur ve akımı sıfırlar.",
+            "Important physical rules: 1) No electrons are emitted below the threshold frequency, 2) Current depends only on light intensity, not on frequency, 3) Maximum kinetic energy of electrons depends only on frequency, not on intensity, 4) Stopping potential stops electrons and cuts current to zero."
           )}
         </Text>
       </View>
 
-      <View style={styles.chartSection}>
-        <Text style={styles.chartTitle}>{t('Grafikler', 'Charts')}</Text>
-        <Text style={styles.chartDescription}>
-          {t(
-            'Fotoelektrik deneyi sonuçlarına göre oluşturulan grafikler burada gösterilecektir. Web versiyonda gerçek grafikler, mobilden farklı olarak, görsel grafikler yerine verilerle temsil edilmektedir.',
-            'Charts generated from the photoelectric experiment results would be shown here. In the web version, actual charts are displayed, unlike mobile which is represented with data.'
-          )}
-        </Text>
-      </View>
-    </ScrollView>
+      {isMobile && (
+        <View style={styles.chartSection}>
+          <Text style={styles.chartTitle}>{t('Grafikler', 'Charts')}</Text>
+          <Text style={styles.chartDescription}>
+            {t(
+              'Fotoelektrik deneyi sonuçlarına göre oluşturulan grafikler web versiyonunda görüntülenebilir.',
+              'Charts generated from photoelectric experiment results can be viewed in the web version.'
+            )}
+          </Text>
+        </View>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-  },
-  experimentContainer: {
-    flexDirection: 'column',
+    padding: isMobile ? 8 : 16,
   },
   experimentSetup: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    height: 300,
+    height: isMobile ? 160 : 300,
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
+    padding: isMobile ? 4 : 16,
+    marginBottom: isMobile ? 8 : 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
+    elevation: 2,
   },
   apparatusContainer: {
     flexDirection: 'row',
@@ -408,46 +421,40 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   apparatusMobile: {
-    // Mobil cihazlarda bileşenlerin arasındaki mesafeyi ayarla
     justifyContent: 'space-between',
-    paddingHorizontal: 8,
-  },
-  controlsAndResults: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
+    paddingHorizontal: 2,
   },
   resultsContainer: {
-    flex: 1,
-    minWidth: 250,
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
-    padding: 16,
+    padding: isMobile ? 8 : 16,
+    marginTop: isMobile ? 8 : 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 2,
   },
   resultsTitle: {
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: isMobile ? 12 : 16,
     color: '#2c3e50',
   },
   resultsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: isMobile ? 6 : 8,
     position: 'relative',
+    minHeight: isMobile ? 28 : 24,
   },
   resultIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: isMobile ? 10 : 8,
+    height: isMobile ? 10 : 8,
+    borderRadius: isMobile ? 5 : 4,
     position: 'absolute',
-    right: '30%',
+    right: isMobile ? '25%' : '30%',
   },
   resultIndicatorSuccess: {
     backgroundColor: '#2ecc71',
@@ -466,49 +473,53 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   resultsLabel: {
-    fontSize: 14,
+    fontSize: isMobile ? 13 : 14,
     color: '#34495e',
+    flex: 1,
+    flexWrap: 'wrap',
   },
   resultsValue: {
-    fontSize: 14,
+    fontSize: isMobile ? 13 : 14,
     fontWeight: '500',
     color: '#2c3e50',
+    textAlign: 'right',
+    marginLeft: 8,
   },
   infoContainer: {
-    marginTop: 24,
+    marginTop: isMobile ? 16 : 24,
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
-    padding: 16,
+    padding: isMobile ? 12 : 16,
   },
   infoTitle: {
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: isMobile ? 8 : 12,
     color: '#2c3e50',
   },
   infoText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: isMobile ? 13 : 14,
+    lineHeight: isMobile ? 20 : 22,
     color: '#34495e',
-    marginBottom: 12,
+    marginBottom: isMobile ? 8 : 12,
   },
   chartSection: {
-    marginTop: 24,
+    marginTop: isMobile ? 16 : 24,
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
-    padding: 16,
+    padding: isMobile ? 12 : 16,
   },
   chartTitle: {
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: isMobile ? 8 : 12,
     color: '#2c3e50',
   },
   chartDescription: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: isMobile ? 13 : 14,
+    lineHeight: isMobile ? 20 : 22,
     color: '#34495e',
-    marginBottom: 12,
+    marginBottom: isMobile ? 8 : 12,
     fontStyle: 'italic',
   },
 });

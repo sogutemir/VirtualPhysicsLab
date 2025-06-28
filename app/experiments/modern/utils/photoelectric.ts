@@ -96,23 +96,48 @@ export const wavelengthToColor = (wavelength: number): string => {
 };
 
 /**
- * Işık frekansına, metal türüne ve durdurucu potansiyele göre elektron kinetik enerjisini hesaplar
+ * Maksimum kinetik enerjiyi hesaplar (Einstein denklemi: E = hf - Φ)
  * @param frequency Işık frekansı (Hz)
  * @param metalType Metal türü
- * @param stoppingVoltage Durdurucu potansiyel (V)
- * @returns Elektron kinetik enerjisi (eV)
+ * @returns Maksimum elektron kinetik enerjisi (eV)
+ */
+export const calculateMaxKineticEnergy = (
+  frequency: number,
+  metalType: MetalType
+): number => {
+  // Einstein denklemi: E_max = hf - Φ
+  const workFunction = WORK_FUNCTIONS[metalType];
+  const photonEnergy = (PLANCK_CONSTANT * frequency) / ELECTRON_CHARGE; // eV cinsinden
+  const maxKineticEnergy = photonEnergy - workFunction;
+
+  return Math.max(0, maxKineticEnergy); // Negatif değerler için 0 döndür
+};
+
+/**
+ * Durdurucu potansiyeli hesaplar (eV₀ = E_max/e)
+ * @param frequency Işık frekansı (Hz)
+ * @param metalType Metal türü
+ * @returns Durdurucu potansiyel (V)
+ */
+export const calculateStoppingPotential = (
+  frequency: number,
+  metalType: MetalType
+): number => {
+  // V₀ = E_max / e (Einstein denklemi)
+  const maxKineticEnergy = calculateMaxKineticEnergy(frequency, metalType);
+  return maxKineticEnergy; // eV cinsinden enerji = V cinsinden potansiyel
+};
+
+/**
+ * Geriye uyumluluk için eski fonksiyon adı
+ * @deprecated Use calculateMaxKineticEnergy instead
  */
 export const calculateKineticEnergy = (
   frequency: number,
   metalType: MetalType,
   stoppingVoltage: number = 0
 ): number => {
-  // E = hf - Φ - eV₀
-  const workFunction = WORK_FUNCTIONS[metalType];
-  const photonEnergy = (PLANCK_CONSTANT * frequency) / ELECTRON_CHARGE; // eV cinsinden
-  const kineticEnergy = photonEnergy - workFunction - stoppingVoltage;
-
-  return Math.max(0, kineticEnergy); // Negatif değerler için 0 döndür
+  return calculateMaxKineticEnergy(frequency, metalType);
 };
 
 /**
@@ -127,7 +152,7 @@ export const calculateThresholdFrequency = (metalType: MetalType): number => {
 };
 
 /**
- * Verilen parametrelere göre elektron akımını hesaplar
+ * Verilen parametrelere göre elektron akımını hesaplar (Fiziksel olarak doğru)
  * @param frequency Işık frekansı (Hz)
  * @param intensity Işık şiddeti (keyfi birim, 0-100 arası)
  * @param metalType Metal türü
@@ -146,19 +171,28 @@ export const calculateCurrent = (
   const thresholdFrequency = calculateThresholdFrequency(metalType);
   if (frequency < thresholdFrequency) return 0;
 
-  // Kinetik enerjiyi hesapla
-  const kineticEnergy = calculateKineticEnergy(
-    frequency,
-    metalType,
-    stoppingVoltage
-  );
-  if (kineticEnergy <= 0) return 0;
+  // Maksimum kinetik enerjiyi hesapla
+  const maxKineticEnergy = calculateMaxKineticEnergy(frequency, metalType);
+  if (maxKineticEnergy <= 0) return 0;
 
-  // Sıcaklık etkisi (termal etki)
-  const temperatureFactor = 1 + (temperature - 300) / 1000;
+  // Durdurucu potansiyel etkisi: Eğer eV₀ ≥ E_max ise elektronlar duraklayıp akım akmaz
+  if (stoppingVoltage >= maxKineticEnergy) return 0;
 
-  // Akım hesabı: I ∝ Işık şiddeti * Kinetik enerji * Sıcaklık faktörü
-  return intensity * Math.sqrt(kineticEnergy) * temperatureFactor;
+  // Gerçek kinetik enerji = maksimum - durdurucu potansiyel etkisi
+  const effectiveKineticEnergy = maxKineticEnergy - stoppingVoltage;
+  if (effectiveKineticEnergy <= 0) return 0;
+
+  // Fotoelektrik olayda akım sadece ışık şiddetine (foton sayısına) bağlıdır
+  // Kinetik enerji, elektronların ne kadar hızlı gittiğini belirler, akımı değil
+  const baseCurrentDensity = intensity / 10; // Temel akım yoğunluğu
+
+  // Sıcaklık etkisi: Yüksek sıcaklıkta termal emisyon artar
+  const thermalFactor = 1 + Math.exp((temperature - 300) / 200) * 0.1;
+
+  // Elektron hareketliliği: Yüksek kinetik enerjili elektronlar daha kolay toplanır
+  const mobilityFactor = Math.sqrt(effectiveKineticEnergy / maxKineticEnergy);
+
+  return baseCurrentDensity * thermalFactor * mobilityFactor;
 };
 
 /**
@@ -166,6 +200,7 @@ export const calculateCurrent = (
  * @param frequency Işık frekansı (Hz)
  * @param intensity Işık şiddeti
  * @param metalType Metal türü
+ * @param temperature Sıcaklık
  * @param maxVoltage Maksimum gerilim değeri
  * @param pointCount Veri noktası sayısı
  * @returns I-V eğrisi veri noktaları
@@ -218,7 +253,7 @@ export const generateEnergyFrequencyData = (
 
   for (let i = 0; i <= pointCount; i++) {
     const frequency = minFrequency + i * frequencyStep;
-    const kineticEnergy = calculateKineticEnergy(frequency, metalType);
+    const kineticEnergy = calculateMaxKineticEnergy(frequency, metalType);
     data.push({
       frequency,
       kineticEnergy,

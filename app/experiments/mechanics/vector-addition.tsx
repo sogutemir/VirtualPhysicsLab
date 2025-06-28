@@ -85,7 +85,7 @@ export default function VectorAdditionExperiment() {
   });
 
   // Animasyon referansı
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number>(1);
 
   // Başlangıç vektörlerini oluştur
   const createInitialVectors = useCallback(
@@ -644,10 +644,221 @@ export default function VectorAdditionExperiment() {
       difficulty={t('Orta Seviye', 'Intermediate')}
       difficultyEn="Intermediate"
       description={t(
-        'Bu deneyde, vektörlerin toplanmasını ve bileşke vektörün oluşumunu gözlemleyebilirsiniz. Vektörlerin uçlarını sürükleyerek yönlerini ve büyüklüklerini değiştirebilirsiniz.',
-        'In this experiment, you can observe the addition of vectors and the formation of the resultant vector. You can change the direction and magnitude of vectors by dragging their endpoints.'
+        `🎯 Vektör toplama deneyi, vektörlerin grafiksel toplamını ve bileşke vektörün oluşumunu inceleyen temel fizik deneyidir.
+
+📚 TEORİ VE FORMÜLLER:
+
+⚡ Vektör Tanımı:
+• Vektör: Büyüklük ve yönü olan fiziksel niceliktir
+• Skaler: Sadece büyüklüğü olan niceliktir
+• Gösterim: →A = (Ax, Ay)
+• Büyüklük: |→A| = √(Ax² + Ay²)
+
+🔄 Vektör Toplama Yöntemleri:
+• Geometrik toplam: Paralelkenar kuralı
+• Bileşensel toplam: →R = →A + →B = (Ax + Bx, Ay + By)
+• Zincir kuralı: Uç uca ekleme
+• Üçgen kuralı: Kapalı üçgen
+
+⚖️ Matematiksel İşlemler:
+• Toplam: →R = Σ→Ai = →A₁ + →A₂ + ... + →An
+• Bileşenler: Rx = ΣAix, Ry = ΣAiy
+• Büyüklük: |→R| = √(Rx² + Ry²)
+• Yön: θ = arctan(Ry/Rx)
+
+🔋 Fiziksel Uygulamalar:
+• Kuvvet vektörleri (→F₁ + →F₂ = →Fnet)
+• Hız vektörleri (→v₁ + →v₂ = →vbileşke)
+• İvme vektörleri (→a₁ + →a₂ = →atoplam)
+• Elektrik alan vektörleri (→E₁ + →E₂ = →Etoplam)
+
+💡 Vektör Özellikleri:
+• Değişmeli: →A + →B = →B + →A
+• Birleşmeli: (→A + →B) + →C = →A + (→B + →C)
+• Sıfır vektör: →A + →0 = →A
+• Ters vektör: →A + (-→A) = →0
+
+🎮 Deney Özellikleri:
+- Vektör Sayısı: 2-5 adet
+- İnteraktif Düzenleme: Sürükle-bırak
+- Animasyonlu Toplama: Adım adım görselleştirme
+- Gerçek Zamanlı Hesaplama: Anlık sonuç
+
+🔬 Gözlemlenebilir Durumlar:
+• Paralel vektörler (θ = 0°)
+• Zıt yönlü vektörler (θ = 180°)
+• Dik vektörler (θ = 90°)
+• Rastgele açılı vektörler
+• Sıfır bileşke vektör durumu
+
+💻 Görselleştirme:
+• Renkli vektör gösterimi
+• Grid tabanlı koordinat sistemi
+• Animasyonlu toplama süreci
+• Bileşke vektör vurgulaması
+• İnteraktif manipülasyon`,
+        `🎯 The vector addition experiment studies the graphical sum of vectors and formation of resultant vectors in fundamental physics.
+
+📚 THEORY AND FORMULAS:
+
+⚡ Vector Definition:
+• Vector: Physical quantity with magnitude and direction
+• Scalar: Quantity with magnitude only
+• Notation: →A = (Ax, Ay)
+• Magnitude: |→A| = √(Ax² + Ay²)
+
+🔄 Vector Addition Methods:
+• Geometric sum: Parallelogram rule
+• Component sum: →R = →A + →B = (Ax + Bx, Ay + By)
+• Chain rule: Head-to-tail addition
+• Triangle rule: Closed triangle
+
+⚖️ Mathematical Operations:
+• Sum: →R = Σ→Ai = →A₁ + →A₂ + ... + →An
+• Components: Rx = ΣAix, Ry = ΣAiy
+• Magnitude: |→R| = √(Rx² + Ry²)
+• Direction: θ = arctan(Ry/Rx)
+
+🔋 Physical Applications:
+• Force vectors (→F₁ + →F₂ = →Fnet)
+• Velocity vectors (→v₁ + →v₂ = →vresultant)
+• Acceleration vectors (→a₁ + →a₂ = →atotal)
+• Electric field vectors (→E₁ + →E₂ = →Etotal)
+
+💡 Vector Properties:
+• Commutative: →A + →B = →B + →A
+• Associative: (→A + →B) + →C = →A + (→B + →C)
+• Zero vector: →A + →0 = →A
+• Inverse vector: →A + (-→A) = →0
+
+🎮 Experiment Features:
+- Number of Vectors: 2-5 vectors
+- Interactive Editing: Drag-and-drop
+- Animated Addition: Step-by-step visualization
+- Real-time Calculation: Instant results
+
+🔬 Observable Phenomena:
+• Parallel vectors (θ = 0°)
+• Opposite vectors (θ = 180°)
+• Perpendicular vectors (θ = 90°)
+• Random angle vectors
+• Zero resultant vector case
+
+💻 Visualization:
+• Colored vector representation
+• Grid-based coordinate system
+• Animated addition process
+• Resultant vector highlighting
+• Interactive manipulation`
       )}
-      descriptionEn="In this experiment, you can observe the addition of vectors and the formation of the resultant vector. You can change the direction and magnitude of vectors by dragging their endpoints."
+      descriptionEn={t(
+        `🎯 The vector addition experiment studies the graphical sum of vectors and formation of resultant vectors in fundamental physics.
+
+📚 THEORY AND FORMULAS:
+
+⚡ Vector Definition:
+• Vector: Physical quantity with magnitude and direction
+• Scalar: Quantity with magnitude only
+• Notation: →A = (Ax, Ay)
+• Magnitude: |→A| = √(Ax² + Ay²)
+
+🔄 Vector Addition Methods:
+• Geometric sum: Parallelogram rule
+• Component sum: →R = →A + →B = (Ax + Bx, Ay + By)
+• Chain rule: Head-to-tail addition
+• Triangle rule: Closed triangle
+
+⚖️ Mathematical Operations:
+• Sum: →R = Σ→Ai = →A₁ + →A₂ + ... + →An
+• Components: Rx = ΣAix, Ry = ΣAiy
+• Magnitude: |→R| = √(Rx² + Ry²)
+• Direction: θ = arctan(Ry/Rx)
+
+🔋 Physical Applications:
+• Force vectors (→F₁ + →F₂ = →Fnet)
+• Velocity vectors (→v₁ + →v₂ = →vresultant)
+• Acceleration vectors (→a₁ + →a₂ = →atotal)
+• Electric field vectors (→E₁ + →E₂ = →Etotal)
+
+💡 Vector Properties:
+• Commutative: →A + →B = →B + →A
+• Associative: (→A + →B) + →C = →A + (→B + →C)
+• Zero vector: →A + →0 = →A
+• Inverse vector: →A + (-→A) = →0
+
+🎮 Experiment Features:
+- Number of Vectors: 2-5 vectors
+- Interactive Editing: Drag-and-drop
+- Animated Addition: Step-by-step visualization
+- Real-time Calculation: Instant results
+
+🔬 Observable Phenomena:
+• Parallel vectors (θ = 0°)
+• Opposite vectors (θ = 180°)
+• Perpendicular vectors (θ = 90°)
+• Random angle vectors
+• Zero resultant vector case
+
+💻 Visualization:
+• Colored vector representation
+• Grid-based coordinate system
+• Animated addition process
+• Resultant vector highlighting
+• Interactive manipulation`,
+        `🎯 Vektör toplama deneyi, vektörlerin grafiksel toplamını ve bileşke vektörün oluşumunu inceleyen temel fizik deneyidir.
+
+📚 TEORİ VE FORMÜLLER:
+
+⚡ Vektör Tanımı:
+• Vektör: Büyüklük ve yönü olan fiziksel niceliktir
+• Skaler: Sadece büyüklüğü olan niceliktir
+• Gösterim: →A = (Ax, Ay)
+• Büyüklük: |→A| = √(Ax² + Ay²)
+
+🔄 Vektör Toplama Yöntemleri:
+• Geometrik toplam: Paralelkenar kuralı
+• Bileşensel toplam: →R = →A + →B = (Ax + Bx, Ay + By)
+• Zincir kuralı: Uç uca ekleme
+• Üçgen kuralı: Kapalı üçgen
+
+⚖️ Matematiksel İşlemler:
+• Toplam: →R = Σ→Ai = →A₁ + →A₂ + ... + →An
+• Bileşenler: Rx = ΣAix, Ry = ΣAiy
+• Büyüklük: |→R| = √(Rx² + Ry²)
+• Yön: θ = arctan(Ry/Rx)
+
+🔋 Fiziksel Uygulamalar:
+• Kuvvet vektörleri (→F₁ + →F₂ = →Fnet)
+• Hız vektörleri (→v₁ + →v₂ = →vbileşke)
+• İvme vektörleri (→a₁ + →a₂ = →atoplam)
+• Elektrik alan vektörleri (→E₁ + →E₂ = →Etoplam)
+
+💡 Vektör Özellikleri:
+• Değişmeli: →A + →B = →B + →A
+• Birleşmeli: (→A + →B) + →C = →A + (→B + →C)
+• Sıfır vektör: →A + →0 = →A
+• Ters vektör: →A + (-→A) = →0
+
+🎮 Deney Özellikleri:
+- Vektör Sayısı: 2-5 adet
+- İnteraktif Düzenleme: Sürükle-bırak
+- Animasyonlu Toplama: Adım adım görselleştirme
+- Gerçek Zamanlı Hesaplama: Anlık sonuç
+
+🔬 Gözlemlenebilir Durumlar:
+• Paralel vektörler (θ = 0°)
+• Zıt yönlü vektörler (θ = 180°)
+• Dik vektörler (θ = 90°)
+• Rastgele açılı vektörler
+• Sıfır bileşke vektör durumu
+
+💻 Görselleştirme:
+• Renkli vektör gösterimi
+• Grid tabanlı koordinat sistemi
+• Animasyonlu toplama süreci
+• Bileşke vektör vurgulaması
+• İnteraktif manipülasyon`
+      )}
       isRunning={state.isRunning}
       onToggleSimulation={toggleSimulation}
       onReset={resetVectors}

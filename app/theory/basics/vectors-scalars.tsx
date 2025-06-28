@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import ExperimentLayout from '../../../components/ExperimentLayout';
 import { useLanguage } from '../../../components/LanguageContext';
+import FormulaText from '../../../components/ui/FormulaText';
 
 export default function VectorsScalarsTheory() {
   const { t } = useLanguage();
@@ -155,8 +156,8 @@ export default function VectorsScalarsTheory() {
             </Text>
             <Text style={styles.paragraph}>
               {t(
-                'Vektörler genellikle kalın harflerle (F) veya üzerinde ok bulunan harflerle (F⃗) gösterilir. Vektörün büyüklüğü |F| veya F şeklinde yazılır.',
-                'Vectors are usually represented by bold letters (F) or letters with arrows above them (F⃗). The magnitude of a vector is written as |F| or F.'
+                'Vektörler genellikle kalın harflerle (F) veya üzerinde ok bulunan harflerle gösterilir. Vektörün büyüklüğü |F| veya F şeklinde yazılır.',
+                'Vectors are usually represented by bold letters (F) or letters with arrows above them. The magnitude of a vector is written as |F| or F.'
               )}
             </Text>
           </View>
@@ -176,12 +177,10 @@ export default function VectorsScalarsTheory() {
                 'Vectors are added using the parallelogram rule or triangle rule. The sum of two vectors does not always give the same result as scalar addition.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>A⃗ + B⃗ = C⃗</Text>
-              <Text style={styles.formulaDesc}>
-                {t('Vektör toplama işlemi', 'Vector addition operation')}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="A + B = C"
+              description={t('Vektör toplama işlemi', 'Vector addition operation')}
+            />
 
             <Text style={styles.subTitle}>
               {t('2. Vektör Çıkarma', '2. Vector Subtraction')}
@@ -192,12 +191,10 @@ export default function VectorsScalarsTheory() {
                 'Subtracting one vector from another means adding the negative of the second vector to the first vector.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>A⃗ - B⃗ = A⃗ + (-B⃗)</Text>
-              <Text style={styles.formulaDesc}>
-                {t('Vektör çıkarma işlemi', 'Vector subtraction operation')}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="A - B = A + (-B)"
+              description={t('Vektör çıkarma işlemi', 'Vector subtraction operation')}
+            />
 
             <Text style={styles.subTitle}>
               {t('3. Skaler ile Çarpma', '3. Scalar Multiplication')}
@@ -208,12 +205,10 @@ export default function VectorsScalarsTheory() {
                 'When a vector is multiplied by a scalar, the magnitude of the vector changes but the direction remains the same (for positive scalars).'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>k × A⃗ = kA⃗</Text>
-              <Text style={styles.formulaDesc}>
-                {t('k: skaler, A⃗: vektör', 'k: scalar, A⃗: vector')}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="k × A = kA"
+              description={t('k: skaler, A: vektör', 'k: scalar, A: vector')}
+            />
           </View>
 
           {/* Koordinat Sistemi */}
@@ -231,35 +226,26 @@ export default function VectorsScalarsTheory() {
               )}
             </Text>
 
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>A⃗ = Aₓî + Aᵧĵ</Text>
-              <Text style={styles.formulaDesc}>
-                {t(
-                  'î: x yönü birim vektörü, ĵ: y yönü birim vektörü',
-                  'î: unit vector in x direction, ĵ: unit vector in y direction'
-                )}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="A = Aₓî + Aᵧĵ"
+              description={t('î: x yönü birim vektörü, ĵ: y yönü birim vektörü', 'î: unit vector in x direction, ĵ: unit vector in y direction')}
+            />
 
             <Text style={styles.subTitle}>
               {t('Vektör Büyüklüğü:', 'Vector Magnitude:')}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>|A⃗| = √(Aₓ² + Aᵧ²)</Text>
-              <Text style={styles.formulaDesc}>
-                {t('Pisagor teoremi kullanılarak', 'Using Pythagorean theorem')}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="|A| = √(Aₓ² + Aᵧ²)"
+              description={t('Pisagor teoremi kullanılarak', 'Using Pythagorean theorem')}
+            />
 
             <Text style={styles.subTitle}>
               {t('Vektör Yönü:', 'Vector Direction:')}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>θ = tan⁻¹(Aᵧ/Aₓ)</Text>
-              <Text style={styles.formulaDesc}>
-                {t('θ: x ekseni ile yapılan açı', 'θ: angle with x-axis')}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="θ = tan⁻¹(Aᵧ/Aₓ)"
+              description={t('θ: x ekseni ile yapılan açı', 'θ: angle with x-axis')}
+            />
           </View>
 
           {/* Özel Vektör Türleri */}
@@ -277,20 +263,18 @@ export default function VectorsScalarsTheory() {
                 'These are vectors with magnitude 1. They carry only direction information and are usually denoted with a hat (^) symbol.'
               )}
             </Text>
-            <View style={styles.formulaBox}>
-              <Text style={styles.formula}>Â = A⃗/|A⃗|</Text>
-              <Text style={styles.formulaDesc}>
-                {t('A⃗ vektörünün birim vektörü', 'Unit vector of vector A⃗')}
-              </Text>
-            </View>
+            <FormulaText 
+              formula="Â = A/|A|"
+              description={t('A vektörünün birim vektörü', 'Unit vector of vector A')}
+            />
 
             <Text style={styles.subTitle}>
               {t('Sıfır Vektör', 'Zero Vector')}
             </Text>
             <Text style={styles.paragraph}>
               {t(
-                'Büyüklüğü sıfır olan vektördür. Yönü tanımsızdır ve 0⃗ ile gösterilir.',
-                'This is a vector with zero magnitude. Its direction is undefined and it is denoted by 0⃗.'
+                'Büyüklüğü sıfır olan vektördür. Yönü tanımsızdır ve 0 ile gösterilir.',
+                'This is a vector with zero magnitude. Its direction is undefined and it is denoted by 0.'
               )}
             </Text>
 

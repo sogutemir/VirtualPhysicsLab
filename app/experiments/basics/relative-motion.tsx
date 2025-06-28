@@ -25,8 +25,8 @@ const isTablet = screenWidth > 1024;
 
 const RelativeMotionExperiment: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
-  const [trainSpeed, setTrainSpeed] = useState(5.56); // 20 km/h in m/s
-  const [ballSpeed, setBallSpeed] = useState(15); // m/s
+  const [trainSpeed, setTrainSpeed] = useState(2.78); // 10 km/h in m/s (halved for better visualization)
+  const [ballSpeed, setBallSpeed] = useState(7.5); // m/s (halved for better visualization)
   const [ballAngle, setBallAngle] = useState(45); // degrees
   const [time, setTime] = useState(0);
   const [ballPosition, setBallPosition] = useState({ x: 0, y: 0 });
@@ -83,8 +83,8 @@ const RelativeMotionExperiment: React.FC = () => {
     (newPoint: { x: number; y: number }) => {
       setTrajectoryPoints((prev) => {
         const newArray = [...prev, newPoint];
-        // More efficient way to limit array size
-        return newArray.length > 50 ? newArray.slice(-50) : newArray;
+        // More efficient way to limit array size - reduced from 50 to 30 for better performance
+        return newArray.length > 30 ? newArray.slice(-30) : newArray;
       });
     },
     []

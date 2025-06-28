@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useLanguage } from '../../../../../components/LanguageContext';
 
 interface ControlPanelProps {
@@ -26,7 +26,29 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onSpeedChange,
 }) => {
   const { t } = useLanguage();
-  const speedOptions = [0.25, 0.5, 1, 2, 4];
+  
+  // Mobil optimizasyonu
+  const screenWidth = Dimensions.get('window').width;
+  const isMobile = screenWidth < 600;
+  
+  // Mobil ve web için aynı görünen hızlar ama farklı etkiler
+  const speedLabels = [0.25, 0.5, 1, 2, 4]; // Her iki platformda da aynı görünüm
+  
+  // Gerçek hız değerleri (platform bazında)
+  const getActualSpeed = (labelSpeed: number) => {
+    if (isMobile) {
+      // Mobilde gerçek hızlar çok daha yüksek (gizli boost)
+      switch(labelSpeed) {
+        case 0.25: return 2;    // 0.25x görünüyor → 2x çalışıyor
+        case 0.5: return 4;     // 0.5x görünüyor → 4x çalışıyor  
+        case 1: return 8;       // 1x görünüyor → 8x çalışıyor (varsayılan)
+        case 2: return 16;      // 2x görünüyor → 16x çalışıyor
+        case 4: return 32;      // 4x görünüyor → 32x çalışıyor
+        default: return labelSpeed * 8;
+      }
+    }
+    return labelSpeed; // Web için gerçek hızlar
+  };
 
   return (
     <View style={styles.container}>
@@ -56,25 +78,28 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <View style={styles.speedContainer}>
           <Text style={styles.speedLabel}>{t('Hız:', 'Speed:')}</Text>
           <View style={styles.speedButtons}>
-            {speedOptions.map((option) => (
-              <TouchableOpacity
-                key={option}
-                onPress={() => onSpeedChange(option)}
-                style={[
-                  styles.speedButton,
-                  speed === option && styles.speedButtonActive,
-                ]}
-              >
-                <Text
+            {speedLabels.map((labelSpeed) => {
+              const actualSpeed = getActualSpeed(labelSpeed);
+              return (
+                <TouchableOpacity
+                  key={labelSpeed}
+                  onPress={() => onSpeedChange(actualSpeed)}
                   style={[
-                    styles.speedButtonText,
-                    speed === option && styles.speedButtonTextActive,
+                    styles.speedButton,
+                    speed === actualSpeed && styles.speedButtonActive,
                   ]}
                 >
-                  {option}x
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.speedButtonText,
+                      speed === actualSpeed && styles.speedButtonTextActive,
+                    ]}
+                  >
+                    {labelSpeed}x
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 

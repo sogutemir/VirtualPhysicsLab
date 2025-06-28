@@ -23,6 +23,15 @@ const MaterialSelector: React.FC<MaterialSelectorProps> = ({
 }) => {
   const { t } = useLanguage();
 
+  // Malzeme permeabilitesine göre renk belirleme (TransformerCore ile aynı mantık)
+  const getMaterialColor = (permeability: number) => {
+    if (permeability > 7000) return '#9ca3af'; // Silisyumlu çelik
+    if (permeability >= 2500 && permeability <= 3500) return '#8b5a3c'; // Ferrit
+    if (permeability > 1000) return '#6b7280'; // Orta seviye
+    if (permeability <= 100) return '#d1d5db'; // Hava nüveli
+    return '#4b5563'; // Varsayılan
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{t('Nüve Malzemesi', 'Core Material')}</Text>
@@ -43,6 +52,12 @@ const MaterialSelector: React.FC<MaterialSelectorProps> = ({
                 <View style={styles.radioInner} />
               )}
             </View>
+            <View
+              style={[
+                styles.materialColorIndicator,
+                { backgroundColor: getMaterialColor(material.permeability) },
+              ]}
+            />
             <View style={styles.materialInfo}>
               <Text style={styles.materialName}>
                 {t(material.name, material.nameEN)}
@@ -78,6 +93,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     width: '48%',
     marginBottom: 8,
+  },
+  materialColorIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 6,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   radioButton: {
     width: 18,

@@ -4,7 +4,8 @@ import React, {
   useEffect,
   forwardRef,
   useImperativeHandle,
-  useState,
+  useMemo,
+  memo,
 } from 'react';
 import { View, ScrollView, StyleSheet, Text, Dimensions } from 'react-native';
 import Svg, { Line, Circle, Path, Text as SvgText } from 'react-native-svg';
@@ -36,12 +37,12 @@ export const MobileFreeFall = forwardRef<any, FreeFallProps>(
     const scaleX = (canvasWidth - 2 * CANVAS_PADDING) / MAX_X;
     const scaleY = (canvasHeight - 2 * CANVAS_PADDING) / MAX_Y;
 
-    const toCanvasX = useCallback(
-      (x: number) => x * scaleX + CANVAS_PADDING,
+    const toCanvasX = useMemo(
+      () => (x: number) => x * scaleX + CANVAS_PADDING,
       [scaleX]
     );
-    const toCanvasY = useCallback(
-      (y: number) => canvasHeight - (y * scaleY + CANVAS_PADDING),
+    const toCanvasY = useMemo(
+      () => (y: number) => canvasHeight - (y * scaleY + CANVAS_PADDING),
       [canvasHeight, scaleY]
     );
 
@@ -63,61 +64,67 @@ export const MobileFreeFall = forwardRef<any, FreeFallProps>(
       resetSimulation,
     }));
 
-    // X ekseni işaretleri
-    const xAxisTicks = [];
-    for (let x = 0; x <= MAX_X; x += 200) {
-      const canvasX = toCanvasX(x);
-      xAxisTicks.push(
-        <React.Fragment key={`x-${x}`}>
-          <Line
-            x1={canvasX}
-            y1={canvasHeight - CANVAS_PADDING - 5}
-            x2={canvasX}
-            y2={canvasHeight - CANVAS_PADDING + 5}
-            stroke="#7f8c8d"
-            strokeWidth={1}
-          />
-          <SvgText
-            x={canvasX}
-            y={canvasHeight - CANVAS_PADDING + 18}
-            fill="#7f8c8d"
-            fontSize={11}
-            textAnchor="middle"
-            fontWeight="bold"
-          >
-            {x.toString() + ' m'}
-          </SvgText>
-        </React.Fragment>
-      );
-    }
+    // X ekseni işaretleri - Memoized
+    const xAxisTicks = useMemo(() => {
+      const ticks = [];
+      for (let x = 0; x <= MAX_X; x += 200) {
+        const canvasX = toCanvasX(x);
+        ticks.push(
+          <React.Fragment key={`x-${x}`}>
+            <Line
+              x1={canvasX}
+              y1={canvasHeight - CANVAS_PADDING - 5}
+              x2={canvasX}
+              y2={canvasHeight - CANVAS_PADDING + 5}
+              stroke="#7f8c8d"
+              strokeWidth={1}
+            />
+            <SvgText
+              x={canvasX}
+              y={canvasHeight - CANVAS_PADDING + 18}
+              fill="#7f8c8d"
+              fontSize={11}
+              textAnchor="middle"
+              fontWeight="bold"
+            >
+              {x.toString() + ' m'}
+            </SvgText>
+          </React.Fragment>
+        );
+      }
+      return ticks;
+    }, [toCanvasX, canvasHeight]);
 
-    // Y ekseni işaretleri
-    const yAxisTicks = [];
-    for (let y = 0; y <= MAX_Y; y += 50) {
-      const canvasY = toCanvasY(y);
-      yAxisTicks.push(
-        <React.Fragment key={`y-${y}`}>
-          <Line
-            x1={CANVAS_PADDING - 5}
-            y1={canvasY}
-            x2={CANVAS_PADDING + 5}
-            y2={canvasY}
-            stroke="#7f8c8d"
-            strokeWidth={1}
-          />
-          <SvgText
-            x={CANVAS_PADDING - 10}
-            y={canvasY + 4}
-            fill="#7f8c8d"
-            fontSize={11}
-            textAnchor="end"
-            fontWeight="bold"
-          >
-            {y.toString() + ' m'}
-          </SvgText>
-        </React.Fragment>
-      );
-    }
+    // Y ekseni işaretleri - Memoized
+    const yAxisTicks = useMemo(() => {
+      const ticks = [];
+      for (let y = 0; y <= MAX_Y; y += 50) {
+        const canvasY = toCanvasY(y);
+        ticks.push(
+          <React.Fragment key={`y-${y}`}>
+            <Line
+              x1={CANVAS_PADDING - 5}
+              y1={canvasY}
+              x2={CANVAS_PADDING + 5}
+              y2={canvasY}
+              stroke="#7f8c8d"
+              strokeWidth={1}
+            />
+            <SvgText
+              x={CANVAS_PADDING - 10}
+              y={canvasY + 4}
+              fill="#7f8c8d"
+              fontSize={11}
+              textAnchor="end"
+              fontWeight="bold"
+            >
+              {y.toString() + ' m'}
+            </SvgText>
+          </React.Fragment>
+        );
+      }
+      return ticks;
+    }, [toCanvasY]);
 
     // Yörünge path'i oluştur
     let trajectoryPath = '';

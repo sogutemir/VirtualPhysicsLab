@@ -127,8 +127,8 @@ const WeightedPulleyControls: React.FC<WeightedPulleyControlsProps> = memo(
           <CustomSlider
             value={state.massm}
             min={100}
-            max={1000}
-            step={1}
+            max={2500}
+            step={10}
             onValueChange={handleMassmChange}
             minimumTrackTintColor="#ef4444"
             maximumTrackTintColor="#bdc3c7"
@@ -157,32 +157,54 @@ const WeightedPulleyControls: React.FC<WeightedPulleyControlsProps> = memo(
           />
         </View>
 
+
+
         <View style={styles.measurementsContainer}>
           <MeasurementItem
             label={t('Zaman:', 'Time:')}
-            value={`${state.time.toFixed(2)} s`}
+            value={`${state.time.toFixed(1)} s`}
           />
           <MeasurementItem
             label={t('Açı:', 'Angle:')}
-            value={`${((state.phi / Math.PI) * 180 + 90).toFixed(1)}°`}
+            value={`${((state.phi / Math.PI) * 180 + 90).toFixed(0)}°`}
           />
           <MeasurementItem
-            label={t('Potansiyel Enerji:', 'Potential Energy:')}
-            value={`${state.potentialEnergy.toFixed(6)} J`}
+            label={t('İp Uzunluğu:', 'String Length:')}
+            value={`${(1.2 + 0.80 * Math.abs(state.phi)).toFixed(2)} m`}
           />
-          <MeasurementItem
-            label={t('Kinetik Enerji:', 'Kinetic Energy:')}
-            value={`${state.kineticEnergy.toFixed(6)} J`}
-          />
-          <MeasurementItem
-            label={t('Toplam Enerji:', 'Total Energy:')}
-            value={`${state.totalEnergy.toExponential(3)} J`}
-          />
-          {state.period > 0 && (
-            <MeasurementItem
-              label={t('Periyot:', 'Period:')}
-              value={`${state.period.toFixed(2)} s`}
-            />
+          {/* Zemin uyarısı */}
+          {(1.2 + 0.80 * Math.abs(state.phi)) >= 4.0 && (
+            <View style={styles.warningContainer}>
+              <Text style={styles.warningText}>
+                {(1.2 + 0.80 * Math.abs(state.phi)) >= 4.2 
+                  ? t('🔴 Kütle yere çarptı!', '🔴 Mass hit the ground!')
+                  : t('⚠️ Kütle zemine yaklaşıyor!', '⚠️ Mass approaching ground!')
+                }
+              </Text>
+            </View>
+          )}
+          {/* 🔧 MOBILE OPTIMIZATION: Show fewer measurements on mobile */}
+          {Platform.OS === 'web' && (
+            <>
+              <MeasurementItem
+                label={t('Potansiyel Enerji:', 'Potential Energy:')}
+                value={`${state.potentialEnergy.toFixed(6)} J`}
+              />
+              <MeasurementItem
+                label={t('Kinetik Enerji:', 'Kinetic Energy:')}
+                value={`${state.kineticEnergy.toFixed(6)} J`}
+              />
+              <MeasurementItem
+                label={t('Toplam Enerji:', 'Total Energy:')}
+                value={`${state.totalEnergy.toExponential(3)} J`}
+              />
+              {state.period > 0 && (
+                <MeasurementItem
+                  label={t('Periyot:', 'Period:')}
+                  value={`${state.period.toFixed(2)} s`}
+                />
+              )}
+            </>
           )}
         </View>
       </View>
@@ -280,6 +302,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#2c3e50',
+  },
+  warningContainer: {
+    backgroundColor: '#fef3cd',
+    borderRadius: 6,
+    padding: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#f6cc02',
+  },
+  warningText: {
+    fontSize: 12,
+    color: '#856404',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
 
