@@ -282,6 +282,18 @@ const WeightedPulleyExperiment: React.FC = memo(() => {
   const animate = useCallback(() => {
     if (!isMountedRef.current || !state.isRunning) return;
 
+    // Zemin çarpma kontrolü - index.tsx versiyonu
+    const stringLength = 1.2 + PULLEY_RADIUS * Math.abs(state.phi);
+    if (stringLength >= 4.2) {
+      // Kütle yere çarptı - simülasyonu ve zamanı durdur
+      setState((prev) => ({
+        ...prev,
+        isRunning: false,
+        dphi: 0,
+      }));
+      return; // Zaman artışını da durdurmak için erken çık
+    }
+
     // RK4 integrasyonu
     const { phi1, dphi1 } = calculateRK4(state.time, state.phi, state.dphi, {
       inertia: state.inertia,

@@ -440,13 +440,13 @@ const WeightedPulleyExperiment = memo(() => {
         // Zemin çarpma kontrolü - mobil versiyonu
         const stringLength = 1.2 + PULLEY_RADIUS * Math.abs(state.phi);
         if (stringLength >= 4.2) {
-          // Kütle yere çarptı - simülasyonu durdur
+          // Kütle yere çarptı - simülasyonu ve zamanı durdur
           setState((prev) => ({
             ...prev,
             isRunning: false,
             dphi: 0,
           }));
-          return;
+          return; // Zaman artışını da durdurmak için erken çık
         }
 
         // Simplified acceleration calculation
@@ -477,6 +477,19 @@ const WeightedPulleyExperiment = memo(() => {
         }));
       } else {
         // 🔧 WEB: Full RK4 integration
+        
+        // Zemin çarpma kontrolü - web versiyonu
+        const stringLength = 1.2 + PULLEY_RADIUS * Math.abs(state.phi);
+        if (stringLength >= 4.2) {
+          // Kütle yere çarptı - simülasyonu ve zamanı durdur
+          setState((prev) => ({
+            ...prev,
+            isRunning: false,
+            dphi: 0,
+          }));
+          return; // Zaman artışını da durdurmak için erken çık
+        }
+        
         const { phi1, dphi1 } = calculateRK4(
           state.time,
           state.phi,
